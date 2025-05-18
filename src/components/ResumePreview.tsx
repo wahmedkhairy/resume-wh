@@ -48,10 +48,58 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ watermark = true }) => {
           <p className="text-sm text-gray-600">New York University - 2018</p>
           
           <h2>Skills</h2>
-          <p>
-            React, TypeScript, JavaScript, HTML5, CSS3, Tailwind CSS, Redux, Next.js, GraphQL, Jest, 
-            Git, Agile methodologies, Responsive design, Performance optimization
-          </p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>React</span>
+                <span>85%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "85%" }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>TypeScript</span>
+                <span>75%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "75%" }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>CSS/Tailwind</span>
+                <span>90%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div className="bg-green-500 h-1.5 rounded-full" style={{ width: "90%" }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>Next.js</span>
+                <span>80%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "80%" }}></div>
+              </div>
+            </div>
+          </div>
+          
+          <h2>Courses & Certifications</h2>
+          <div className="space-y-2">
+            <div>
+              <h3>AWS Certified Solutions Architect</h3>
+              <p className="text-sm text-gray-600">Amazon Web Services - 2023</p>
+              <p className="text-sm">Professional certification for designing distributed systems on AWS</p>
+            </div>
+            <div>
+              <h3>Advanced React Development</h3>
+              <p className="text-sm text-gray-600">Frontend Masters - 2024</p>
+              <p className="text-sm">Comprehensive course covering advanced React patterns, hooks, and performance optimization</p>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

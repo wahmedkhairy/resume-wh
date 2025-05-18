@@ -19,7 +19,8 @@ interface SectionEditorProps {
   description: string;
   placeholder: string;
   initialContent: string;
-  sectionType?: "summary" | "experience" | "education" | "skills";
+  sectionType?: "summary" | "experience" | "education" | "skills" | "courses" | "certifications";
+  onContentChange?: (content: string) => void;
 }
 
 const SectionEditor: React.FC<SectionEditorProps> = ({
@@ -28,10 +29,20 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
   placeholder,
   initialContent,
   sectionType = "summary",
+  onContentChange,
 }) => {
   const [content, setContent] = useState(initialContent);
   const [isPolishing, setIsPolishing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+    if (onContentChange) {
+      onContentChange(newContent);
+    }
+  };
 
   const handleAIPolish = async () => {
     if (!content.trim()) {
@@ -56,6 +67,9 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
 
       if (data?.polishedContent) {
         setContent(data.polishedContent);
+        if (onContentChange) {
+          onContentChange(data.polishedContent);
+        }
         toast({
           title: "Content Polished",
           description: "Your content has been enhanced with AI.",
@@ -76,6 +90,20 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
     }
   };
 
+  const handleSave = () => {
+    setIsSaving(true);
+    
+    // In a real implementation, this would save to your database
+    setTimeout(() => {
+      setIsSaving(false);
+      toast({
+        title: "Content Saved",
+        description: "Your content has been saved successfully.",
+        variant: "default",
+      });
+    }, 500);
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -87,7 +115,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
           placeholder={placeholder}
           className="min-h-[150px]"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={handleContentChange}
         />
       </CardContent>
       <CardFooter className="flex justify-between">
@@ -103,8 +131,14 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
           </Button>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <CheckCircle className="mr-1 h-4 w-4 text-resume-success" /> Save
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleSave}
+            disabled={isSaving}
+          >
+            <CheckCircle className="mr-1 h-4 w-4 text-resume-success" /> 
+            {isSaving ? "Saving..." : "Save"}
           </Button>
         </div>
       </CardFooter>
