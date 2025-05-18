@@ -40,6 +40,7 @@ const Index = () => {
                 description="A brief overview of your professional background and key strengths"
                 placeholder="Experienced software developer with expertise in..."
                 initialContent="Passionate frontend developer with 5+ years of experience building responsive web applications using React, TypeScript, and modern CSS frameworks. Committed to creating exceptional user experiences through clean, efficient code and intuitive design."
+                sectionType="summary"
               />
               
               <SectionEditor
@@ -47,6 +48,7 @@ const Index = () => {
                 description="List your work history in reverse chronological order"
                 placeholder="Job title, company, date range, and responsibilities..."
                 initialContent="Senior Frontend Developer - Tech Solutions Inc.\nJanuary 2020 - Present\n\n- Led development of company's flagship SaaS product using React and TypeScript\n- Improved application performance by 40% through code optimization and efficient state management\n- Collaborated with UX designers to implement responsive interfaces across all devices\n- Mentored junior developers and conducted code reviews to ensure code quality"
+                sectionType="experience"
               />
               
               <KeywordMatcher />
