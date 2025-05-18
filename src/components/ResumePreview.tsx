@@ -1,12 +1,29 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { PersonalInfo } from "./PersonalInfoBar";
 
 interface ResumePreviewProps {
   watermark?: boolean;
+  personalInfo?: PersonalInfo;
+  summary?: string;
+  experience?: string;
+  education?: string;
 }
 
-const ResumePreview: React.FC<ResumePreviewProps> = ({ watermark = true }) => {
+const ResumePreview: React.FC<ResumePreviewProps> = ({ 
+  watermark = true,
+  personalInfo = {
+    name: "John Doe",
+    jobTitle: "Frontend Developer",
+    location: "New York, NY",
+    email: "john@example.com",
+    phone: "(123) 456-7890"
+  },
+  summary,
+  experience,
+  education
+}) => {
   return (
     <Card className="h-full relative overflow-hidden">
       <CardContent className="p-6 resume-container">
@@ -15,14 +32,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ watermark = true }) => {
         )}
         
         <div className="resume-content">
-          <h1 className="text-2xl font-bold text-center mb-2">John Doe</h1>
-          <p className="text-center text-gray-600 mb-4">Frontend Developer | New York, NY | john@example.com | (123) 456-7890</p>
+          <h1 className="text-2xl font-bold text-center mb-2">{personalInfo.name}</h1>
+          <p className="text-center text-gray-600 mb-4">
+            {personalInfo.jobTitle} | {personalInfo.location} | {personalInfo.email} | {personalInfo.phone}
+          </p>
           
           <h2>Summary</h2>
           <p>
-            Passionate frontend developer with 5+ years of experience building responsive web applications using
-            React, TypeScript, and modern CSS frameworks. Committed to creating exceptional user experiences
-            through clean, efficient code and intuitive design.
+            {summary || "Passionate frontend developer with 5+ years of experience building responsive web applications using React, TypeScript, and modern CSS frameworks. Committed to creating exceptional user experiences through clean, efficient code and intuitive design."}
           </p>
           
           <h2>Experience</h2>

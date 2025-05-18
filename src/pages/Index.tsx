@@ -9,6 +9,7 @@ import KeywordMatcher from "@/components/KeywordMatcher";
 import SkillsBar from "@/components/SkillsBar";
 import CoursesAndCertifications from "@/components/CoursesAndCertifications";
 import SubscriptionOverlay from "@/components/SubscriptionOverlay";
+import PersonalInfoBar, { PersonalInfo } from "@/components/PersonalInfoBar";
 import { Button } from "@/components/ui/button";
 import { Download, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,13 @@ const Index = () => {
     experience: "Senior Frontend Developer - Tech Solutions Inc.\nJanuary 2020 - Present\n\n- Led development of company's flagship SaaS product using React and TypeScript\n- Improved application performance by 40% through code optimization and efficient state management\n- Collaborated with UX designers to implement responsive interfaces across all devices\n- Mentored junior developers and conducted code reviews to ensure code quality",
     education: "Bachelor of Science in Computer Science\nNew York University - 2018",
   });
+  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
+    name: "John Doe",
+    jobTitle: "Frontend Developer",
+    location: "New York, NY",
+    email: "john@example.com",
+    phone: "(123) 456-7890"
+  });
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
@@ -29,6 +37,10 @@ const Index = () => {
       ...prev,
       [section]: content
     }));
+  };
+
+  const handlePersonalInfoChange = (info: PersonalInfo) => {
+    setPersonalInfo(info);
   };
 
   const handleExport = () => {
@@ -104,6 +116,11 @@ const Index = () => {
                 </div>
               </div>
               
+              <PersonalInfoBar 
+                onInfoChange={handlePersonalInfoChange}
+                initialInfo={personalInfo}
+              />
+              
               <SectionEditor
                 title="Professional Summary"
                 description="A brief overview of your professional background and key strengths"
@@ -143,7 +160,13 @@ const Index = () => {
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
                 <h2 className="text-xl font-bold mb-4">ATS Preview</h2>
                 <div className="border rounded-lg h-[500px] overflow-auto bg-white">
-                  <ResumePreview watermark={true} />
+                  <ResumePreview 
+                    watermark={true}
+                    personalInfo={personalInfo}
+                    summary={resumeData.summary}
+                    experience={resumeData.experience}
+                    education={resumeData.education}
+                  />
                 </div>
               </div>
               
