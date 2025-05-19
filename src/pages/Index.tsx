@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -142,7 +141,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      <Header isPremium={isPremiumUser} />
+      <Header />
       <Navigation />
       
       <main className="flex-1 p-6">

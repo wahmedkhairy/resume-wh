@@ -9,7 +9,7 @@ import {
   CardFooter 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Lock, CreditCard, PaypalIcon } from "lucide-react";
+import { Lock, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // Create a PayPal icon since it's not available in lucide-react
