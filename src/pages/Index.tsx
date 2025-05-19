@@ -31,7 +31,20 @@ const Index = () => {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isPremiumUser, setIsPremiumUser] = useState(false);
   const { toast } = useToast();
+
+  // Check if user is a premium subscriber from localStorage
+  useEffect(() => {
+    const checkSubscriptionStatus = () => {
+      const subscriptionStatus = localStorage.getItem('isPremiumUser');
+      if (subscriptionStatus === 'true') {
+        setIsPremiumUser(true);
+      }
+    };
+    
+    checkSubscriptionStatus();
+  }, []);
 
   const handleContentChange = (section: string, content: string) => {
     setResumeData(prev => ({
@@ -47,11 +60,33 @@ const Index = () => {
   const handleExport = () => {
     setIsExporting(true);
     
-    // Simulate export process
-    setTimeout(() => {
-      setIsExporting(false);
-      setShowSubscription(true);
-    }, 500);
+    // If user is premium, allow export
+    if (isPremiumUser) {
+      setTimeout(() => {
+        setIsExporting(false);
+        toast({
+          title: "Resume Exported",
+          description: "Your resume has been exported successfully.",
+        });
+      }, 1000);
+    } else {
+      // Show subscription overlay for non-premium users
+      setTimeout(() => {
+        setIsExporting(false);
+        setShowSubscription(true);
+      }, 500);
+    }
+  };
+
+  // This function will be called when a user successfully subscribes
+  const handleSubscriptionComplete = () => {
+    setIsPremiumUser(true);
+    localStorage.setItem('isPremiumUser', 'true');
+    setShowSubscription(false);
+    toast({
+      title: "Premium Access Granted!",
+      description: "Thank you for subscribing. You now have full access to all premium features.",
+    });
   };
 
   const handleGenerateSummary = async () => {
@@ -107,7 +142,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      <Header />
+      <Header isPremium={isPremiumUser} />
       <Navigation />
       
       <main className="flex-1 p-6">
@@ -181,7 +216,7 @@ const Index = () => {
                 <h2 className="text-xl font-bold mb-4">ATS Preview</h2>
                 <div className="border rounded-lg h-[500px] overflow-auto bg-white">
                   <ResumePreview 
-                    watermark={true}
+                    watermark={!isPremiumUser}
                     personalInfo={personalInfo}
                     summary={resumeData.summary}
                     experience={resumeData.experience}
