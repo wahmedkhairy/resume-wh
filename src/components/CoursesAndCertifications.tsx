@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Book, Award, Plus, Trash2, Wand2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface Course {
   id: string;
@@ -23,6 +22,40 @@ interface Course {
   description: string;
   type: "course" | "certification";
 }
+
+// Basic enhancement function as fallback
+const enhanceCourseDescription = (course: Course): Course => {
+  if (!course.description.trim()) {
+    if (course.type === "certification") {
+      return {
+        ...course,
+        description: `Professional certification validating expertise in ${course.title} from ${course.provider}.`
+      };
+    } else {
+      return {
+        ...course,
+        description: `Comprehensive course covering key concepts and practical applications of ${course.title}.`
+      };
+    }
+  }
+  
+  // If there's a description but it's very short, enhance it
+  if (course.description.length < 30) {
+    if (course.type === "certification") {
+      return {
+        ...course,
+        description: `${course.description} This credential demonstrates professional competence in key industry standards and best practices.`
+      };
+    } else {
+      return {
+        ...course,
+        description: `${course.description} The course provided hands-on experience and practical knowledge applicable to real-world scenarios.`
+      };
+    }
+  }
+  
+  return course;
+};
 
 const CoursesAndCertifications = () => {
   const [items, setItems] = useState<Course[]>([
@@ -136,34 +169,56 @@ const CoursesAndCertifications = () => {
     setIsPolishing(true);
 
     try {
-      const itemsForPolishing = items.map(item => ({
-        ...item,
-        description: item.description || `${item.title} from ${item.provider}`
-      }));
-      
-      const { data, error } = await supabase.functions.invoke('polish-resume', {
-        body: { content: JSON.stringify(itemsForPolishing), sectionType: "courses-certifications" },
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data?.polishedItems) {
-        setItems(data.polishedItems);
+      try {
+        // Try calling the API first
+        const itemsForPolishing = items.map(item => ({
+          ...item,
+          description: item.description || `${item.title} from ${item.provider}`
+        }));
+        
+        const response = await fetch('/api/enhance-courses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ content: JSON.stringify(itemsForPolishing) }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('API unavailable');
+        }
+        
+        const data = await response.json();
+        
+        if (data?.polishedItems) {
+          setItems(data.polishedItems);
+          toast({
+            title: "Content Enhanced",
+            description: "Your courses and certifications have been improved with AI.",
+            variant: "default",
+          });
+          return;
+        }
+        
+        throw new Error('Invalid API response');
+      } catch (apiError) {
+        console.log('API error, using fallback:', apiError);
+        
+        // Use fallback enhancement if API fails
+        const enhancedItems = items.map(item => enhanceCourseDescription(item));
+        setItems(enhancedItems);
+        
         toast({
-          title: "Content Polished",
-          description: "Your courses and certifications have been enhanced with AI.",
+          title: "Descriptions Enhanced",
+          description: "Your descriptions have been improved using local processing.",
           variant: "default",
         });
-      } else if (data?.error) {
-        throw new Error(data.error);
       }
     } catch (error) {
-      console.error('Error polishing content:', error);
+      console.error('Error enhancing content:', error);
       toast({
-        title: "AI Polish Failed",
-        description: error.message || "There was an error polishing your content.",
+        title: "Enhancement Failed",
+        description: "There was an error enhancing your content.",
         variant: "destructive",
       });
     } finally {

@@ -9,6 +9,15 @@ interface ResumePreviewProps {
   summary?: string;
   experience?: string;
   education?: string;
+  skills?: Array<{id: string; name: string; level: number}>;
+  coursesAndCertifications?: Array<{
+    id: string;
+    title: string;
+    provider: string;
+    date: string;
+    description: string;
+    type: "course" | "certification";
+  }>;
 }
 
 const ResumePreview: React.FC<ResumePreviewProps> = ({ 
@@ -22,101 +31,175 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   },
   summary,
   experience,
-  education
+  education,
+  skills,
+  coursesAndCertifications
 }) => {
   return (
     <Card className="h-full relative overflow-hidden">
-      <CardContent className="p-6 resume-container">
+      <CardContent className="p-6 resume-container text-black">
         {watermark && (
           <div className="watermark">DEMO</div>
         )}
         
         <div className="resume-content">
           <h1 className="text-2xl font-bold text-center mb-2">{personalInfo.name}</h1>
-          <p className="text-center text-gray-600 mb-4">
+          <p className="text-center text-gray-700 mb-4">
             {personalInfo.jobTitle} | {personalInfo.location} | {personalInfo.email} | {personalInfo.phone}
           </p>
           
-          <h2>Summary</h2>
-          <p>
+          <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Summary</h2>
+          <p className="mb-4 text-black">
             {summary || "Passionate frontend developer with 5+ years of experience building responsive web applications using React, TypeScript, and modern CSS frameworks. Committed to creating exceptional user experiences through clean, efficient code and intuitive design."}
           </p>
           
-          <h2>Experience</h2>
-          <h3>Senior Frontend Developer - Tech Solutions Inc.</h3>
-          <p className="text-sm text-gray-600">January 2020 - Present</p>
-          <ul>
-            <li>Led development of company's flagship SaaS product using React and TypeScript</li>
-            <li>Improved application performance by <span className="ats-highlight">40%</span> through code optimization and efficient state management</li>
-            <li>Collaborated with UX designers to implement responsive interfaces across all devices</li>
-            <li>Mentored junior developers and conducted code reviews to ensure code quality</li>
-          </ul>
+          <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Experience</h2>
+          {experience ? (
+            <div className="mb-4 text-black">
+              {experience.split('\n\n').map((job, index) => {
+                const lines = job.split('\n');
+                const title = lines[0] || '';
+                const period = lines[1] || '';
+                const details = lines.slice(2).filter(l => l.trim());
+                
+                return (
+                  <div key={index} className="mb-3">
+                    <h3 className="font-semibold">{title}</h3>
+                    <p className="text-sm text-gray-700">{period}</p>
+                    <ul className="pl-5 list-disc mt-1">
+                      {details.map((detail, i) => (
+                        <li key={i} className="text-black">
+                          {detail.replace(/^- /, '')}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="mb-4 text-black">
+              <h3 className="font-semibold">Senior Frontend Developer - Tech Solutions Inc.</h3>
+              <p className="text-sm text-gray-700">January 2020 - Present</p>
+              <ul className="pl-5 list-disc mt-1">
+                <li>Led development of company's flagship SaaS product using React and TypeScript</li>
+                <li>Improved application performance by <span className="ats-highlight">40%</span> through code optimization and efficient state management</li>
+                <li>Collaborated with UX designers to implement responsive interfaces across all devices</li>
+                <li>Mentored junior developers and conducted code reviews to ensure code quality</li>
+              </ul>
+              
+              <h3 className="font-semibold mt-3">Frontend Developer - Digital Agency XYZ</h3>
+              <p className="text-sm text-gray-700">June 2018 - December 2019</p>
+              <ul className="pl-5 list-disc mt-1">
+                <li>Developed and maintained websites for 15+ clients using React, Vue and vanilla JavaScript</li>
+                <li>Implemented CI/CD pipelines resulting in <span className="ats-highlight">30% faster</span> deployment times</li>
+                <li>Created custom analytics dashboard that increased client retention by 25%</li>
+              </ul>
+            </div>
+          )}
           
-          <h3>Frontend Developer - Digital Agency XYZ</h3>
-          <p className="text-sm text-gray-600">June 2018 - December 2019</p>
-          <ul>
-            <li>Developed and maintained websites for 15+ clients using React, Vue and vanilla JavaScript</li>
-            <li>Implemented CI/CD pipelines resulting in <span className="ats-highlight">30% faster</span> deployment times</li>
-            <li>Created custom analytics dashboard that increased client retention by 25%</li>
-          </ul>
+          <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Education</h2>
+          {education ? (
+            <div className="mb-4 text-black">
+              {education.split('\n\n').map((edu, index) => {
+                const lines = edu.split('\n');
+                const degree = lines[0] || '';
+                const details = lines.slice(1);
+                
+                return (
+                  <div key={index} className="mb-2">
+                    <h3 className="font-semibold">{degree}</h3>
+                    {details.map((detail, i) => (
+                      <p key={i} className="text-sm text-gray-700">{detail}</p>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="mb-4">
+              <h3 className="font-semibold text-black">Bachelor of Science in Computer Science</h3>
+              <p className="text-sm text-gray-700">New York University - 2018</p>
+            </div>
+          )}
           
-          <h2>Education</h2>
-          <h3>Bachelor of Science in Computer Science</h3>
-          <p className="text-sm text-gray-600">New York University - 2018</p>
-          
-          <h2>Skills</h2>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>React</span>
-                <span>85%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "85%" }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>TypeScript</span>
-                <span>75%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "75%" }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>CSS/Tailwind</span>
-                <span>90%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div className="bg-green-500 h-1.5 rounded-full" style={{ width: "90%" }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Next.js</span>
-                <span>80%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "80%" }}></div>
-              </div>
-            </div>
+          <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Skills</h2>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-4">
+            {skills && skills.length > 0 ? (
+              skills.map(skill => (
+                <div key={skill.id}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-black">{skill.name}</span>
+                    <span className="font-medium text-black">{skill.level}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div 
+                      className={`${
+                        skill.level >= 80 ? "bg-green-500" : 
+                        skill.level >= 60 ? "bg-blue-500" :
+                        skill.level >= 40 ? "bg-yellow-500" : "bg-red-500"
+                      } h-1.5 rounded-full`} 
+                      style={{ width: `${skill.level}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-black">React</span>
+                    <span className="font-medium text-black">85%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "85%" }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-black">TypeScript</span>
+                    <span className="font-medium text-black">75%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "75%" }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-black">CSS/Tailwind</span>
+                    <span className="font-medium text-black">90%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: "90%" }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-black">Next.js</span>
+                    <span className="font-medium text-black">80%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "80%" }}></div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           
-          <h2>Courses & Certifications</h2>
-          <div className="space-y-2">
-            <div>
-              <h3>AWS Certified Solutions Architect</h3>
-              <p className="text-sm text-gray-600">Amazon Web Services - 2023</p>
-              <p className="text-sm">Professional certification for designing distributed systems on AWS</p>
-            </div>
-            <div>
-              <h3>Advanced React Development</h3>
-              <p className="text-sm text-gray-600">Frontend Masters - 2024</p>
-              <p className="text-sm">Comprehensive course covering advanced React patterns, hooks, and performance optimization</p>
-            </div>
-          </div>
+          {(coursesAndCertifications && coursesAndCertifications.length > 0) && (
+            <>
+              <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Courses & Certifications</h2>
+              <div className="space-y-2 mb-4">
+                {coursesAndCertifications.map(item => (
+                  <div key={item.id}>
+                    <h3 className="font-semibold text-black">{item.title}</h3>
+                    <p className="text-sm text-gray-700">{item.provider} - {item.date}</p>
+                    <p className="text-sm text-black">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

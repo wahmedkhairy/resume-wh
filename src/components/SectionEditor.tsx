@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Wand2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface SectionEditorProps {
   title: string;
@@ -22,6 +21,43 @@ interface SectionEditorProps {
   sectionType?: "summary" | "experience" | "education" | "skills" | "courses" | "certifications";
   onContentChange?: (content: string) => void;
 }
+
+// Basic AI enhancement functions for fallback when the API is unavailable
+const enhanceContent = (content: string, type: string): string => {
+  if (!content.trim()) return content;
+  
+  let enhanced = content;
+  
+  // Basic enhancements based on content type
+  switch(type) {
+    case "summary":
+      enhanced = enhanced.replace(/^I am /i, "An experienced professional ");
+      enhanced = enhanced.replace(/^I have /i, "With ");
+      enhanced = enhanced.charAt(0).toUpperCase() + enhanced.slice(1);
+      if (!enhanced.endsWith('.')) enhanced += '.';
+      break;
+      
+    case "experience":
+      // Add action verbs to bullet points if they don't start with one
+      const actionVerbs = ["Developed", "Created", "Implemented", "Managed", "Led", "Designed", "Optimized", "Improved"];
+      const lines = enhanced.split('\n');
+      enhanced = lines.map(line => {
+        if (line.trim().startsWith('- ') && !actionVerbs.some(verb => line.trim().substring(2).startsWith(verb))) {
+          const randomVerb = actionVerbs[Math.floor(Math.random() * actionVerbs.length)];
+          return `- ${randomVerb} ${line.trim().substring(2)}`;
+        }
+        return line;
+      }).join('\n');
+      break;
+      
+    case "education":
+      // Ensure proper formatting for education entries
+      enhanced = enhanced.replace(/(\d{4})-(\d{4})/, "$1 - $2"); // Add spaces around date ranges
+      break;
+  }
+  
+  return enhanced;
+};
 
 const SectionEditor: React.FC<SectionEditorProps> = ({
   title,
@@ -57,8 +93,18 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
     setIsPolishing(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('polish-resume', {
-        body: { content, sectionType },
+      const { data, error } = await fetch('/api/polish-resume', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content, sectionType }),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
       });
 
       if (error) {
@@ -75,17 +121,33 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
           description: "Your content has been enhanced with AI.",
           variant: "default",
         });
-      } else if (data?.error) {
-        throw new Error(data.error);
       } else {
-        throw new Error("No polished content received");
+        // Fallback to basic enhancements if API doesn't return polished content
+        const enhancedContent = enhanceContent(content, sectionType);
+        setContent(enhancedContent);
+        if (onContentChange) {
+          onContentChange(enhancedContent);
+        }
+        toast({
+          title: "Content Polished",
+          description: "Your content has been enhanced using local processing.",
+          variant: "default",
+        });
       }
     } catch (error) {
       console.error('Error polishing content:', error);
+      
+      // Use local enhancement as fallback when API fails
+      const enhancedContent = enhanceContent(content, sectionType);
+      setContent(enhancedContent);
+      if (onContentChange) {
+        onContentChange(enhancedContent);
+      }
+      
       toast({
-        title: "AI Polish Failed",
-        description: error.message || "There was an error polishing your content. Please try again later.",
-        variant: "destructive",
+        title: "AI Service Unavailable",
+        description: "Using local enhancements instead. Try again later for AI-powered improvements.",
+        variant: "default",
       });
     } finally {
       setIsPolishing(false);
