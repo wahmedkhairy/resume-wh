@@ -22,11 +22,21 @@ serve(async (req) => {
     const requestData = await req.json();
     const { content, sectionType, action } = requestData;
 
+    // Input validation
     if (action === "generate-summary") {
+      if (!content || typeof content !== 'string') {
+        throw new Error('Valid content is required for generating a summary');
+      }
       return await generateSummary(content, openAIApiKey, corsHeaders);
     } else if (action === "recommend-skills") {
+      if (!content || typeof content !== 'string') {
+        throw new Error('Valid content is required for recommending skills');
+      }
       return await recommendSkills(content, openAIApiKey, corsHeaders);
     } else if (sectionType === "courses-certifications") {
+      if (!content) {
+        throw new Error('Content is required for polishing courses and certifications');
+      }
       return await polishCoursesAndCertifications(content, openAIApiKey, corsHeaders);
     } else if (!content || !sectionType) {
       throw new Error('Content and section type are required');
@@ -63,34 +73,48 @@ async function polishContent(content: string, sectionType: string, apiKey: strin
       systemPrompt += "Polish this content to be clear, professional, and concise. Use active voice and professional language.";
   }
   
-  // Call OpenAI API
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: content }
-      ],
-      temperature: 0.7,
-    }),
-  });
-
-  const data = await response.json();
+  // Call OpenAI API with rate limiting and timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
   
-  if (data.error) {
-    throw new Error(`OpenAI API error: ${data.error.message}`);
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: content }
+        ],
+        temperature: 0.7,
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(`OpenAI API error: ${data.error.message}`);
+    }
+
+    const polishedContent = data.choices[0].message.content;
+
+    return new Response(JSON.stringify({ polishedContent }), {
+      headers: { ...headers, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw error;
   }
-
-  const polishedContent = data.choices[0].message.content;
-
-  return new Response(JSON.stringify({ polishedContent }), {
-    headers: { ...headers, 'Content-Type': 'application/json' },
-  });
 }
 
 async function generateSummary(experienceContent: string, apiKey: string, headers: Record<string, string>) {
@@ -100,34 +124,48 @@ async function generateSummary(experienceContent: string, apiKey: string, header
     "use active voice, and be tailored to make the candidate stand out in their field. " +
     "Include years of experience, key technical skills, and notable achievements when applicable.";
   
-  // Call OpenAI API
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: experienceContent }
-      ],
-      temperature: 0.7,
-    }),
-  });
-
-  const data = await response.json();
+  // Call OpenAI API with rate limiting and timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
   
-  if (data.error) {
-    throw new Error(`OpenAI API error: ${data.error.message}`);
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: experienceContent }
+        ],
+        temperature: 0.7,
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(`OpenAI API error: ${data.error.message}`);
+    }
+
+    const summary = data.choices[0].message.content;
+
+    return new Response(JSON.stringify({ summary }), {
+      headers: { ...headers, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw error;
   }
-
-  const summary = data.choices[0].message.content;
-
-  return new Response(JSON.stringify({ summary }), {
-    headers: { ...headers, 'Content-Type': 'application/json' },
-  });
 }
 
 async function recommendSkills(experienceContent: string, apiKey: string, headers: Record<string, string>) {
@@ -137,41 +175,55 @@ async function recommendSkills(experienceContent: string, apiKey: string, header
     "Return ONLY a JSON array with objects containing 'name' and 'level' properties. " +
     "Example: [{\"name\": \"JavaScript\", \"level\": 85}, {\"name\": \"Project Management\", \"level\": 75}]";
   
-  // Call OpenAI API
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: experienceContent }
-      ],
-      temperature: 0.3,
-      response_format: { type: "json_object" }
-    }),
-  });
-
-  const data = await response.json();
+  // Call OpenAI API with rate limiting and timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
   
-  if (data.error) {
-    throw new Error(`OpenAI API error: ${data.error.message}`);
-  }
-
   try {
-    // Extract the JSON array from the response
-    const content = data.choices[0].message.content;
-    const parsedContent = JSON.parse(content);
-    const recommendations = parsedContent.skills || [];
-
-    return new Response(JSON.stringify({ recommendations }), {
-      headers: { ...headers, 'Content-Type': 'application/json' },
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: experienceContent }
+        ],
+        temperature: 0.3,
+        response_format: { type: "json_object" }
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(`OpenAI API error: ${data.error.message}`);
+    }
+
+    try {
+      // Extract the JSON array from the response
+      const content = data.choices[0].message.content;
+      const parsedContent = JSON.parse(content);
+      const recommendations = parsedContent.skills || [];
+
+      return new Response(JSON.stringify({ recommendations }), {
+        headers: { ...headers, 'Content-Type': 'application/json' },
+      });
+    } catch (error) {
+      throw new Error(`Failed to parse skills recommendations: ${error.message}`);
+    }
   } catch (error) {
-    throw new Error(`Failed to parse skills recommendations: ${error.message}`);
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw error;
   }
 }
 
@@ -184,41 +236,55 @@ async function polishCoursesAndCertifications(content: string, apiKey: string, h
       "Focus on the skills gained and the value of each credential. Keep descriptions concise (1-2 sentences). " +
       "Do not modify the titles, providers, dates, or types - only enhance the descriptions.";
     
-    // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: JSON.stringify(items) }
-        ],
-        temperature: 0.7,
-        response_format: { type: "json_object" }
-      }),
-    });
-
-    const data = await response.json();
+    // Call OpenAI API with rate limiting and timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
     
-    if (data.error) {
-      throw new Error(`OpenAI API error: ${data.error.message}`);
-    }
-
     try {
-      // Extract the enhanced items from the response
-      const content = data.choices[0].message.content;
-      const parsedContent = JSON.parse(content);
-      const polishedItems = parsedContent.items || items;
-
-      return new Response(JSON.stringify({ polishedItems }), {
-        headers: { ...headers, 'Content-Type': 'application/json' },
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: JSON.stringify(items) }
+          ],
+          temperature: 0.7,
+          response_format: { type: "json_object" }
+        }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`OpenAI API error: ${data.error.message}`);
+      }
+
+      try {
+        // Extract the enhanced items from the response
+        const content = data.choices[0].message.content;
+        const parsedContent = JSON.parse(content);
+        const polishedItems = parsedContent.items || items;
+
+        return new Response(JSON.stringify({ polishedItems }), {
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        });
+      } catch (error) {
+        throw new Error(`Failed to parse enhanced items: ${error.message}`);
+      }
     } catch (error) {
-      throw new Error(`Failed to parse enhanced items: ${error.message}`);
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out');
+      }
+      throw error;
     }
   } catch (error) {
     throw new Error(`Invalid courses and certifications data: ${error.message}`);

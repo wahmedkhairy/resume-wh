@@ -30,6 +30,7 @@ const Index = () => {
     phone: "(123) 456-7890"
   });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
   const handleContentChange = (section: string, content: string) => {
@@ -44,10 +45,26 @@ const Index = () => {
   };
 
   const handleExport = () => {
-    setShowSubscription(true);
+    setIsExporting(true);
+    
+    // Simulate export process
+    setTimeout(() => {
+      setIsExporting(false);
+      setShowSubscription(true);
+    }, 500);
   };
 
   const handleGenerateSummary = async () => {
+    // Validate that experience section has content
+    if (!resumeData.experience.trim()) {
+      toast({
+        title: "No Experience Data",
+        description: "Please add work experience details first to generate a relevant summary.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
@@ -80,7 +97,7 @@ const Index = () => {
       console.error('Error generating summary:', error);
       toast({
         title: "Generation Failed",
-        description: error.message || "There was an error generating your summary.",
+        description: error.message || "There was an error generating your summary. Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -109,9 +126,12 @@ const Index = () => {
                     <Wand2 className="mr-2 h-4 w-4" />
                     {isGenerating ? "Generating..." : "Generate Summary"}
                   </Button>
-                  <Button onClick={handleExport}>
+                  <Button 
+                    onClick={handleExport}
+                    disabled={isExporting}
+                  >
                     <Download className="mr-2 h-4 w-4" />
-                    Export Resume
+                    {isExporting ? "Exporting..." : "Export Resume"}
                   </Button>
                 </div>
               </div>

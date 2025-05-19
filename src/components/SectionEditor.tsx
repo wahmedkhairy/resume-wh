@@ -77,12 +77,14 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
         });
       } else if (data?.error) {
         throw new Error(data.error);
+      } else {
+        throw new Error("No polished content received");
       }
     } catch (error) {
       console.error('Error polishing content:', error);
       toast({
         title: "AI Polish Failed",
-        description: error.message || "There was an error polishing your content.",
+        description: error.message || "There was an error polishing your content. Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -91,6 +93,15 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
   };
 
   const handleSave = () => {
+    if (!content.trim()) {
+      toast({
+        title: "Empty Content",
+        description: "Cannot save empty content.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
     
     // In a real implementation, this would save to your database
@@ -125,7 +136,13 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
             size="sm" 
             onClick={handleAIPolish}
             disabled={isPolishing}
+            className="relative"
           >
+            {isPolishing && (
+              <span className="absolute inset-0 flex items-center justify-center bg-background/80">
+                <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-primary animate-spin"></div>
+              </span>
+            )}
             <Wand2 className="mr-1 h-4 w-4" /> 
             {isPolishing ? "Polishing..." : "Polish with AI"}
           </Button>
@@ -137,7 +154,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
             onClick={handleSave}
             disabled={isSaving}
           >
-            <CheckCircle className="mr-1 h-4 w-4 text-resume-success" /> 
+            <CheckCircle className="mr-1 h-4 w-4 text-green-500" /> 
             {isSaving ? "Saving..." : "Save"}
           </Button>
         </div>

@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Briefcase, MapPin, Mail, Phone } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface PersonalInfoBarProps {
   onInfoChange?: (info: PersonalInfo) => void;
@@ -29,8 +30,24 @@ const PersonalInfoBar: React.FC<PersonalInfoBarProps> = ({
   }
 }) => {
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(initialInfo);
+  const { toast } = useToast();
+
+  const validateEmail = (email: string): boolean => {
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleChange = (field: keyof PersonalInfo, value: string) => {
+    // Validate email field if it's being changed
+    if (field === "email" && value && !validateEmail(value)) {
+      toast({
+        title: "Invalid Email Format",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+    }
+
     const updatedInfo = { ...personalInfo, [field]: value };
     setPersonalInfo(updatedInfo);
     if (onInfoChange) {
@@ -96,6 +113,7 @@ const PersonalInfoBar: React.FC<PersonalInfoBarProps> = ({
                 id="email"
                 placeholder="john@example.com"
                 className="pl-9"
+                type="email"
                 value={personalInfo.email}
                 onChange={(e) => handleChange("email", e.target.value)}
               />
