@@ -34,6 +34,7 @@ const PaypalIcon = () => (
 
 interface SubscriptionOverlayProps {
   onClose: () => void;
+  onSubscriptionComplete?: () => void; // Added this prop as optional
 }
 
 interface PricingInfo {
@@ -42,7 +43,7 @@ interface PricingInfo {
   symbol: string;
 }
 
-const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose }) => {
+const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSubscriptionComplete }) => {
   const [countryInfo, setCountryInfo] = useState<{
     country: string;
     pricing: PricingInfo;
@@ -110,6 +111,12 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose }) =>
         title: "Subscription Successful!",
         description: "Thank you for subscribing to our premium plan.",
       });
+      
+      // Call onSubscriptionComplete if it exists
+      if (onSubscriptionComplete) {
+        onSubscriptionComplete();
+      }
+      
       onClose();
     }, 2000);
   };
