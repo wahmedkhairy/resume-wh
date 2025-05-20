@@ -106,12 +106,12 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             )}
           </div>
           
-          {/* Skills section */}
-          <div className="mb-4">
-            <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Skills</h2>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-              {skills && skills.length > 0 ? (
-                skills.map(skill => (
+          {/* Skills section - only shown when skills are provided */}
+          {skills && skills.length > 0 && (
+            <div className="mb-4">
+              <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Skills</h2>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                {skills.map(skill => (
                   <div key={skill.id}>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-black">{skill.name}</span>
@@ -124,49 +124,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                       ></div>
                     </div>
                   </div>
-                ))
-              ) : (
-                <>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-black">React</span>
-                      <span className="font-medium text-black">85%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5">
-                      <div className="bg-green-500 h-1.5 rounded-full" style={{ width: "85%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-black">TypeScript</span>
-                      <span className="font-medium text-black">75%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5">
-                      <div className="bg-green-500 h-1.5 rounded-full" style={{ width: "75%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-black">CSS/Tailwind</span>
-                      <span className="font-medium text-black">90%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5">
-                      <div className="bg-green-500 h-1.5 rounded-full" style={{ width: "90%" }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-black">Next.js</span>
-                      <span className="font-medium text-black">80%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5">
-                      <div className="bg-green-500 h-1.5 rounded-full" style={{ width: "80%" }}></div>
-                    </div>
-                  </div>
-                </>
-              )}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           
           {/* Education section - always shown */}
           <div className="mb-4">

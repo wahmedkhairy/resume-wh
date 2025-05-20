@@ -156,7 +156,10 @@ const Index = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ content: resumeData.experience }),
+          body: JSON.stringify({ 
+            content: resumeData.experience,
+            action: "generate-summary" 
+          }),
         });
         
         if (!response.ok) {
@@ -291,9 +294,15 @@ const Index = () => {
                 onContentChange={(content) => handleContentChange("education", content)}
               />
               
-              <SkillsBar />
+              <SkillsBar 
+                onSkillsChange={handleSkillsChange}
+                initialSkills={skills}
+              />
               
-              <CoursesAndCertifications />
+              <CoursesAndCertifications 
+                onCoursesChange={handleCoursesChange}
+                initialCourses={coursesAndCertifications}
+              />
               
               <KeywordMatcher />
             </div>
@@ -302,7 +311,7 @@ const Index = () => {
             <div className="lg:col-span-6 space-y-6">
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
                 <h2 className="text-xl font-bold mb-4">ATS Preview</h2>
-                <div className="border rounded-lg h-[500px] overflow-auto bg-white">
+                <div className="border rounded-lg h-[600px] overflow-auto bg-white">
                   <ResumePreview 
                     watermark={!isPremiumUser}
                     personalInfo={personalInfo}

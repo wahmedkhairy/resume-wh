@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card,
   CardContent,
@@ -18,6 +17,11 @@ interface Skill {
   id: string;
   name: string;
   level: number;
+}
+
+interface SkillsBarProps {
+  initialSkills?: Skill[];
+  onSkillsChange?: (skills: Skill[]) => void;
 }
 
 // Fallback skill recommendation function that analyzes text content
@@ -102,16 +106,19 @@ const recommendSkillsFallback = (experienceText: string): Skill[] => {
   return recommendedSkills;
 };
 
-const SkillsBar = () => {
-  const [skills, setSkills] = useState<Skill[]>([
-    { id: "1", name: "React", level: 85 },
-    { id: "2", name: "TypeScript", level: 75 },
-    { id: "3", name: "CSS/Tailwind", level: 90 },
-  ]);
+const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChange }) => {
+  const [skills, setSkills] = useState<Skill[]>(initialSkills);
   const [newSkill, setNewSkill] = useState("");
   const [newLevel, setNewLevel] = useState(50);
   const [isPolishing, setIsPolishing] = useState(false);
   const { toast } = useToast();
+
+  // When skills state changes, notify parent component
+  useEffect(() => {
+    if (onSkillsChange) {
+      onSkillsChange(skills);
+    }
+  }, [skills, onSkillsChange]);
 
   const addSkill = () => {
     if (!newSkill.trim()) {
@@ -175,7 +182,10 @@ const SkillsBar = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ content: experienceText }),
+          body: JSON.stringify({ 
+            content: experienceText,
+            action: "recommend-skills" 
+          }),
         });
         
         if (!response.ok) {
