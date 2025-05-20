@@ -115,7 +115,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                   <div key={skill.id}>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-black">{skill.name}</span>
-                      <span className="font-medium text-black">{skill.level}%</span>
+                      {/* Removing the percentage display as requested */}
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-1.5">
                       <div 
@@ -163,7 +163,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Courses & Certifications</h2>
               <div className="space-y-2">
                 {coursesAndCertifications.map(item => (
-                  <div key={item.id}>
+                  <div key={item.id} className="text-black">
                     <h3 className="font-semibold text-black">{item.title}</h3>
                     <p className="text-sm text-black">{item.provider} - {item.date}</p>
                     <p className="text-sm text-black">{item.description}</p>
