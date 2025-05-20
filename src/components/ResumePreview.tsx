@@ -43,8 +43,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         )}
         
         <div className="resume-content">
-          <h1 className="text-2xl font-bold text-center mb-2">{personalInfo.name}</h1>
-          <p className="text-center text-gray-700 mb-4">
+          <h1 className="text-2xl font-bold text-center mb-2 text-black">{personalInfo.name}</h1>
+          <p className="text-center text-black mb-4">
             {personalInfo.jobTitle} | {personalInfo.location} | {personalInfo.email} | {personalInfo.phone}
           </p>
           
@@ -64,8 +64,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 
                 return (
                   <div key={index} className="mb-3">
-                    <h3 className="font-semibold">{title}</h3>
-                    <p className="text-sm text-gray-700">{period}</p>
+                    <h3 className="font-semibold text-black">{title}</h3>
+                    <p className="text-sm text-black">{period}</p>
                     <ul className="pl-5 list-disc mt-1">
                       {details.map((detail, i) => (
                         <li key={i} className="text-black">
@@ -79,18 +79,18 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             </div>
           ) : (
             <div className="mb-4 text-black">
-              <h3 className="font-semibold">Senior Frontend Developer - Tech Solutions Inc.</h3>
-              <p className="text-sm text-gray-700">January 2020 - Present</p>
-              <ul className="pl-5 list-disc mt-1">
+              <h3 className="font-semibold text-black">Senior Frontend Developer - Tech Solutions Inc.</h3>
+              <p className="text-sm text-black">January 2020 - Present</p>
+              <ul className="pl-5 list-disc mt-1 text-black">
                 <li>Led development of company's flagship SaaS product using React and TypeScript</li>
                 <li>Improved application performance by <span className="ats-highlight">40%</span> through code optimization and efficient state management</li>
                 <li>Collaborated with UX designers to implement responsive interfaces across all devices</li>
                 <li>Mentored junior developers and conducted code reviews to ensure code quality</li>
               </ul>
               
-              <h3 className="font-semibold mt-3">Frontend Developer - Digital Agency XYZ</h3>
-              <p className="text-sm text-gray-700">June 2018 - December 2019</p>
-              <ul className="pl-5 list-disc mt-1">
+              <h3 className="font-semibold mt-3 text-black">Frontend Developer - Digital Agency XYZ</h3>
+              <p className="text-sm text-black">June 2018 - December 2019</p>
+              <ul className="pl-5 list-disc mt-1 text-black">
                 <li>Developed and maintained websites for 15+ clients using React, Vue and vanilla JavaScript</li>
                 <li>Implemented CI/CD pipelines resulting in <span className="ats-highlight">30% faster</span> deployment times</li>
                 <li>Created custom analytics dashboard that increased client retention by 25%</li>
@@ -98,31 +98,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             </div>
           )}
           
-          <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Education</h2>
-          {education ? (
-            <div className="mb-4 text-black">
-              {education.split('\n\n').map((edu, index) => {
-                const lines = edu.split('\n');
-                const degree = lines[0] || '';
-                const details = lines.slice(1);
-                
-                return (
-                  <div key={index} className="mb-2">
-                    <h3 className="font-semibold">{degree}</h3>
-                    {details.map((detail, i) => (
-                      <p key={i} className="text-sm text-gray-700">{detail}</p>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="mb-4">
-              <h3 className="font-semibold text-black">Bachelor of Science in Computer Science</h3>
-              <p className="text-sm text-gray-700">New York University - 2018</p>
-            </div>
-          )}
-          
+          {/* Skills section */}
           <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Skills</h2>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-4">
             {skills && skills.length > 0 ? (
@@ -136,8 +112,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     <div 
                       className={`${
                         skill.level >= 80 ? "bg-green-500" : 
-                        skill.level >= 60 ? "bg-blue-500" :
-                        skill.level >= 40 ? "bg-yellow-500" : "bg-red-500"
+                        skill.level >= 60 ? "bg-green-500" :
+                        skill.level >= 40 ? "bg-green-500" : "bg-green-500"
                       } h-1.5 rounded-full`} 
                       style={{ width: `${skill.level}%` }}
                     ></div>
@@ -152,7 +128,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     <span className="font-medium text-black">85%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "85%" }}></div>
+                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: "85%" }}></div>
                   </div>
                 </div>
                 <div>
@@ -161,7 +137,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     <span className="font-medium text-black">75%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "75%" }}></div>
+                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: "75%" }}></div>
                   </div>
                 </div>
                 <div>
@@ -179,13 +155,40 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     <span className="font-medium text-black">80%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: "80%" }}></div>
+                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: "80%" }}></div>
                   </div>
                 </div>
               </>
             )}
           </div>
           
+          {/* Education section - always shown */}
+          <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Education</h2>
+          <div className="mb-4 text-black">
+            {education ? (
+              education.split('\n\n').map((edu, index) => {
+                const lines = edu.split('\n');
+                const degree = lines[0] || '';
+                const details = lines.slice(1);
+                
+                return (
+                  <div key={index} className="mb-2">
+                    <h3 className="font-semibold text-black">{degree}</h3>
+                    {details.map((detail, i) => (
+                      <p key={i} className="text-sm text-black">{detail}</p>
+                    ))}
+                  </div>
+                );
+              })
+            ) : (
+              <div>
+                <h3 className="font-semibold text-black">Bachelor of Science in Computer Science</h3>
+                <p className="text-sm text-black">New York University - 2018</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Courses & Certifications - only shown when available */}
           {(coursesAndCertifications && coursesAndCertifications.length > 0) && (
             <>
               <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Courses & Certifications</h2>
@@ -193,7 +196,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 {coursesAndCertifications.map(item => (
                   <div key={item.id}>
                     <h3 className="font-semibold text-black">{item.title}</h3>
-                    <p className="text-sm text-gray-700">{item.provider} - {item.date}</p>
+                    <p className="text-sm text-black">{item.provider} - {item.date}</p>
                     <p className="text-sm text-black">{item.description}</p>
                   </div>
                 ))}
