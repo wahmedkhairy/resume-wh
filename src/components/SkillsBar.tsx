@@ -286,9 +286,6 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
                 placeholder="Skill name"
               />
               <div className="flex items-center gap-2">
-                <span className="text-sm w-8 text-right">
-                  {skill.level}%
-                </span>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -327,9 +324,6 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
               placeholder="Add a new skill"
               className="flex-1"
             />
-            <span className="text-sm w-8 text-right">
-              {newLevel}%
-            </span>
           </div>
           <Slider
             value={[newLevel]}
