@@ -9,267 +9,102 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      accounts: {
+      profiles: {
         Row: {
-          code: string
-          created_at: string | null
-          description: string | null
+          created_at: string
+          email: string | null
           id: string
-          is_active: boolean | null
-          name: string
-          parent_id: string | null
-          type: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
-          code: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          parent_id?: string | null
-          type: string
-          updated_at?: string | null
-        }
-        Update: {
-          code?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          parent_id?: string | null
-          type?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "accounts_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "accounts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      close_period: {
-        Row: {
-          closed_at: string | null
-          closed_by: string | null
-          created_at: string | null
+          created_at?: string
+          email?: string | null
           id: string
-          percent_complete: number | null
-          period_end: string
-          period_start: string
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          closed_at?: string | null
-          closed_by?: string | null
-          created_at?: string | null
-          id?: string
-          percent_complete?: number | null
-          period_end: string
-          period_start: string
-          status?: string | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
-          closed_at?: string | null
-          closed_by?: string | null
-          created_at?: string | null
+          created_at?: string
+          email?: string | null
           id?: string
-          percent_complete?: number | null
-          period_end?: string
-          period_start?: string
-          status?: string | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
-      close_tasks: {
+      resumes: {
         Row: {
-          assignee: string | null
-          close_period_id: string
-          completed_at: string | null
-          completed_by: string | null
-          created_at: string | null
-          description: string | null
-          due_date: string | null
+          courses: Json | null
+          created_at: string
+          education: Json | null
+          experience: Json | null
           id: string
-          name: string
-          status: string | null
-          updated_at: string | null
+          personal_info: Json | null
+          skills: Json | null
+          summary: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          assignee?: string | null
-          close_period_id: string
-          completed_at?: string | null
-          completed_by?: string | null
-          created_at?: string | null
-          description?: string | null
-          due_date?: string | null
+          courses?: Json | null
+          created_at?: string
+          education?: Json | null
+          experience?: Json | null
           id?: string
-          name: string
-          status?: string | null
-          updated_at?: string | null
+          personal_info?: Json | null
+          skills?: Json | null
+          summary?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          assignee?: string | null
-          close_period_id?: string
-          completed_at?: string | null
-          completed_by?: string | null
-          created_at?: string | null
-          description?: string | null
-          due_date?: string | null
+          courses?: Json | null
+          created_at?: string
+          education?: Json | null
+          experience?: Json | null
           id?: string
-          name?: string
-          status?: string | null
-          updated_at?: string | null
+          personal_info?: Json | null
+          skills?: Json | null
+          summary?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "close_tasks_close_period_id_fkey"
-            columns: ["close_period_id"]
-            isOneToOne: false
-            referencedRelation: "close_period"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      reconciliations: {
+      subscriptions: {
         Row: {
-          account_id: string
-          closed_at: string | null
-          closed_by: string | null
-          created_at: string | null
+          created_at: string
+          expires_at: string | null
           id: string
-          period_end: string
-          period_start: string
-          reconciled_balance: number | null
-          status: string | null
-          system_balance: number | null
-          updated_at: string | null
-          variance: number | null
+          max_scans: number | null
+          scan_count: number | null
+          status: string
+          tier: string
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          account_id: string
-          closed_at?: string | null
-          closed_by?: string | null
-          created_at?: string | null
+          created_at?: string
+          expires_at?: string | null
           id?: string
-          period_end: string
-          period_start: string
-          reconciled_balance?: number | null
-          status?: string | null
-          system_balance?: number | null
-          updated_at?: string | null
-          variance?: number | null
+          max_scans?: number | null
+          scan_count?: number | null
+          status?: string
+          tier: string
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          account_id?: string
-          closed_at?: string | null
-          closed_by?: string | null
-          created_at?: string | null
+          created_at?: string
+          expires_at?: string | null
           id?: string
-          period_end?: string
-          period_start?: string
-          reconciled_balance?: number | null
-          status?: string | null
-          system_balance?: number | null
-          updated_at?: string | null
-          variance?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reconciliations_account_id_fkey"
-            columns: ["account_id"]
-            isOneToOne: false
-            referencedRelation: "accounts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      transaction_items: {
-        Row: {
-          account_id: string
-          amount: number
-          created_at: string | null
-          description: string | null
-          id: string
-          is_debit: boolean
-          transaction_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          account_id: string
-          amount: number
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_debit: boolean
-          transaction_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          account_id?: string
-          amount?: number
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_debit?: boolean
-          transaction_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "transaction_items_account_id_fkey"
-            columns: ["account_id"]
-            isOneToOne: false
-            referencedRelation: "accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transaction_items_transaction_id_fkey"
-            columns: ["transaction_id"]
-            isOneToOne: false
-            referencedRelation: "transactions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      transactions: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          reference_number: string | null
-          source: string
-          status: string | null
-          transaction_date: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          reference_number?: string | null
-          source: string
-          status?: string | null
-          transaction_date: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          reference_number?: string | null
-          source?: string
-          status?: string | null
-          transaction_date?: string
-          updated_at?: string | null
+          max_scans?: number | null
+          scan_count?: number | null
+          status?: string
+          tier?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
