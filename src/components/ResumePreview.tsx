@@ -1,14 +1,36 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { PersonalInfo } from "./PersonalInfoBar";
+import { Edit3, Check, X } from "lucide-react";
+
+interface WorkExperience {
+  id: string;
+  jobTitle: string;
+  company: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  responsibilities: string[];
+}
+
+interface Education {
+  id: string;
+  degree: string;
+  institution: string;
+  graduationYear: string;
+  gpa?: string;
+  location: string;
+}
 
 interface ResumePreviewProps {
   watermark?: boolean;
   personalInfo?: PersonalInfo;
   summary?: string;
-  experience?: string;
-  education?: string;
+  workExperience?: WorkExperience[];
+  education?: Education[];
   skills?: Array<{id: string; name: string; level: number}>;
   coursesAndCertifications?: Array<{
     id: string;
@@ -18,6 +40,7 @@ interface ResumePreviewProps {
     description: string;
     type: "course" | "certification";
   }>;
+  onSummaryChange?: (summary: string) => void;
 }
 
 const ResumePreview: React.FC<ResumePreviewProps> = ({ 
@@ -30,11 +53,27 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     phone: "(123) 456-7890"
   },
   summary,
-  experience,
-  education,
+  workExperience = [],
+  education = [],
   skills,
-  coursesAndCertifications
+  coursesAndCertifications,
+  onSummaryChange
 }) => {
+  const [isEditingSummary, setIsEditingSummary] = useState(false);
+  const [editedSummary, setEditedSummary] = useState(summary || "");
+
+  const handleSaveSum = () => {
+    if (onSummaryChange) {
+      onSummaryChange(editedSummary);
+    }
+    setIsEditingSummary(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedSummary(summary || "");
+    setIsEditingSummary(false);
+  };
+
   return (
     <Card className="h-full relative overflow-auto bg-white">
       <CardContent className="p-6 resume-container text-black">
@@ -52,37 +91,65 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           
           {/* Summary Section */}
           <div className="mb-4">
-            <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Summary</h2>
-            <p className="mb-4 text-black">
-              {summary || "Passionate frontend developer with 5+ years of experience building responsive web applications using React, TypeScript, and modern CSS frameworks. Committed to creating exceptional user experiences through clean, efficient code and intuitive design."}
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 flex-1">Summary</h2>
+              {summary && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditedSummary(summary);
+                    setIsEditingSummary(true);
+                  }}
+                  className="ml-2"
+                >
+                  <Edit3 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            {isEditingSummary ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={editedSummary}
+                  onChange={(e) => setEditedSummary(e.target.value)}
+                  className="min-h-[100px] text-black"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleSaveSum}>
+                    <Check className="h-4 w-4 mr-1" />
+                    Save
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                    <X className="h-4 w-4 mr-1" />
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="mb-4 text-black">
+                {summary || "Generate your professional summary using AI by clicking the 'Generate Summary' button."}
+              </p>
+            )}
           </div>
           
           {/* Experience Section */}
           <div className="mb-4">
             <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Experience</h2>
-            {experience ? (
+            {workExperience && workExperience.length > 0 ? (
               <div className="mb-4 text-black">
-                {experience.split('\n\n').map((job, index) => {
-                  const lines = job.split('\n');
-                  const title = lines[0] || '';
-                  const period = lines[1] || '';
-                  const details = lines.slice(2).filter(l => l.trim());
-                  
-                  return (
-                    <div key={index} className="mb-3">
-                      <h3 className="font-semibold text-black">{title}</h3>
-                      <p className="text-sm text-black">{period}</p>
-                      <ul className="pl-5 list-disc mt-1">
-                        {details.map((detail, i) => (
-                          <li key={i} className="text-black">
-                            {detail.replace(/^- /, '')}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
-                })}
+                {workExperience.map((job) => (
+                  <div key={job.id} className="mb-3">
+                    <h3 className="font-semibold text-black">{job.jobTitle} - {job.company}</h3>
+                    <p className="text-sm text-black">{job.startDate} - {job.endDate} | {job.location}</p>
+                    <ul className="pl-5 list-disc mt-1">
+                      {job.responsibilities.filter(resp => resp.trim()).map((responsibility, i) => (
+                        <li key={i} className="text-black">
+                          {responsibility}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="mb-4 text-black">
@@ -115,7 +182,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                   <div key={skill.id}>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-black">{skill.name}</span>
-                      {/* Removing the percentage display as requested */}
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-1.5">
                       <div 
@@ -133,21 +199,15 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           <div className="mb-4">
             <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Education</h2>
             <div className="text-black">
-              {education ? (
-                education.split('\n\n').map((edu, index) => {
-                  const lines = edu.split('\n');
-                  const degree = lines[0] || '';
-                  const details = lines.slice(1);
-                  
-                  return (
-                    <div key={index} className="mb-2">
-                      <h3 className="font-semibold text-black">{degree}</h3>
-                      {details.map((detail, i) => (
-                        <p key={i} className="text-sm text-black">{detail}</p>
-                      ))}
-                    </div>
-                  );
-                })
+              {education && education.length > 0 ? (
+                education.map((edu) => (
+                  <div key={edu.id} className="mb-2">
+                    <h3 className="font-semibold text-black">{edu.degree}</h3>
+                    <p className="text-sm text-black">{edu.institution} - {edu.graduationYear}</p>
+                    {edu.location && <p className="text-sm text-black">{edu.location}</p>}
+                    {edu.gpa && <p className="text-sm text-black">GPA: {edu.gpa}</p>}
+                  </div>
+                ))
               ) : (
                 <div>
                   <h3 className="font-semibold text-black">Bachelor of Science in Computer Science</h3>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -10,6 +9,8 @@ import SkillsBar from "@/components/SkillsBar";
 import CoursesAndCertifications from "@/components/CoursesAndCertifications";
 import AntiTheftProtection from "@/components/AntiTheftProtection";
 import PersonalInfoBar, { PersonalInfo } from "@/components/PersonalInfoBar";
+import WorkExperienceBar from "@/components/WorkExperienceBar";
+import EducationBar from "@/components/EducationBar";
 import { Button } from "@/components/ui/button";
 import { Download, Wand2, Lock, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -30,12 +31,29 @@ interface Course {
   type: "course" | "certification";
 }
 
+interface WorkExperience {
+  id: string;
+  jobTitle: string;
+  company: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  responsibilities: string[];
+}
+
+interface Education {
+  id: string;
+  degree: string;
+  institution: string;
+  graduationYear: string;
+  gpa?: string;
+  location: string;
+}
+
 const Index = () => {
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [resumeData, setResumeData] = useState({
     summary: "",
-    experience: "",
-    education: "",
   });
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
     name: "",
@@ -44,6 +62,8 @@ const Index = () => {
     email: "",
     phone: ""
   });
+  const [workExperience, setWorkExperience] = useState<WorkExperience[]>([]);
+  const [education, setEducation] = useState<Education[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [coursesAndCertifications, setCoursesAndCertifications] = useState<Course[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -76,15 +96,16 @@ const Index = () => {
     checkUser();
   }, []);
 
-  const handleContentChange = (section: string, content: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      [section]: content
-    }));
-  };
-
   const handlePersonalInfoChange = (info: PersonalInfo) => {
     setPersonalInfo(info);
+  };
+
+  const handleWorkExperienceChange = (newExperience: WorkExperience[]) => {
+    setWorkExperience(newExperience);
+  };
+
+  const handleEducationChange = (newEducation: Education[]) => {
+    setEducation(newEducation);
   };
 
   const handleSkillsChange = (newSkills: Skill[]) => {
@@ -93,6 +114,13 @@ const Index = () => {
 
   const handleCoursesChange = (newCourses: Course[]) => {
     setCoursesAndCertifications(newCourses);
+  };
+
+  const handleSummaryChange = (newSummary: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      summary: newSummary
+    }));
   };
 
   const handleExport = () => {
@@ -125,7 +153,7 @@ const Index = () => {
   };
 
   const handleGenerateSummary = async () => {
-    if (!resumeData.experience.trim()) {
+    if (workExperience.length === 0) {
       toast({
         title: "No Experience Data",
         description: "Please add work experience details first to generate a relevant summary.",
@@ -139,8 +167,8 @@ const Index = () => {
     try {
       const { data, error } = await supabase.functions.invoke('generate-summary', {
         body: { 
-          experience: resumeData.experience,
-          education: resumeData.education,
+          experience: workExperience,
+          education: education,
           skills: skills,
           personalInfo: personalInfo
         }
@@ -227,31 +255,14 @@ const Index = () => {
                 initialInfo={personalInfo}
               />
               
-              <SectionEditor
-                title="Professional Summary"
-                description="A brief overview of your professional background and key strengths"
-                placeholder="Your professional summary will be generated automatically..."
-                initialContent={resumeData.summary}
-                sectionType="summary"
-                onContentChange={(content) => handleContentChange("summary", content)}
+              <WorkExperienceBar 
+                onExperienceChange={handleWorkExperienceChange}
+                initialExperience={workExperience}
               />
               
-              <SectionEditor
-                title="Work Experience"
-                description="List your work history in reverse chronological order"
-                placeholder="Job title, company, date range, and responsibilities..."
-                initialContent={resumeData.experience}
-                sectionType="experience"
-                onContentChange={(content) => handleContentChange("experience", content)}
-              />
-              
-              <SectionEditor
-                title="Education"
-                description="List your educational background"
-                placeholder="Degree, institution, graduation year..."
-                initialContent={resumeData.education}
-                sectionType="education"
-                onContentChange={(content) => handleContentChange("education", content)}
+              <EducationBar 
+                onEducationChange={handleEducationChange}
+                initialEducation={education}
               />
               
               <SkillsBar 
@@ -276,10 +287,11 @@ const Index = () => {
                     watermark={!isPremiumUser}
                     personalInfo={personalInfo}
                     summary={resumeData.summary}
-                    experience={resumeData.experience}
-                    education={resumeData.education}
-                    skills={[]} // Skills not shown in preview as per requirements
+                    workExperience={workExperience}
+                    education={education}
+                    skills={[]}
                     coursesAndCertifications={coursesAndCertifications}
+                    onSummaryChange={handleSummaryChange}
                   />
                   <AntiTheftProtection 
                     isActive={!isPremiumUser}
