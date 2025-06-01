@@ -8,8 +8,6 @@ import ATSScanner from "@/components/ATSScanner";
 import KeywordMatcher from "@/components/KeywordMatcher";
 import SkillsBar from "@/components/SkillsBar";
 import CoursesAndCertifications from "@/components/CoursesAndCertifications";
-import SubscriptionTiers from "@/components/SubscriptionTiers";
-import PaymentModal from "@/components/PaymentModal";
 import AntiTheftProtection from "@/components/AntiTheftProtection";
 import PersonalInfoBar, { PersonalInfo } from "@/components/PersonalInfoBar";
 import { Button } from "@/components/ui/button";
@@ -33,8 +31,6 @@ interface Course {
 }
 
 const Index = () => {
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedTier, setSelectedTier] = useState("");
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [resumeData, setResumeData] = useState({
     summary: "",
@@ -97,11 +93,6 @@ const Index = () => {
 
   const handleCoursesChange = (newCourses: Course[]) => {
     setCoursesAndCertifications(newCourses);
-  };
-
-  const handleSubscriptionSelect = (tier: string) => {
-    setSelectedTier(tier);
-    setShowPaymentModal(true);
   };
 
   const handleExport = () => {
@@ -190,17 +181,6 @@ const Index = () => {
             <h1 className="text-3xl font-bold text-center mb-2">Resume Builder</h1>
             <p className="text-center text-muted-foreground">Create ATS-optimized resumes with AI-powered content generation</p>
           </div>
-
-          {/* Subscription Tiers */}
-          {!isPremiumUser && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-center mb-6">Choose Your Plan</h2>
-              <SubscriptionTiers 
-                onSubscriptionSelect={handleSubscriptionSelect}
-                currentTier={currentSubscription?.tier}
-              />
-            </div>
-          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left Column - Editor */}
@@ -314,15 +294,6 @@ const Index = () => {
           </div>
         </div>
       </main>
-      
-      <PaymentModal 
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        selectedTier={selectedTier}
-        amount={selectedTier === "basic" ? 2 : 3}
-        currency="USD"
-        symbol="$"
-      />
     </div>
   );
 };

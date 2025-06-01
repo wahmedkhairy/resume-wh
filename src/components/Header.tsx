@@ -1,20 +1,10 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { FileText, Star } from "lucide-react";
+import { FileText, CreditCard } from "lucide-react";
+import SubscriptionDialog from "./SubscriptionDialog";
 
 const Header = () => {
-  const { toast } = useToast();
-
-  const handleUpgradeClick = () => {
-    toast({
-      title: "Subscription Required",
-      description: "Please subscribe to unlock all features.",
-      variant: "default"
-    });
-  };
-
   return (
     <header className="bg-white dark:bg-gray-900 border-b py-4 px-6">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -26,12 +16,12 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" onClick={handleUpgradeClick}>
-            <Star className="mr-1 h-4 w-4 text-resume-warning" /> Free Trial
-          </Button>
-          <Button variant="default" size="sm" onClick={handleUpgradeClick}>
-            Upgrade to Pro
-          </Button>
+          <SubscriptionDialog>
+            <Button variant="default" size="sm" className="flex items-center">
+              <CreditCard className="mr-2 h-4 w-4" />
+              Subscribe
+            </Button>
+          </SubscriptionDialog>
         </div>
       </div>
     </header>
