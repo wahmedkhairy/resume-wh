@@ -1,0 +1,209 @@
+
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Check, Star, Crown, Building } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface PricingInfo {
+  currency: string;
+  amount: number;
+  symbol: string;
+}
+
+interface SubscriptionTiersProps {
+  onSubscriptionSelect: (tier: string) => void;
+  currentTier?: string;
+}
+
+const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSelect, currentTier }) => {
+  const [countryInfo, setCountryInfo] = useState<{
+    country: string;
+    pricing: {
+      tier1: PricingInfo;
+      tier2: PricingInfo;
+    };
+  }>({
+    country: "",
+    pricing: {
+      tier1: { currency: "USD", amount: 2, symbol: "$" },
+      tier2: { currency: "USD", amount: 3, symbol: "$" }
+    }
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const detectLocation = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        
+        let pricing = {
+          tier1: { currency: "USD", amount: 2, symbol: "$" },
+          tier2: { currency: "USD", amount: 3, symbol: "$" }
+        };
+        
+        if (data.country_code === 'EG') {
+          pricing = {
+            tier1: { currency: "EGP", amount: 39, symbol: "E£" },
+            tier2: { currency: "EGP", amount: 49, symbol: "E£" }
+          };
+        }
+        
+        setCountryInfo({
+          country: data.country_name || "Unknown",
+          pricing
+        });
+      } catch (error) {
+        console.error("Error detecting location:", error);
+        setCountryInfo({
+          country: "Unknown",
+          pricing: {
+            tier1: { currency: "USD", amount: 2, symbol: "$" },
+            tier2: { currency: "USD", amount: 3, symbol: "$" }
+          }
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    detectLocation();
+  }, []);
+
+  const tiers = [
+    {
+      id: "basic",
+      name: "Basic",
+      icon: <Star className="h-6 w-6" />,
+      scans: 2,
+      price: countryInfo.pricing.tier1,
+      features: [
+        "Up to 2 ATS scans",
+        "Basic resume templates",
+        "AI-powered summary generation",
+        "PDF export",
+        "Email support"
+      ],
+      popular: false
+    },
+    {
+      id: "premium",
+      name: "Premium",
+      icon: <Crown className="h-6 w-6" />,
+      scans: 6,
+      price: countryInfo.pricing.tier2,
+      features: [
+        "Up to 6 ATS scans",
+        "Premium resume templates",
+        "Advanced AI optimization",
+        "Multiple format exports",
+        "Priority email support",
+        "Analytics dashboard"
+      ],
+      popular: true
+    },
+    {
+      id: "enterprise",
+      name: "Enterprise",
+      icon: <Building className="h-6 w-6" />,
+      scans: "Unlimited",
+      price: null,
+      features: [
+        "Unlimited ATS scans",
+        "Unlimited exports",
+        "Team dashboards",
+        "API access",
+        "Priority support",
+        "Custom integrations",
+        "Volume discounts"
+      ],
+      popular: false,
+      contact: true
+    }
+  ];
+
+  const handleTierSelect = (tierId: string) => {
+    if (tierId === "enterprise") {
+      toast({
+        title: "Contact Sales",
+        description: "Please contact our sales team for enterprise pricing.",
+      });
+      return;
+    }
+    onSubscriptionSelect(tierId);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      {tiers.map((tier) => (
+        <Card 
+          key={tier.id} 
+          className={`relative ${tier.popular ? 'border-primary shadow-lg scale-105' : ''} ${currentTier === tier.id ? 'ring-2 ring-primary' : ''}`}
+        >
+          {tier.popular && (
+            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
+              Most Popular
+            </Badge>
+          )}
+          
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-2">
+              {tier.icon}
+            </div>
+            <CardTitle className="text-xl">{tier.name}</CardTitle>
+            <div className="text-3xl font-bold">
+              {tier.contact ? (
+                "Contact Us"
+              ) : (
+                <>
+                  {tier.price?.symbol}{tier.price?.amount}
+                  <span className="text-sm font-normal text-muted-foreground">
+                    /{tier.price?.currency}
+                  </span>
+                </>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {typeof tier.scans === 'number' ? `${tier.scans} ATS scans` : `${tier.scans} ATS scans`}
+            </p>
+          </CardHeader>
+
+          <CardContent>
+            <ul className="space-y-3 mb-6">
+              {tier.features.map((feature, index) => (
+                <li key={index} className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                  <span className="text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Button 
+              className="w-full"
+              variant={currentTier === tier.id ? "outline" : "default"}
+              onClick={() => handleTierSelect(tier.id)}
+              disabled={currentTier === tier.id}
+            >
+              {currentTier === tier.id ? "Current Plan" : (tier.contact ? "Contact Sales" : "Choose Plan")}
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+export default SubscriptionTiers;
