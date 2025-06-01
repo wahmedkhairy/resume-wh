@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CreditCard, Smartphone, Building2 } from "lucide-react";
+import { Smartphone, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,16 +25,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   symbol
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<string>("");
+  const [selectedMethod, setSelectedMethod] = useState<string>("paypal");
   const { toast } = useToast();
 
   const paymentMethods = [
-    {
-      id: "stripe",
-      name: "Credit/Debit Card",
-      icon: <CreditCard className="h-5 w-5" />,
-      description: "Visa, Mastercard, American Express"
-    },
     {
       id: "paypal",
       name: "PayPal",
@@ -74,34 +68,25 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     setIsProcessing(true);
 
     try {
-      if (selectedMethod === "stripe") {
-        const { data, error } = await supabase.functions.invoke('create-checkout', {
-          body: { 
-            tier: selectedTier,
-            currency: currency.toLowerCase(),
-            amount: amount * 100 // Convert to cents
-          }
-        });
-
-        if (error) throw error;
-
-        if (data?.url) {
-          window.open(data.url, '_blank');
-          onClose();
-        }
-      } else if (selectedMethod === "paypal") {
-        // Simulate PayPal payment
+      if (selectedMethod === "paypal") {
+        // PayPal payment processing
         toast({
           title: "Redirecting to PayPal",
           description: "You will be redirected to complete your payment.",
         });
         
+        // Simulate PayPal checkout - in a real implementation, you would:
+        // 1. Create a PayPal order through your backend
+        // 2. Redirect to the PayPal checkout URL
         setTimeout(() => {
           toast({
             title: "Payment Successful!",
             description: "Your subscription has been activated.",
           });
           onClose();
+          
+          // Redirect to success page
+          window.location.href = "/payment-success";
         }, 2000);
       } else {
         // Handle local Egyptian payment methods
@@ -116,6 +101,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             description: "Your subscription has been activated.",
           });
           onClose();
+          
+          // Redirect to success page
+          window.location.href = "/payment-success";
         }, 2000);
       }
     } catch (error) {
