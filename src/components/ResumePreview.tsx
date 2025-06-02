@@ -95,8 +95,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   };
 
   return (
-    <Card className="h-full relative bg-white">
-      <CardContent className="p-6 resume-container text-black h-full">
+    <Card className="h-auto min-h-full relative bg-white">
+      <CardContent className="p-6 resume-container text-black">
         {watermark && (
           <div className="watermark absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl text-gray-200 font-bold opacity-20 rotate-45 pointer-events-none">
             DEMO
@@ -112,7 +112,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           {/* Summary Section */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-black font-bold text-lg border-b border-black pb-1 flex-1">Summary</h2>
+              <h2 className="text-black font-bold text-lg border-b border-black pb-1 flex-1" style={{color: 'black !important'}}>Summary</h2>
               {summary && (
                 <Button
                   variant="ghost"
@@ -154,7 +154,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           
           {/* Experience Section */}
           <div className="mb-4">
-            <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2">Experience</h2>
+            <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2" style={{color: 'black !important'}}>Experience</h2>
             {workExperience && workExperience.length > 0 ? (
               <div className="mb-4 text-black">
                 {workExperience.map((job) => (
@@ -196,7 +196,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           {/* Skills section - only shown when skills are provided */}
           {skills && skills.length > 0 && (
             <div className="mb-4">
-              <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2">Skills</h2>
+              <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2" style={{color: 'black !important'}}>Skills</h2>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                 {skills.map(skill => (
                   <div key={skill.id}>
@@ -217,7 +217,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           
           {/* Education section - always shown */}
           <div className="mb-4">
-            <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2">Education</h2>
+            <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2" style={{color: 'black !important'}}>Education</h2>
             <div className="text-black">
               {education && education.length > 0 ? (
                 education.map((edu) => (
@@ -240,7 +240,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           {/* Courses & Certifications - only shown when available */}
           {(coursesAndCertifications && coursesAndCertifications.length > 0) && (
             <div className="mb-4">
-              <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2">{getCoursesAndCertificationsTitle()}</h2>
+              <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2" style={{color: 'black !important'}}>{getCoursesAndCertificationsTitle()}</h2>
               <div className="space-y-2">
                 {coursesAndCertifications.map(item => (
                   <div key={item.id} className="text-black">

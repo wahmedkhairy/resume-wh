@@ -101,16 +101,27 @@
     @apply leading-relaxed;
   }
   
+  /* Force all resume content headings to be black */
+  .resume-content h1,
+  .resume-content h2,
+  .resume-content h3,
+  .resume-content h4,
+  .resume-content h5,
+  .resume-content h6 {
+    @apply text-black !important;
+    color: black !important;
+  }
+  
   .resume-content h2 {
-    @apply text-xl font-bold mt-4 mb-2 text-resume-primary;
+    @apply text-xl font-bold mt-4 mb-2;
   }
   
   .resume-content h3 {
-    @apply text-lg font-semibold mt-3 mb-1 text-resume-secondary;
+    @apply text-lg font-semibold mt-3 mb-1;
   }
   
   .resume-content p {
-    @apply my-2;
+    @apply my-2 text-black;
   }
   
   .resume-content ul {
@@ -125,7 +136,33 @@
     font-family: 'Georgia', serif;
   }
 
+  .resume-container h1,
+  .resume-container h2,
+  .resume-container h3,
+  .resume-container h4,
+  .resume-container h5,
+  .resume-container h6 {
+    color: black !important;
+  }
+
   .ats-highlight {
     @apply bg-yellow-100 dark:bg-yellow-900/50 px-1 rounded;
+  }
+
+  /* Remove scrollbars from slider components */
+  [data-radix-slider-root] {
+    overflow: visible !important;
+  }
+  
+  [data-radix-slider-track] {
+    overflow: visible !important;
+  }
+  
+  [data-radix-slider-range] {
+    overflow: visible !important;
+  }
+  
+  [data-radix-slider-thumb] {
+    overflow: visible !important;
   }
 }
