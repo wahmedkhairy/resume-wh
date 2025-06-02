@@ -75,8 +75,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   };
 
   return (
-    <Card className="h-full relative overflow-auto bg-white">
-      <CardContent className="p-6 resume-container text-black">
+    <Card className="h-full relative bg-white">
+      <CardContent className="p-6 resume-container text-black h-full overflow-y-auto">
         {watermark && (
           <div className="watermark absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl text-gray-200 font-bold opacity-20 rotate-45 pointer-events-none">
             DEMO

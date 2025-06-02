@@ -206,7 +206,6 @@ const Index = () => {
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-center mb-2">Resume Builder</h1>
             <p className="text-center text-muted-foreground">Create ATS-optimized resumes with AI-powered content generation</p>
           </div>
 
@@ -282,7 +281,7 @@ const Index = () => {
             <div className="lg:col-span-6 space-y-6">
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
                 <h2 className="text-xl font-bold mb-4">ATS Preview</h2>
-                <div className="border rounded-lg h-[600px] overflow-auto bg-white relative">
+                <div className="border rounded-lg h-[800px] bg-white relative">
                   <ResumePreview 
                     watermark={!isPremiumUser}
                     personalInfo={personalInfo}

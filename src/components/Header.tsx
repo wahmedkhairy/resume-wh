@@ -11,7 +11,7 @@ const Header = () => {
         <div className="flex items-center space-x-2">
           <FileText className="h-8 w-8 text-resume-primary" />
           <span className="text-xl font-bold">
-            Resume<span className="text-resume-primary">Master</span>
+            Resume<span className="text-resume-primary"> Builder</span>
           </span>
         </div>
         
