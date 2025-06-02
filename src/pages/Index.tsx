@@ -334,14 +334,14 @@ const Index = () => {
             <div className="lg:col-span-6 space-y-6">
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
                 <h2 className="text-xl font-bold mb-4">ATS Preview</h2>
-                <div className="border rounded-lg h-[800px] bg-white relative">
+                <div className="border rounded-lg h-[800px] bg-white relative overflow-hidden">
                   <ResumePreview 
                     watermark={!isPremiumUser}
                     personalInfo={personalInfo}
                     summary={resumeData.summary}
                     workExperience={workExperience}
                     education={education}
-                    skills={[]}
+                    skills={skills}
                     coursesAndCertifications={coursesAndCertifications}
                     onSummaryChange={handleSummaryChange}
                   />

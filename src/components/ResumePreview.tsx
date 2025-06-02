@@ -74,9 +74,29 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     setIsEditingSummary(false);
   };
 
+  // Dynamic title logic for Courses & Certifications
+  const getCoursesAndCertificationsTitle = () => {
+    if (!coursesAndCertifications || coursesAndCertifications.length === 0) {
+      return "Courses & Certifications";
+    }
+    
+    const hasCourses = coursesAndCertifications.some(item => item.type === "course");
+    const hasCertifications = coursesAndCertifications.some(item => item.type === "certification");
+    
+    if (hasCourses && hasCertifications) {
+      return "Courses & Certifications";
+    } else if (hasCourses) {
+      return "Courses";
+    } else if (hasCertifications) {
+      return "Certifications";
+    }
+    
+    return "Courses & Certifications";
+  };
+
   return (
     <Card className="h-full relative bg-white">
-      <CardContent className="p-6 resume-container text-black h-full overflow-y-auto">
+      <CardContent className="p-6 resume-container text-black h-full">
         {watermark && (
           <div className="watermark absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl text-gray-200 font-bold opacity-20 rotate-45 pointer-events-none">
             DEMO
@@ -156,18 +176,18 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 <h3 className="font-semibold text-black">Senior Frontend Developer - Tech Solutions Inc.</h3>
                 <p className="text-sm text-black">January 2020 - Present</p>
                 <ul className="pl-5 list-disc mt-1 text-black">
-                  <li>Led development of company's flagship SaaS product using React and TypeScript</li>
-                  <li>Improved application performance by <span className="font-semibold">40%</span> through code optimization and efficient state management</li>
-                  <li>Collaborated with UX designers to implement responsive interfaces across all devices</li>
-                  <li>Mentored junior developers and conducted code reviews to ensure code quality</li>
+                  <li className="text-black">Led development of company's flagship SaaS product using React and TypeScript</li>
+                  <li className="text-black">Improved application performance by <span className="font-semibold text-black">40%</span> through code optimization and efficient state management</li>
+                  <li className="text-black">Collaborated with UX designers to implement responsive interfaces across all devices</li>
+                  <li className="text-black">Mentored junior developers and conducted code reviews to ensure code quality</li>
                 </ul>
                 
                 <h3 className="font-semibold mt-3 text-black">Frontend Developer - Digital Agency XYZ</h3>
                 <p className="text-sm text-black">June 2018 - December 2019</p>
                 <ul className="pl-5 list-disc mt-1 text-black">
-                  <li>Developed and maintained websites for 15+ clients using React, Vue and vanilla JavaScript</li>
-                  <li>Implemented CI/CD pipelines resulting in <span className="font-semibold">30% faster</span> deployment times</li>
-                  <li>Created custom analytics dashboard that increased client retention by 25%</li>
+                  <li className="text-black">Developed and maintained websites for 15+ clients using React, Vue and vanilla JavaScript</li>
+                  <li className="text-black">Implemented CI/CD pipelines resulting in <span className="font-semibold text-black">30% faster</span> deployment times</li>
+                  <li className="text-black">Created custom analytics dashboard that increased client retention by 25%</li>
                 </ul>
               </div>
             )}
@@ -220,7 +240,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           {/* Courses & Certifications - only shown when available */}
           {(coursesAndCertifications && coursesAndCertifications.length > 0) && (
             <div className="mb-4">
-              <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2">Courses & Certifications</h2>
+              <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2">{getCoursesAndCertificationsTitle()}</h2>
               <div className="space-y-2">
                 {coursesAndCertifications.map(item => (
                   <div key={item.id} className="text-black">
