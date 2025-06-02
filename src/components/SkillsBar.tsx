@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Card,
@@ -275,9 +276,9 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
           Add your technical and professional skills with proficiency levels
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4 overflow-visible">
+      <CardContent className="space-y-4 skills-container no-scrollbar">
         {skills.map((skill) => (
-          <div key={skill.id} className="space-y-2">
+          <div key={skill.id} className="space-y-2 no-scrollbar">
             <div className="flex items-center justify-between">
               <Input
                 value={skill.name}
@@ -295,14 +296,15 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
                 </Button>
               </div>
             </div>
-            <div className="flex items-center gap-4 overflow-visible">
-              <div className="w-full overflow-visible">
+            <div className="flex items-center gap-4 no-scrollbar" style={{ overflow: 'visible' }}>
+              <div className="w-full no-scrollbar" style={{ overflow: 'visible' }}>
                 <Slider
                   value={[skill.level]}
                   min={0}
                   max={100}
                   step={5}
-                  className="w-full overflow-visible"
+                  className="w-full no-scrollbar"
+                  style={{ overflow: 'visible' }}
                   onValueChange={(value) => handleLevelChange(skill.id, value[0])}
                 />
               </div>
@@ -316,7 +318,7 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
           </div>
         ))}
 
-        <div className="flex flex-col space-y-4 pt-4 border-t overflow-visible">
+        <div className="flex flex-col space-y-4 pt-4 border-t no-scrollbar">
           <div className="flex items-center gap-2">
             <Input
               value={newSkill}
@@ -325,13 +327,14 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
               className="flex-1"
             />
           </div>
-          <div className="overflow-visible">
+          <div className="no-scrollbar" style={{ overflow: 'visible' }}>
             <Slider
               value={[newLevel]}
               min={0}
               max={100}
               step={5}
-              className="overflow-visible"
+              className="no-scrollbar"
+              style={{ overflow: 'visible' }}
               onValueChange={(value) => setNewLevel(value[0])}
             />
           </div>

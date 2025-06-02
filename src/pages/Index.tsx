@@ -296,7 +296,7 @@ const Index = () => {
                       </span>
                     </div>
                     <span className="text-green-600 font-medium">
-                      {currentSubscription.scan_count} scans remaining
+                      {currentSubscription.scan_count} exports remaining
                     </span>
                   </div>
                 </div>

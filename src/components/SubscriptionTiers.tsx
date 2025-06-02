@@ -84,11 +84,9 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       id: "basic",
       name: "Basic",
       icon: <Star className="h-6 w-6" />,
-      scans: 2,
       exports: 2,
       price: countryInfo.pricing.tier1,
       features: [
-        "Up to 2 ATS scans",
         "Up to 2 exports",
         "Basic resume templates",
         "AI-powered summary generation",
@@ -101,11 +99,9 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       id: "premium",
       name: "Premium",
       icon: <Crown className="h-6 w-6" />,
-      scans: 6,
       exports: 6,
       price: countryInfo.pricing.tier2,
       features: [
-        "Up to 6 ATS scans",
         "Up to 6 exports",
         "Premium resume templates",
         "Advanced AI optimization",
@@ -119,11 +115,9 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       id: "unlimited",
       name: "Unlimited",
       icon: <Infinity className="h-6 w-6" />,
-      scans: "Unlimited",
       exports: "Unlimited",
       price: countryInfo.pricing.tier3,
       features: [
-        "Unlimited ATS scans",
         "Unlimited exports",
         "All premium templates",
         "Advanced AI features",
@@ -173,8 +167,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              {typeof tier.scans === 'number' ? `${tier.scans} ATS scans` : `${tier.scans} ATS scans`} 
-              {typeof tier.exports === 'number' ? ` • ${tier.exports} exports` : ` • ${tier.exports} exports`}
+              {typeof tier.exports === 'number' ? `${tier.exports} exports` : `${tier.exports} exports`}
             </p>
           </CardHeader>
 

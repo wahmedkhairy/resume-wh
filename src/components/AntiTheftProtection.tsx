@@ -31,14 +31,17 @@ const AntiTheftProtection: React.FC<AntiTheftProtectionProps> = ({
 
     // Disable common keyboard shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S, Ctrl+P
+      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S, Ctrl+P, Print Screen
       if (
         e.key === "F12" ||
+        e.key === "PrintScreen" ||
         (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) ||
         (e.ctrlKey && (e.key === "u" || e.key === "U")) ||
         (e.ctrlKey && (e.key === "s" || e.key === "S")) ||
         (e.ctrlKey && (e.key === "p" || e.key === "P")) ||
-        (e.ctrlKey && e.shiftKey && (e.key === "C" || e.key === "c"))
+        (e.ctrlKey && e.shiftKey && (e.key === "C" || e.key === "c")) ||
+        (e.altKey && e.key === "Tab") ||
+        (e.metaKey && e.shiftKey && (e.key === "3" || e.key === "4" || e.key === "5"))
       ) {
         e.preventDefault();
         toast({
@@ -56,11 +59,33 @@ const AntiTheftProtection: React.FC<AntiTheftProtectionProps> = ({
       return false;
     };
 
-    // Detect screenshot attempts (basic detection)
+    // Detect screenshot attempts and visibility changes
     const handleVisibilityChange = () => {
       if (document.hidden) {
         console.log("Potential screenshot attempt detected");
+        toast({
+          title: "Activity Detected",
+          description: "Screen capture attempt detected. Content is protected.",
+          variant: "destructive",
+        });
       }
+    };
+
+    // Disable drag and drop
+    const handleDragStart = (e: DragEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Block copy operations
+    const handleCopy = (e: ClipboardEvent) => {
+      e.preventDefault();
+      toast({
+        title: "Copy Blocked",
+        description: "Copying content is disabled for protection.",
+        variant: "destructive",
+      });
+      return false;
     };
 
     // Add event listeners
@@ -68,6 +93,8 @@ const AntiTheftProtection: React.FC<AntiTheftProtectionProps> = ({
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("selectstart", handleSelectStart);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("dragstart", handleDragStart);
+    document.addEventListener("copy", handleCopy);
 
     // Add CSS to disable text selection and drag
     const style = document.createElement("style");
@@ -80,6 +107,24 @@ const AntiTheftProtection: React.FC<AntiTheftProtectionProps> = ({
         -webkit-touch-callout: none !important;
         -webkit-tap-highlight-color: transparent !important;
         pointer-events: auto !important;
+        -webkit-user-drag: none !important;
+        -khtml-user-drag: none !important;
+        -moz-user-drag: none !important;
+        -o-user-drag: none !important;
+        user-drag: none !important;
+      }
+      
+      .resume-container * {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+        -webkit-user-drag: none !important;
+        -khtml-user-drag: none !important;
+        -moz-user-drag: none !important;
+        -o-user-drag: none !important;
+        user-drag: none !important;
       }
       
       .watermark {
@@ -94,6 +139,19 @@ const AntiTheftProtection: React.FC<AntiTheftProtectionProps> = ({
         font-weight: bold !important;
         text-transform: uppercase !important;
       }
+
+      /* Additional protection styles */
+      .resume-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: transparent;
+        z-index: 999;
+        pointer-events: none;
+      }
     `;
     document.head.appendChild(style);
 
@@ -103,6 +161,8 @@ const AntiTheftProtection: React.FC<AntiTheftProtectionProps> = ({
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("selectstart", handleSelectStart);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("dragstart", handleDragStart);
+      document.removeEventListener("copy", handleCopy);
       document.head.removeChild(style);
     };
   }, [isActive, toast]);
