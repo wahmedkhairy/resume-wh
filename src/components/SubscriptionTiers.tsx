@@ -3,9 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Star, Crown, Building } from "lucide-react";
+import { Check, Star, Crown, Infinity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 interface PricingInfo {
   currency: string;
@@ -24,12 +23,14 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
     pricing: {
       tier1: PricingInfo;
       tier2: PricingInfo;
+      tier3: PricingInfo;
     };
   }>({
     country: "",
     pricing: {
       tier1: { currency: "USD", amount: 2, symbol: "$" },
-      tier2: { currency: "USD", amount: 3, symbol: "$" }
+      tier2: { currency: "USD", amount: 3, symbol: "$" },
+      tier3: { currency: "USD", amount: 9, symbol: "$" }
     }
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -44,13 +45,15 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
         
         let pricing = {
           tier1: { currency: "USD", amount: 2, symbol: "$" },
-          tier2: { currency: "USD", amount: 3, symbol: "$" }
+          tier2: { currency: "USD", amount: 3, symbol: "$" },
+          tier3: { currency: "USD", amount: 9, symbol: "$" }
         };
         
         if (data.country_code === 'EG') {
           pricing = {
             tier1: { currency: "EGP", amount: 39, symbol: "E£" },
-            tier2: { currency: "EGP", amount: 49, symbol: "E£" }
+            tier2: { currency: "EGP", amount: 49, symbol: "E£" },
+            tier3: { currency: "EGP", amount: 99, symbol: "E£" }
           };
         }
         
@@ -64,7 +67,8 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
           country: "Unknown",
           pricing: {
             tier1: { currency: "USD", amount: 2, symbol: "$" },
-            tier2: { currency: "USD", amount: 3, symbol: "$" }
+            tier2: { currency: "USD", amount: 3, symbol: "$" },
+            tier3: { currency: "USD", amount: 9, symbol: "$" }
           }
         });
       } finally {
@@ -81,9 +85,11 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Basic",
       icon: <Star className="h-6 w-6" />,
       scans: 2,
+      exports: 2,
       price: countryInfo.pricing.tier1,
       features: [
         "Up to 2 ATS scans",
+        "Up to 2 exports",
         "Basic resume templates",
         "AI-powered summary generation",
         "PDF export",
@@ -96,9 +102,11 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Premium",
       icon: <Crown className="h-6 w-6" />,
       scans: 6,
+      exports: 6,
       price: countryInfo.pricing.tier2,
       features: [
         "Up to 6 ATS scans",
+        "Up to 6 exports",
         "Premium resume templates",
         "Advanced AI optimization",
         "Multiple format exports",
@@ -108,33 +116,27 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       popular: true
     },
     {
-      id: "enterprise",
-      name: "Enterprise",
-      icon: <Building className="h-6 w-6" />,
+      id: "unlimited",
+      name: "Unlimited",
+      icon: <Infinity className="h-6 w-6" />,
       scans: "Unlimited",
-      price: null,
+      exports: "Unlimited",
+      price: countryInfo.pricing.tier3,
       features: [
         "Unlimited ATS scans",
         "Unlimited exports",
-        "Team dashboards",
-        "API access",
+        "All premium templates",
+        "Advanced AI features",
+        "Multiple format exports",
         "Priority support",
-        "Custom integrations",
-        "Volume discounts"
+        "Advanced analytics",
+        "Custom branding"
       ],
-      popular: false,
-      contact: true
+      popular: false
     }
   ];
 
   const handleTierSelect = (tierId: string) => {
-    if (tierId === "enterprise") {
-      toast({
-        title: "Contact Sales",
-        description: "Please contact our sales team for enterprise pricing.",
-      });
-      return;
-    }
     onSubscriptionSelect(tierId);
   };
 
@@ -165,19 +167,14 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
             </div>
             <CardTitle className="text-xl">{tier.name}</CardTitle>
             <div className="text-3xl font-bold">
-              {tier.contact ? (
-                "Contact Us"
-              ) : (
-                <>
-                  {tier.price?.symbol}{tier.price?.amount}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    /{tier.price?.currency}
-                  </span>
-                </>
-              )}
+              {tier.price?.symbol}{tier.price?.amount}
+              <span className="text-sm font-normal text-muted-foreground">
+                /{tier.price?.currency}
+              </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              {typeof tier.scans === 'number' ? `${tier.scans} ATS scans` : `${tier.scans} ATS scans`}
+              {typeof tier.scans === 'number' ? `${tier.scans} ATS scans` : `${tier.scans} ATS scans`} 
+              {typeof tier.exports === 'number' ? ` • ${tier.exports} exports` : ` • ${tier.exports} exports`}
             </p>
           </CardHeader>
 
@@ -197,7 +194,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
               onClick={() => handleTierSelect(tier.id)}
               disabled={currentTier === tier.id}
             >
-              {currentTier === tier.id ? "Current Plan" : (tier.contact ? "Contact Sales" : "Choose Plan")}
+              {currentTier === tier.id ? "Current Plan" : "Choose Plan"}
             </Button>
           </CardContent>
         </Card>

@@ -92,7 +92,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           {/* Summary Section */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 flex-1">Summary</h2>
+              <h2 className="text-black font-bold text-lg border-b border-black pb-1 flex-1">Summary</h2>
               {summary && (
                 <Button
                   variant="ghost"
@@ -134,7 +134,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           
           {/* Experience Section */}
           <div className="mb-4">
-            <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Experience</h2>
+            <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2">Experience</h2>
             {workExperience && workExperience.length > 0 ? (
               <div className="mb-4 text-black">
                 {workExperience.map((job) => (
@@ -157,7 +157,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 <p className="text-sm text-black">January 2020 - Present</p>
                 <ul className="pl-5 list-disc mt-1 text-black">
                   <li>Led development of company's flagship SaaS product using React and TypeScript</li>
-                  <li>Improved application performance by <span className="ats-highlight">40%</span> through code optimization and efficient state management</li>
+                  <li>Improved application performance by <span className="font-semibold">40%</span> through code optimization and efficient state management</li>
                   <li>Collaborated with UX designers to implement responsive interfaces across all devices</li>
                   <li>Mentored junior developers and conducted code reviews to ensure code quality</li>
                 </ul>
@@ -166,7 +166,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 <p className="text-sm text-black">June 2018 - December 2019</p>
                 <ul className="pl-5 list-disc mt-1 text-black">
                   <li>Developed and maintained websites for 15+ clients using React, Vue and vanilla JavaScript</li>
-                  <li>Implemented CI/CD pipelines resulting in <span className="ats-highlight">30% faster</span> deployment times</li>
+                  <li>Implemented CI/CD pipelines resulting in <span className="font-semibold">30% faster</span> deployment times</li>
                   <li>Created custom analytics dashboard that increased client retention by 25%</li>
                 </ul>
               </div>
@@ -176,7 +176,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           {/* Skills section - only shown when skills are provided */}
           {skills && skills.length > 0 && (
             <div className="mb-4">
-              <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Skills</h2>
+              <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2">Skills</h2>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                 {skills.map(skill => (
                   <div key={skill.id}>
@@ -197,7 +197,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           
           {/* Education section - always shown */}
           <div className="mb-4">
-            <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Education</h2>
+            <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2">Education</h2>
             <div className="text-black">
               {education && education.length > 0 ? (
                 education.map((edu) => (
@@ -220,7 +220,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           {/* Courses & Certifications - only shown when available */}
           {(coursesAndCertifications && coursesAndCertifications.length > 0) && (
             <div className="mb-4">
-              <h2 className="text-black font-bold text-lg border-b border-gray-300 pb-1 mb-2">Courses & Certifications</h2>
+              <h2 className="text-black font-bold text-lg border-b border-black pb-1 mb-2">Courses & Certifications</h2>
               <div className="space-y-2">
                 {coursesAndCertifications.map(item => (
                   <div key={item.id} className="text-black">

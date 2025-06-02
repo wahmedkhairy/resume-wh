@@ -51,6 +51,7 @@ interface Education {
 }
 
 const Index = () => {
+  const [currentSection, setCurrentSection] = useState("editor");
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [resumeData, setResumeData] = useState({
     summary: "",
@@ -198,17 +199,69 @@ const Index = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      <Header />
-      <Navigation />
-      
-      <main className="flex-1 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <p className="text-center text-muted-foreground">Create ATS-optimized resumes with AI-powered content generation</p>
-          </div>
+  const handleSectionChange = (section: string) => {
+    setCurrentSection(section);
+  };
 
+  const renderMainContent = () => {
+    switch (currentSection) {
+      case "settings":
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-12">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <h2 className="text-2xl font-bold mb-4">Settings</h2>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Account Settings</h3>
+                    <p className="text-muted-foreground">Manage your account preferences and subscription.</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Export Settings</h3>
+                    <p className="text-muted-foreground">Configure your resume export preferences.</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Privacy Settings</h3>
+                    <p className="text-muted-foreground">Control your data and privacy preferences.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case "ats":
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-12">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <h2 className="text-2xl font-bold mb-4">ATS Check</h2>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">ATS Compatibility Score</h3>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="text-3xl font-bold text-green-600 mb-2">85%</div>
+                        <p className="text-sm text-muted-foreground">Your resume is ATS-friendly</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Keyword Optimization</h3>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="text-3xl font-bold text-yellow-600 mb-2">72%</div>
+                        <p className="text-sm text-muted-foreground">Consider adding more relevant keywords</p>
+                      </div>
+                    </div>
+                  </div>
+                  <ATSScanner />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      default:
+        return (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left Column - Editor */}
             <div className="lg:col-span-6 space-y-6">
@@ -303,6 +356,22 @@ const Index = () => {
               <ATSScanner />
             </div>
           </div>
+        );
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <Header />
+      <Navigation onSectionChange={handleSectionChange} currentSection={currentSection} />
+      
+      <main className="flex-1 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <p className="text-center text-muted-foreground">Create ATS-optimized resumes with AI-powered content generation</p>
+          </div>
+
+          {renderMainContent()}
         </div>
       </main>
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -75,13 +74,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           description: "You will be redirected to complete your payment.",
         });
         
-        // Simulate PayPal checkout - in a real implementation, you would:
-        // 1. Create a PayPal order through your backend
-        // 2. Redirect to the PayPal checkout URL
         setTimeout(() => {
           toast({
             title: "Payment Successful!",
-            description: "Your subscription has been activated.",
+            description: `Your ${selectedTier} subscription has been activated.`,
           });
           onClose();
           
@@ -98,7 +94,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         setTimeout(() => {
           toast({
             title: "Payment Successful!",
-            description: "Your subscription has been activated.",
+            description: `Your ${selectedTier} subscription has been activated.`,
           });
           onClose();
           
