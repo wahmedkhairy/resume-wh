@@ -33,13 +33,18 @@ const PayPalSettings: React.FC = () => {
         .from('user_settings')
         .select('paypal_client_id')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error loading PayPal settings:', error);
+        return;
+      }
       
       if (data?.paypal_client_id) {
         setClientId(data.paypal_client_id);
       }
     } catch (error) {
-      console.log('No existing PayPal settings found');
+      console.log('Error loading PayPal settings:', error);
     }
   };
 
