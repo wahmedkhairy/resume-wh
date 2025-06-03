@@ -149,26 +149,74 @@
     @apply bg-yellow-100 dark:bg-yellow-900/50 px-1 rounded;
   }
 
-  /* COMPLETE SCROLLBAR REMOVAL - AGGRESSIVE APPROACH */
+  /* ULTRA AGGRESSIVE SLIDER SCROLLBAR REMOVAL */
   
-  /* Remove all scrollbars from slider components */
-  [data-radix-slider-root],
-  [data-radix-slider-root] *,
+  /* Target all slider elements aggressively */
+  *[data-radix-slider-root],
+  *[data-radix-slider-root] *,
+  *[data-radix-slider-track],
+  *[data-radix-slider-track] *,
+  *[data-radix-slider-range],
+  *[data-radix-slider-range] *,
+  *[data-radix-slider-thumb],
+  *[data-radix-slider-thumb] *,
   .slider-container,
-  .slider-container * {
+  .slider-container *,
+  .skills-container,
+  .skills-container *,
+  .skills-bar,
+  .skills-bar *,
+  *[role="slider"],
+  *[role="slider"] *,
+  *[data-orientation],
+  *[data-orientation] *,
+  *[class*="skill"],
+  *[class*="skill"] *,
+  span[data-radix-slider-track],
+  span[data-radix-slider-track] *,
+  span[data-radix-slider-range],
+  span[data-radix-slider-range] *,
+  span[data-radix-slider-thumb],
+  span[data-radix-slider-thumb] * {
     overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
   }
   
-  [data-radix-slider-root]::-webkit-scrollbar,
-  [data-radix-slider-root] *::-webkit-scrollbar,
+  *[data-radix-slider-root]::-webkit-scrollbar,
+  *[data-radix-slider-root] *::-webkit-scrollbar,
+  *[data-radix-slider-track]::-webkit-scrollbar,
+  *[data-radix-slider-track] *::-webkit-scrollbar,
+  *[data-radix-slider-range]::-webkit-scrollbar,
+  *[data-radix-slider-range] *::-webkit-scrollbar,
+  *[data-radix-slider-thumb]::-webkit-scrollbar,
+  *[data-radix-slider-thumb] *::-webkit-scrollbar,
   .slider-container::-webkit-scrollbar,
-  .slider-container *::-webkit-scrollbar {
+  .slider-container *::-webkit-scrollbar,
+  .skills-container::-webkit-scrollbar,
+  .skills-container *::-webkit-scrollbar,
+  .skills-bar::-webkit-scrollbar,
+  .skills-bar *::-webkit-scrollbar,
+  *[role="slider"]::-webkit-scrollbar,
+  *[role="slider"] *::-webkit-scrollbar,
+  *[data-orientation]::-webkit-scrollbar,
+  *[data-orientation] *::-webkit-scrollbar,
+  *[class*="skill"]::-webkit-scrollbar,
+  *[class*="skill"] *::-webkit-scrollbar,
+  span[data-radix-slider-track]::-webkit-scrollbar,
+  span[data-radix-slider-track] *::-webkit-scrollbar,
+  span[data-radix-slider-range]::-webkit-scrollbar,
+  span[data-radix-slider-range] *::-webkit-scrollbar,
+  span[data-radix-slider-thumb]::-webkit-scrollbar,
+  span[data-radix-slider-thumb] *::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;
     height: 0 !important;
     appearance: none !important;
+    background: transparent !important;
+    -webkit-appearance: none !important;
   }
 
   /* Remove scrollbars from ScrollArea components */
@@ -193,26 +241,14 @@
 
   /* Universal no-scrollbar class - MOST AGGRESSIVE */
   .no-scrollbar,
-  .no-scrollbar *,
-  .skills-container,
-  .skills-container *,
-  .skills-bar,
-  .skills-bar *,
-  *[class*="skill"],
-  *[class*="skill"] * {
+  .no-scrollbar * {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
     overflow: visible !important;
   }
 
   .no-scrollbar::-webkit-scrollbar,
-  .no-scrollbar *::-webkit-scrollbar,
-  .skills-container::-webkit-scrollbar,
-  .skills-container *::-webkit-scrollbar,
-  .skills-bar::-webkit-scrollbar,
-  .skills-bar *::-webkit-scrollbar,
-  *[class*="skill"]::-webkit-scrollbar,
-  *[class*="skill"] *::-webkit-scrollbar {
+  .no-scrollbar *::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;
     height: 0 !important;
@@ -220,29 +256,25 @@
     background: transparent !important;
   }
 
-  /* Target Radix UI Slider specifically */
-  *[role="slider"],
-  *[role="slider"] *,
-  *[data-orientation],
-  *[data-orientation] * {
+  /* Specific fix for skills section slider width issue */
+  .skills-new-level-slider,
+  .skills-new-level-slider *,
+  .skills-new-level-slider [data-radix-slider-root],
+  .skills-new-level-slider [data-radix-slider-root] * {
+    width: 100% !important;
+    max-width: 100% !important;
     overflow: visible !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
   }
 
-  *[role="slider"]::-webkit-scrollbar,
-  *[role="slider"] *::-webkit-scrollbar,
-  *[data-orientation]::-webkit-scrollbar,
-  *[data-orientation] *::-webkit-scrollbar {
+  .skills-new-level-slider::-webkit-scrollbar,
+  .skills-new-level-slider *::-webkit-scrollbar,
+  .skills-new-level-slider [data-radix-slider-root]::-webkit-scrollbar,
+  .skills-new-level-slider [data-radix-slider-root] *::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;
     height: 0 !important;
-  }
-
-  /* Apply to any element that might have overflow */
-  .skills-bar *,
-  .skills-container * {
-    overflow-x: visible !important;
-    overflow-y: visible !important;
+    appearance: none !important;
   }
 }

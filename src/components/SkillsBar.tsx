@@ -296,17 +296,15 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
                 </Button>
               </div>
             </div>
-            <div className="flex items-center gap-4 no-scrollbar slider-container">
-              <div className="w-full no-scrollbar slider-container">
-                <Slider
-                  value={[skill.level]}
-                  min={0}
-                  max={100}
-                  step={5}
-                  className="w-full no-scrollbar slider-container"
-                  onValueChange={(value) => handleLevelChange(skill.id, value[0])}
-                />
-              </div>
+            <div className="w-full no-scrollbar slider-container">
+              <Slider
+                value={[skill.level]}
+                min={0}
+                max={100}
+                step={5}
+                className="w-full no-scrollbar"
+                onValueChange={(value) => handleLevelChange(skill.id, value[0])}
+              />
             </div>
             <div className="w-full bg-muted rounded-full h-2.5">
               <div
@@ -326,13 +324,13 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
               className="flex-1"
             />
           </div>
-          <div className="no-scrollbar slider-container">
+          <div className="w-full skills-new-level-slider no-scrollbar">
             <Slider
               value={[newLevel]}
               min={0}
               max={100}
               step={5}
-              className="no-scrollbar slider-container"
+              className="w-full no-scrollbar"
               onValueChange={(value) => setNewLevel(value[0])}
             />
           </div>

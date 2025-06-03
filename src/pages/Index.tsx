@@ -12,6 +12,7 @@ import AntiTheftProtection from "@/components/AntiTheftProtection";
 import PersonalInfoBar, { PersonalInfo } from "@/components/PersonalInfoBar";
 import WorkExperienceBar from "@/components/WorkExperienceBar";
 import EducationBar from "@/components/EducationBar";
+import PayPalSettings from "@/components/PayPalSettings";
 import { Button } from "@/components/ui/button";
 import { Download, Wand2, Lock, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -235,8 +236,10 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-12">
               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <h2 className="text-2xl font-bold mb-4">Settings</h2>
-                <div className="space-y-4">
+                <h2 className="text-2xl font-bold mb-6">Settings</h2>
+                <div className="space-y-6">
+                  <PayPalSettings />
+                  
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Account Settings</h3>
                     <p className="text-muted-foreground">Manage your account preferences and subscription.</p>
