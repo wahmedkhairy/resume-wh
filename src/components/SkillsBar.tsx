@@ -278,7 +278,7 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
       </CardHeader>
       <CardContent className="space-y-4 skills-container no-scrollbar">
         {skills.map((skill) => (
-          <div key={skill.id} className="space-y-2 no-scrollbar">
+          <div key={skill.id} className="space-y-2 no-scrollbar skills-bar">
             <div className="flex items-center justify-between">
               <Input
                 value={skill.name}
@@ -296,15 +296,14 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
                 </Button>
               </div>
             </div>
-            <div className="flex items-center gap-4 no-scrollbar" style={{ overflow: 'visible' }}>
-              <div className="w-full no-scrollbar" style={{ overflow: 'visible' }}>
+            <div className="flex items-center gap-4 no-scrollbar slider-container">
+              <div className="w-full no-scrollbar slider-container">
                 <Slider
                   value={[skill.level]}
                   min={0}
                   max={100}
                   step={5}
-                  className="w-full no-scrollbar"
-                  style={{ overflow: 'visible' }}
+                  className="w-full no-scrollbar slider-container"
                   onValueChange={(value) => handleLevelChange(skill.id, value[0])}
                 />
               </div>
@@ -327,14 +326,13 @@ const SkillsBar: React.FC<SkillsBarProps> = ({ initialSkills = [], onSkillsChang
               className="flex-1"
             />
           </div>
-          <div className="no-scrollbar" style={{ overflow: 'visible' }}>
+          <div className="no-scrollbar slider-container">
             <Slider
               value={[newLevel]}
               min={0}
               max={100}
               step={5}
-              className="no-scrollbar"
-              style={{ overflow: 'visible' }}
+              className="no-scrollbar slider-container"
               onValueChange={(value) => setNewLevel(value[0])}
             />
           </div>

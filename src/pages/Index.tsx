@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -15,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Wand2, Lock, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { exportResumeToPDF, exportResumeAsHTML } from "@/utils/resumeExport";
 
 interface Skill {
   id: string;
@@ -124,32 +126,55 @@ const Index = () => {
     }));
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    if (!isPremiumUser || !currentSubscription || currentSubscription.scan_count <= 0) {
+      toast({
+        title: "Upgrade Required",
+        description: "Please upgrade your plan to export resumes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsExporting(true);
     
-    if (isPremiumUser && currentSubscription && currentSubscription.scan_count > 0) {
-      setTimeout(() => {
-        setIsExporting(false);
-        toast({
-          title: "Resume Exported",
-          description: "Your resume has been exported successfully.",
-        });
-        
-        // Decrement scan count
-        supabase
-          .from('subscriptions')
-          .update({ scan_count: currentSubscription.scan_count - 1 })
-          .eq('user_id', currentUserId);
-      }, 1000);
-    } else {
-      setTimeout(() => {
-        setIsExporting(false);
-        toast({
-          title: "Upgrade Required",
-          description: "Please upgrade your plan to export resumes.",
-          variant: "destructive",
-        });
-      }, 500);
+    try {
+      const exportData = {
+        personalInfo,
+        summary: resumeData.summary,
+        workExperience,
+        education,
+        skills,
+        coursesAndCertifications
+      };
+
+      await exportResumeToPDF(exportData);
+      
+      // Decrement scan count
+      await supabase
+        .from('subscriptions')
+        .update({ scan_count: currentSubscription.scan_count - 1 })
+        .eq('user_id', currentUserId);
+      
+      // Update local state
+      setCurrentSubscription(prev => ({
+        ...prev,
+        scan_count: prev.scan_count - 1
+      }));
+
+      toast({
+        title: "Resume Exported",
+        description: "Your resume has been exported successfully as PDF.",
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting your resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
     }
   };
 
