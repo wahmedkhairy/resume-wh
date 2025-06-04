@@ -28,7 +28,8 @@ export class PayPalService {
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error("User not authenticated");
+        console.error("User not authenticated");
+        return false;
       }
 
       // Fetch PayPal client ID from user settings
@@ -39,10 +40,12 @@ export class PayPalService {
         .maybeSingle();
 
       if (!settings?.paypal_client_id) {
-        throw new Error("PayPal client ID not configured");
+        console.error("PayPal client ID not configured in user settings");
+        return false;
       }
 
       this.clientId = settings.paypal_client_id;
+      console.log("PayPal client ID loaded successfully");
 
       // Load PayPal SDK
       this.paypal = await loadScript({
@@ -50,6 +53,7 @@ export class PayPalService {
         currency: "USD"
       });
 
+      console.log("PayPal SDK loaded successfully");
       return true;
     } catch (error) {
       console.error("Failed to initialize PayPal:", error);
@@ -63,6 +67,8 @@ export class PayPalService {
     }
 
     try {
+      console.log("Creating PayPal order with data:", orderData);
+      
       const { data, error } = await supabase.functions.invoke('create-paypal-order', {
         body: {
           amount: orderData.amount,
@@ -72,7 +78,12 @@ export class PayPalService {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error from create-paypal-order function:", error);
+        throw error;
+      }
+      
+      console.log("PayPal order created successfully:", data);
       return data.orderId;
     } catch (error) {
       console.error("Error creating PayPal order:", error);
@@ -82,11 +93,18 @@ export class PayPalService {
 
   async captureOrder(orderId: string): Promise<any> {
     try {
+      console.log("Capturing PayPal order:", orderId);
+      
       const { data, error } = await supabase.functions.invoke('capture-paypal-order', {
         body: { orderId }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error from capture-paypal-order function:", error);
+        throw error;
+      }
+      
+      console.log("PayPal order captured successfully:", data);
       return data;
     } catch (error) {
       console.error("Error capturing PayPal order:", error);
