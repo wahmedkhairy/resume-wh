@@ -1,10 +1,12 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Smartphone, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import PayPalCheckout from "./PayPalCheckout";
+import { PayPalOrderData } from "@/services/paypalService";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -23,8 +25,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   currency,
   symbol
 }) => {
-  const [isProcessing, setIsProcessing] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string>("paypal");
+  const [showPayPalButtons, setShowPayPalButtons] = useState(false);
   const { toast } = useToast();
 
   const paymentMethods = [
@@ -54,7 +56,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     );
   }
 
-  const handlePayment = async () => {
+  const handleProceedToPayment = () => {
     if (!selectedMethod) {
       toast({
         title: "Select Payment Method",
@@ -64,54 +66,53 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       return;
     }
 
-    setIsProcessing(true);
-
-    try {
-      if (selectedMethod === "paypal") {
-        // PayPal payment processing
-        toast({
-          title: "Redirecting to PayPal",
-          description: "You will be redirected to complete your payment.",
-        });
-        
-        setTimeout(() => {
-          toast({
-            title: "Payment Successful!",
-            description: `Your ${selectedTier} subscription has been activated.`,
-          });
-          onClose();
-          
-          // Redirect to success page
-          window.location.href = "/payment-success";
-        }, 2000);
-      } else {
-        // Handle local Egyptian payment methods
-        toast({
-          title: `Redirecting to ${selectedMethod}`,
-          description: "You will be redirected to complete your payment.",
-        });
-        
-        setTimeout(() => {
-          toast({
-            title: "Payment Successful!",
-            description: `Your ${selectedTier} subscription has been activated.`,
-          });
-          onClose();
-          
-          // Redirect to success page
-          window.location.href = "/payment-success";
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
+    if (selectedMethod === "paypal") {
+      setShowPayPalButtons(true);
+    } else {
+      // Handle local Egyptian payment methods (mock for now)
       toast({
-        title: "Payment Failed",
-        description: "There was an error processing your payment. Please try again.",
-        variant: "destructive",
+        title: `Redirecting to ${selectedMethod}`,
+        description: "You will be redirected to complete your payment.",
       });
-    } finally {
-      setIsProcessing(false);
+      
+      setTimeout(() => {
+        toast({
+          title: "Payment Successful!",
+          description: `Your ${selectedTier} subscription has been activated.`,
+        });
+        onClose();
+        window.location.href = "/payment-success";
+      }, 2000);
     }
+  };
+
+  const handlePayPalSuccess = (details: any) => {
+    toast({
+      title: "Payment Successful!",
+      description: `Your ${selectedTier} subscription has been activated.`,
+    });
+    onClose();
+    window.location.href = "/payment-success";
+  };
+
+  const handlePayPalError = (error: any) => {
+    toast({
+      title: "Payment Failed",
+      description: "There was an error processing your payment. Please try again.",
+      variant: "destructive",
+    });
+    setShowPayPalButtons(false);
+  };
+
+  const handlePayPalCancel = () => {
+    setShowPayPalButtons(false);
+  };
+
+  const orderData: PayPalOrderData = {
+    amount: amount.toString(),
+    currency: currency,
+    description: `${selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} Plan Subscription`,
+    tier: selectedTier
   };
 
   return (
@@ -128,41 +129,58 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <p className="text-sm text-muted-foreground">{currency}</p>
           </div>
 
-          <div className="space-y-3">
-            <h4 className="font-medium">Select Payment Method:</h4>
-            {paymentMethods.map((method) => (
-              <Card 
-                key={method.id}
-                className={`cursor-pointer transition-colors ${
-                  selectedMethod === method.id ? 'border-primary bg-primary/5' : ''
-                }`}
-                onClick={() => setSelectedMethod(method.id)}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center space-x-3">
-                    {method.icon}
-                    <div>
-                      <p className="font-medium">{method.name}</p>
-                      <p className="text-sm text-muted-foreground">{method.description}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {!showPayPalButtons ? (
+            <>
+              <div className="space-y-3">
+                <h4 className="font-medium">Select Payment Method:</h4>
+                {paymentMethods.map((method) => (
+                  <Card 
+                    key={method.id}
+                    className={`cursor-pointer transition-colors ${
+                      selectedMethod === method.id ? 'border-primary bg-primary/5' : ''
+                    }`}
+                    onClick={() => setSelectedMethod(method.id)}
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-center space-x-3">
+                        {method.icon}
+                        <div>
+                          <p className="font-medium">{method.name}</p>
+                          <p className="text-sm text-muted-foreground">{method.description}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
 
-          <div className="flex space-x-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button 
-              onClick={handlePayment} 
-              disabled={isProcessing || !selectedMethod}
-              className="flex-1"
-            >
-              {isProcessing ? "Processing..." : "Pay Now"}
-            </Button>
-          </div>
+              <div className="flex space-x-3">
+                <Button variant="outline" onClick={onClose} className="flex-1">
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleProceedToPayment} 
+                  disabled={!selectedMethod}
+                  className="flex-1"
+                >
+                  Continue
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-4">
+              <h4 className="font-medium text-center">Complete your payment with PayPal</h4>
+              <PayPalCheckout
+                orderData={orderData}
+                onSuccess={handlePayPalSuccess}
+                onError={handlePayPalError}
+                onCancel={handlePayPalCancel}
+              />
+              <Button variant="outline" onClick={handlePayPalCancel} className="w-full">
+                Back to Payment Methods
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
