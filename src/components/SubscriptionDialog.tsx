@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
   const [pricingInfo, setPricingInfo] = useState({
     basic: { amount: 2, currency: "USD", symbol: "$" },
     premium: { amount: 3, currency: "USD", symbol: "$" },
-    unlimited: { amount: 9, currency: "USD", symbol: "$" }
+    unlimited: { amount: 9.9, currency: "USD", symbol: "$" }
   });
 
   useEffect(() => {
@@ -25,6 +24,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
         const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
         
+        // Special pricing for Egypt
         if (data.country_code === 'EG') {
           setPricingInfo({
             basic: { amount: 39, currency: "EGP", symbol: "E£" },
@@ -34,6 +34,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
         }
       } catch (error) {
         console.error("Error detecting location:", error);
+        // Keep default USD pricing on error
       }
     };
     

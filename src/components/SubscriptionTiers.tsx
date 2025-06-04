@@ -21,16 +21,16 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
   const [countryInfo, setCountryInfo] = useState<{
     country: string;
     pricing: {
-      tier1: PricingInfo;
-      tier2: PricingInfo;
-      tier3: PricingInfo;
+      basic: PricingInfo;
+      premium: PricingInfo;
+      unlimited: PricingInfo;
     };
   }>({
     country: "",
     pricing: {
-      tier1: { currency: "USD", amount: 2, symbol: "$" },
-      tier2: { currency: "USD", amount: 3, symbol: "$" },
-      tier3: { currency: "USD", amount: 9, symbol: "$" }
+      basic: { currency: "USD", amount: 2, symbol: "$" },
+      premium: { currency: "USD", amount: 3, symbol: "$" },
+      unlimited: { currency: "USD", amount: 9.9, symbol: "$" }
     }
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -44,16 +44,17 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
         const data = await response.json();
         
         let pricing = {
-          tier1: { currency: "USD", amount: 2, symbol: "$" },
-          tier2: { currency: "USD", amount: 3, symbol: "$" },
-          tier3: { currency: "USD", amount: 9, symbol: "$" }
+          basic: { currency: "USD", amount: 2, symbol: "$" },
+          premium: { currency: "USD", amount: 3, symbol: "$" },
+          unlimited: { currency: "USD", amount: 9.9, symbol: "$" }
         };
         
+        // Special pricing for Egypt
         if (data.country_code === 'EG') {
           pricing = {
-            tier1: { currency: "EGP", amount: 39, symbol: "E£" },
-            tier2: { currency: "EGP", amount: 49, symbol: "E£" },
-            tier3: { currency: "EGP", amount: 99, symbol: "E£" }
+            basic: { currency: "EGP", amount: 39, symbol: "E£" },
+            premium: { currency: "EGP", amount: 49, symbol: "E£" },
+            unlimited: { currency: "EGP", amount: 99, symbol: "E£" }
           };
         }
         
@@ -63,12 +64,13 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
         });
       } catch (error) {
         console.error("Error detecting location:", error);
+        // Fallback to default USD pricing
         setCountryInfo({
           country: "Unknown",
           pricing: {
-            tier1: { currency: "USD", amount: 2, symbol: "$" },
-            tier2: { currency: "USD", amount: 3, symbol: "$" },
-            tier3: { currency: "USD", amount: 9, symbol: "$" }
+            basic: { currency: "USD", amount: 2, symbol: "$" },
+            premium: { currency: "USD", amount: 3, symbol: "$" },
+            unlimited: { currency: "USD", amount: 9.9, symbol: "$" }
           }
         });
       } finally {
@@ -85,7 +87,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Basic",
       icon: <Star className="h-6 w-6" />,
       exports: 2,
-      price: countryInfo.pricing.tier1,
+      price: countryInfo.pricing.basic,
       features: [
         "Up to 2 exports",
         "Basic resume templates",
@@ -100,7 +102,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Premium",
       icon: <Crown className="h-6 w-6" />,
       exports: 6,
-      price: countryInfo.pricing.tier2,
+      price: countryInfo.pricing.premium,
       features: [
         "Up to 6 exports",
         "Premium resume templates",
@@ -116,7 +118,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Unlimited",
       icon: <Infinity className="h-6 w-6" />,
       exports: "Unlimited",
-      price: countryInfo.pricing.tier3,
+      price: countryInfo.pricing.unlimited,
       features: [
         "Unlimited exports",
         "All premium templates",
@@ -143,55 +145,62 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-      {tiers.map((tier) => (
-        <Card 
-          key={tier.id} 
-          className={`relative ${tier.popular ? 'border-primary shadow-lg scale-105' : ''} ${currentTier === tier.id ? 'ring-2 ring-primary' : ''}`}
-        >
-          {tier.popular && (
-            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
-              Most Popular
-            </Badge>
-          )}
-          
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-2">
-              {tier.icon}
-            </div>
-            <CardTitle className="text-xl">{tier.name}</CardTitle>
-            <div className="text-3xl font-bold">
-              {tier.price?.symbol}{tier.price?.amount}
-              <span className="text-sm font-normal text-muted-foreground">
-                /{tier.price?.currency}
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {typeof tier.exports === 'number' ? `${tier.exports} exports` : `${tier.exports} exports`}
-            </p>
-          </CardHeader>
+    <div className="space-y-4">
+      {/* Country Detection Info */}
+      <div className="text-center text-sm text-muted-foreground">
+        Pricing for {countryInfo.country} • {countryInfo.pricing.basic.currency}
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {tiers.map((tier) => (
+          <Card 
+            key={tier.id} 
+            className={`relative ${tier.popular ? 'border-primary shadow-lg scale-105' : ''} ${currentTier === tier.id ? 'ring-2 ring-primary' : ''}`}
+          >
+            {tier.popular && (
+              <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
+                Most Popular
+              </Badge>
+            )}
+            
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-2">
+                {tier.icon}
+              </div>
+              <CardTitle className="text-xl">{tier.name}</CardTitle>
+              <div className="text-3xl font-bold">
+                {tier.price?.symbol}{tier.price?.amount}
+                <span className="text-sm font-normal text-muted-foreground">
+                  /month
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {typeof tier.exports === 'number' ? `${tier.exports} exports` : `${tier.exports} exports`}
+              </p>
+            </CardHeader>
 
-          <CardContent>
-            <ul className="space-y-3 mb-6">
-              {tier.features.map((feature, index) => (
-                <li key={index} className="flex items-center">
-                  <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                  <span className="text-sm">{feature}</span>
-                </li>
-              ))}
-            </ul>
+            <CardContent>
+              <ul className="space-y-3 mb-6">
+                {tier.features.map((feature, index) => (
+                  <li key={index} className="flex items-center">
+                    <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                    <span className="text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
 
-            <Button 
-              className="w-full"
-              variant={currentTier === tier.id ? "outline" : "default"}
-              onClick={() => handleTierSelect(tier.id)}
-              disabled={currentTier === tier.id}
-            >
-              {currentTier === tier.id ? "Current Plan" : "Choose Plan"}
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
+              <Button 
+                className="w-full"
+                variant={currentTier === tier.id ? "outline" : "default"}
+                onClick={() => handleTierSelect(tier.id)}
+                disabled={currentTier === tier.id}
+              >
+                {currentTier === tier.id ? "Current Plan" : "Choose Plan"}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };

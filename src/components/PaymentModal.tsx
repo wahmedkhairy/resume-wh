@@ -1,12 +1,12 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Smartphone, Building2 } from "lucide-react";
+import { CreditCard, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import PayPalCheckout from "./PayPalCheckout";
-import { PayPalOrderData } from "@/services/paypalService";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -25,94 +25,120 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   currency,
   symbol
 }) => {
-  const [selectedMethod, setSelectedMethod] = useState<string>("paypal");
-  const [showPayPalButtons, setShowPayPalButtons] = useState(false);
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+    cardholderName: ""
+  });
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const paymentMethods = [
-    {
-      id: "paypal",
-      name: "PayPal",
-      icon: <Smartphone className="h-5 w-5" />,
-      description: "Pay with your PayPal account"
+  const handleInputChange = (field: string, value: string) => {
+    setCardDetails(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const formatCardNumber = (value: string) => {
+    const cleaned = value.replace(/\s/g, '');
+    const match = cleaned.match(/.{1,4}/g);
+    return match ? match.join(' ').substr(0, 19) : '';
+  };
+
+  const formatExpiryDate = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length >= 2) {
+      return cleaned.substring(0, 2) + '/' + cleaned.substring(2, 4);
     }
-  ];
+    return cleaned;
+  };
 
-  // Add Egyptian payment methods if currency is EGP
-  if (currency === "EGP") {
-    paymentMethods.push(
-      {
-        id: "fawry",
-        name: "Fawry",
-        icon: <Smartphone className="h-5 w-5" />,
-        description: "Pay through Fawry network"
-      },
-      {
-        id: "meeza",
-        name: "Meeza",
-        icon: <Building2 className="h-5 w-5" />,
-        description: "Egyptian national payment network"
-      }
-    );
-  }
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCardNumber(e.target.value);
+    handleInputChange('cardNumber', formatted);
+  };
 
-  const handleProceedToPayment = () => {
-    if (!selectedMethod) {
+  const handleExpiryDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatExpiryDate(e.target.value);
+    handleInputChange('expiryDate', formatted);
+  };
+
+  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').substring(0, 4);
+    handleInputChange('cvv', value);
+  };
+
+  const validateForm = () => {
+    const { cardNumber, expiryDate, cvv, cardholderName } = cardDetails;
+    
+    if (!cardholderName.trim()) {
       toast({
-        title: "Select Payment Method",
-        description: "Please select a payment method to continue.",
+        title: "Missing Information",
+        description: "Please enter the cardholder name.",
         variant: "destructive",
       });
+      return false;
+    }
+
+    if (cardNumber.replace(/\s/g, '').length < 13) {
+      toast({
+        title: "Invalid Card Number",
+        description: "Please enter a valid card number.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (expiryDate.length < 5) {
+      toast({
+        title: "Invalid Expiry Date",
+        description: "Please enter a valid expiry date (MM/YY).",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (cvv.length < 3) {
+      toast({
+        title: "Invalid CVV",
+        description: "Please enter a valid CVV.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handlePayment = async () => {
+    if (!validateForm()) {
       return;
     }
 
-    if (selectedMethod === "paypal") {
-      setShowPayPalButtons(true);
-    } else {
-      // Handle local Egyptian payment methods (mock for now)
+    setIsProcessing(true);
+
+    try {
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       toast({
-        title: `Redirecting to ${selectedMethod}`,
-        description: "You will be redirected to complete your payment.",
+        title: "Payment Successful!",
+        description: `Your ${selectedTier} subscription has been activated.`,
       });
       
-      setTimeout(() => {
-        toast({
-          title: "Payment Successful!",
-          description: `Your ${selectedTier} subscription has been activated.`,
-        });
-        onClose();
-        window.location.href = "/payment-success";
-      }, 2000);
+      onClose();
+      window.location.href = "/payment-success";
+    } catch (error) {
+      toast({
+        title: "Payment Failed",
+        description: "There was an error processing your payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
-  };
-
-  const handlePayPalSuccess = (details: any) => {
-    toast({
-      title: "Payment Successful!",
-      description: `Your ${selectedTier} subscription has been activated.`,
-    });
-    onClose();
-    window.location.href = "/payment-success";
-  };
-
-  const handlePayPalError = (error: any) => {
-    toast({
-      title: "Payment Failed",
-      description: "There was an error processing your payment. Please try again.",
-      variant: "destructive",
-    });
-    setShowPayPalButtons(false);
-  };
-
-  const handlePayPalCancel = () => {
-    setShowPayPalButtons(false);
-  };
-
-  const orderData: PayPalOrderData = {
-    amount: amount.toString(),
-    currency: currency,
-    description: `${selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} Plan Subscription`,
-    tier: selectedTier
   };
 
   return (
@@ -122,65 +148,98 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           <DialogTitle>Complete Your Payment</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* Order Summary */}
           <div className="text-center p-4 bg-muted rounded-lg">
             <h3 className="font-semibold capitalize">{selectedTier} Plan</h3>
             <p className="text-2xl font-bold">{symbol}{amount}</p>
             <p className="text-sm text-muted-foreground">{currency}</p>
           </div>
 
-          {!showPayPalButtons ? (
-            <>
-              <div className="space-y-3">
-                <h4 className="font-medium">Select Payment Method:</h4>
-                {paymentMethods.map((method) => (
-                  <Card 
-                    key={method.id}
-                    className={`cursor-pointer transition-colors ${
-                      selectedMethod === method.id ? 'border-primary bg-primary/5' : ''
-                    }`}
-                    onClick={() => setSelectedMethod(method.id)}
-                  >
-                    <CardContent className="p-3">
-                      <div className="flex items-center space-x-3">
-                        {method.icon}
-                        <div>
-                          <p className="font-medium">{method.name}</p>
-                          <p className="text-sm text-muted-foreground">{method.description}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+          {/* Card Payment Form */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center mb-4">
+                <CreditCard className="h-5 w-5 mr-2" />
+                <h4 className="font-medium">Card Details</h4>
+                <Lock className="h-4 w-4 ml-auto text-green-600" />
               </div>
 
-              <div className="flex space-x-3">
-                <Button variant="outline" onClick={onClose} className="flex-1">
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleProceedToPayment} 
-                  disabled={!selectedMethod}
-                  className="flex-1"
-                >
-                  Continue
-                </Button>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="cardholderName">Cardholder Name</Label>
+                  <Input
+                    id="cardholderName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={cardDetails.cardholderName}
+                    onChange={(e) => handleInputChange('cardholderName', e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="cardNumber">Card Number</Label>
+                  <Input
+                    id="cardNumber"
+                    type="text"
+                    placeholder="1234 5678 9012 3456"
+                    value={cardDetails.cardNumber}
+                    onChange={handleCardNumberChange}
+                    className="mt-1"
+                    maxLength={19}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Input
+                      id="expiryDate"
+                      type="text"
+                      placeholder="MM/YY"
+                      value={cardDetails.expiryDate}
+                      onChange={handleExpiryDateChange}
+                      className="mt-1"
+                      maxLength={5}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="cvv">CVV</Label>
+                    <Input
+                      id="cvv"
+                      type="text"
+                      placeholder="123"
+                      value={cardDetails.cvv}
+                      onChange={handleCvvChange}
+                      className="mt-1"
+                      maxLength={4}
+                    />
+                  </div>
+                </div>
               </div>
-            </>
-          ) : (
-            <div className="space-y-4">
-              <h4 className="font-medium text-center">Complete your payment with PayPal</h4>
-              <PayPalCheckout
-                orderData={orderData}
-                onSuccess={handlePayPalSuccess}
-                onError={handlePayPalError}
-                onCancel={handlePayPalCancel}
-              />
-              <Button variant="outline" onClick={handlePayPalCancel} className="w-full">
-                Back to Payment Methods
-              </Button>
-            </div>
-          )}
+            </CardContent>
+          </Card>
+
+          {/* Security Notice */}
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Lock className="h-4 w-4 mr-2" />
+            <span>Your payment information is secure and encrypted</span>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-3">
+            <Button variant="outline" onClick={onClose} className="flex-1" disabled={isProcessing}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handlePayment} 
+              className="flex-1"
+              disabled={isProcessing}
+            >
+              {isProcessing ? "Processing..." : `Pay ${symbol}${amount}`}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
