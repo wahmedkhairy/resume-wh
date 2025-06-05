@@ -10,6 +10,8 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from '@supabase/supabase-js';
+import { AlertCircle, CheckCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Auth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -19,6 +21,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -26,11 +29,26 @@ const Auth = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Redirect to home if user is authenticated
-        if (session?.user) {
+        // Handle email confirmation
+        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+          toast({
+            title: "Welcome!",
+            description: "You have successfully signed in.",
+          });
+          navigate("/");
+        }
+        
+        // Handle token refresh
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully');
+        }
+        
+        // Redirect to home if user is authenticated and email is confirmed
+        if (session?.user?.email_confirmed_at) {
           navigate("/");
         }
       }
@@ -38,17 +56,25 @@ const Auth = () => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session);
       setSession(session);
       setUser(session?.user ?? null);
       setIsInitialLoading(false);
       
-      if (session?.user) {
+      if (session?.user?.email_confirmed_at) {
         navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, toast]);
+
+  const validatePassword = (password: string) => {
+    if (password.length < 6) {
+      return "Password must be at least 6 characters long";
+    }
+    return null;
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,12 +88,22 @@ const Auth = () => {
       return;
     }
 
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      toast({
+        title: "Invalid Password",
+        description: passwordError,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -82,20 +118,28 @@ const Auth = () => {
             description: "An account with this email already exists. Please sign in instead.",
             variant: "destructive",
           });
+        } else if (error.message.includes('Password should be at least')) {
+          toast({
+            title: "Weak Password",
+            description: "Password should be at least 6 characters long and contain a mix of characters.",
+            variant: "destructive",
+          });
         } else {
           throw error;
         }
       } else {
+        setEmailSent(true);
         toast({
           title: "Check Your Email",
           description: "Please check your email for a confirmation link to complete your registration.",
         });
+        console.log('Sign up successful, user:', data.user);
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
       toast({
         title: "Sign Up Failed",
-        description: error.message || "There was an error creating your account.",
+        description: error.message || "There was an error creating your account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -108,7 +152,7 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -120,15 +164,30 @@ const Auth = () => {
             description: "Please check your email and password and try again.",
             variant: "destructive",
           });
+        } else if (error.message.includes('Email not confirmed')) {
+          toast({
+            title: "Email Not Confirmed",
+            description: "Please check your email and click the confirmation link before signing in.",
+            variant: "destructive",
+          });
         } else {
           throw error;
+        }
+      } else {
+        console.log('Sign in successful:', data);
+        if (!data.user?.email_confirmed_at) {
+          toast({
+            title: "Email Confirmation Required",
+            description: "Please confirm your email address before accessing the application.",
+            variant: "destructive",
+          });
         }
       }
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({
         title: "Sign In Failed",
-        description: error.message || "There was an error signing you in.",
+        description: error.message || "There was an error signing you in. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -143,16 +202,63 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`
+          redirectTo: `${window.location.origin}/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         }
       });
 
       if (error) throw error;
+      
+      toast({
+        title: "Redirecting...",
+        description: "Redirecting to Google for authentication.",
+      });
     } catch (error: any) {
       console.error('Google sign in error:', error);
       toast({
         title: "Google Sign In Failed",
-        description: error.message || "There was an error signing you in with Google.",
+        description: error.message || "There was an error signing you in with Google. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Confirmation Email Sent",
+        description: "We've sent another confirmation email to your address.",
+      });
+    } catch (error: any) {
+      console.error('Resend confirmation error:', error);
+      toast({
+        title: "Failed to Resend",
+        description: error.message || "Failed to resend confirmation email.",
         variant: "destructive",
       });
     } finally {
@@ -178,6 +284,23 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {emailSent && (
+            <Alert className="mb-6">
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription>
+                We've sent you a confirmation email. Please check your inbox and click the link to verify your account.
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto ml-2 text-sm"
+                  onClick={handleResendConfirmation}
+                  disabled={isLoading}
+                >
+                  Resend email
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -232,10 +355,11 @@ const Auth = () => {
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="Create a password"
+                    placeholder="Create a password (min 6 characters)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    minLength={6}
                   />
                 </div>
                 <div className="space-y-2">
@@ -285,6 +409,23 @@ const Auth = () => {
               Continue with Google
             </Button>
           </div>
+
+          {user && !user.email_confirmed_at && (
+            <Alert className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Your email address is not confirmed. Please check your email for a confirmation link.
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto ml-2 text-sm"
+                  onClick={handleResendConfirmation}
+                  disabled={isLoading}
+                >
+                  Resend confirmation email
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
       </Card>
     </div>
