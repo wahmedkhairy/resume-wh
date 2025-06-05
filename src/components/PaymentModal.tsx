@@ -2,9 +2,9 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import PayPalCheckout from "./PayPalCheckout";
+import OrderSummary from "./OrderSummary";
+import PaymentSection from "./PaymentSection";
 import { PayPalOrderData } from "@/services/paypalService";
 
 interface PaymentModalProps {
@@ -69,31 +69,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Order Summary */}
-          <div className="text-center p-4 bg-muted rounded-lg">
-            <h3 className="font-semibold capitalize">{selectedTier} Plan</h3>
-            <p className="text-2xl font-bold">{symbol}{amount}</p>
-            <p className="text-sm text-muted-foreground">One-time payment for export credits</p>
-          </div>
+          <OrderSummary
+            selectedTier={selectedTier}
+            amount={amount}
+            symbol={symbol}
+          />
 
-          {/* PayPal Payment */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-center mb-4">
-                <h4 className="font-medium">Pay with PayPal or Credit Card</h4>
-                <p className="text-sm text-muted-foreground">Secure payment processing</p>
-              </div>
-              
-              <PayPalCheckout
-                orderData={orderData}
-                onSuccess={handlePaymentSuccess}
-                onError={handlePaymentError}
-                onCancel={handlePaymentCancel}
-              />
-            </CardContent>
-          </Card>
+          <PaymentSection
+            orderData={orderData}
+            onSuccess={handlePaymentSuccess}
+            onError={handlePaymentError}
+            onCancel={handlePaymentCancel}
+          />
 
-          {/* Cancel Button */}
           <Button variant="outline" onClick={onClose} className="w-full" disabled={isProcessing}>
             Cancel
           </Button>
