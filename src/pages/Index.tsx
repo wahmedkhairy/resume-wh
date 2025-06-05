@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -148,13 +149,19 @@ const Index = () => {
         coursesAndCertifications
       };
 
+      console.log('Starting export with data:', exportData);
       await exportResumeToPDF(exportData);
       
       // Decrement scan count
-      await supabase
+      const { error: updateError } = await supabase
         .from('subscriptions')
         .update({ scan_count: currentSubscription.scan_count - 1 })
         .eq('user_id', currentUserId);
+      
+      if (updateError) {
+        console.error('Error updating scan count:', updateError);
+        throw updateError;
+      }
       
       // Update local state
       setCurrentSubscription(prev => ({
@@ -163,14 +170,14 @@ const Index = () => {
       }));
 
       toast({
-        title: "Resume Exported",
-        description: "Your resume has been exported successfully as PDF.",
+        title: "Resume Exported Successfully!",
+        description: `Your resume has been downloaded as PDF. ${currentSubscription.scan_count - 1} exports remaining.`,
       });
     } catch (error) {
       console.error('Export error:', error);
       toast({
         title: "Export Failed",
-        description: "There was an error exporting your resume. Please try again.",
+        description: error.message || "There was an error exporting your resume. Please try again.",
         variant: "destructive",
       });
     } finally {

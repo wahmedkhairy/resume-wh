@@ -13,37 +13,64 @@ export interface ExportData {
 
 export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
   try {
-    // Get the resume preview element
-    const resumeElement = document.querySelector('.resume-container') as HTMLElement;
+    // Get the resume preview element with better selector
+    const resumeElement = document.querySelector('[data-resume-preview]') || 
+                         document.querySelector('.resume-container') || 
+                         document.querySelector('.resume-preview');
     
     if (!resumeElement) {
-      throw new Error('Resume preview not found');
+      throw new Error('Resume preview not found. Please ensure the resume is visible on screen.');
     }
 
-    // Temporarily hide watermark for export
+    console.log('Starting PDF export...');
+
+    // Temporarily hide watermark and anti-theft protection for export
     const watermark = document.querySelector('.watermark') as HTMLElement;
-    const originalDisplay = watermark?.style.display;
+    const antiTheft = document.querySelector('[data-anti-theft]') as HTMLElement;
+    
+    const originalWatermarkDisplay = watermark?.style.display;
+    const originalAntiTheftDisplay = antiTheft?.style.display;
+    
     if (watermark) {
       watermark.style.display = 'none';
     }
+    if (antiTheft) {
+      antiTheft.style.display = 'none';
+    }
 
-    // Create canvas from the resume element
-    const canvas = await html2canvas(resumeElement, {
+    // Wait a moment for DOM to update
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Create canvas from the resume element with better options
+    const canvas = await html2canvas(resumeElement as HTMLElement, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
       width: resumeElement.scrollWidth,
       height: resumeElement.scrollHeight,
+      logging: false,
+      onclone: (clonedDoc) => {
+        // Remove any remaining watermarks or anti-theft elements in the clone
+        const clonedWatermark = clonedDoc.querySelector('.watermark');
+        const clonedAntiTheft = clonedDoc.querySelector('[data-anti-theft]');
+        if (clonedWatermark) clonedWatermark.remove();
+        if (clonedAntiTheft) clonedAntiTheft.remove();
+      }
     });
 
-    // Restore watermark
-    if (watermark && originalDisplay !== undefined) {
-      watermark.style.display = originalDisplay;
+    // Restore original display styles
+    if (watermark && originalWatermarkDisplay !== undefined) {
+      watermark.style.display = originalWatermarkDisplay;
+    }
+    if (antiTheft && originalAntiTheftDisplay !== undefined) {
+      antiTheft.style.display = originalAntiTheftDisplay;
     }
 
-    // Create PDF
-    const imgData = canvas.toDataURL('image/png');
+    console.log('Canvas created, generating PDF...');
+
+    // Create PDF with proper sizing
+    const imgData = canvas.toDataURL('image/png', 1.0);
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -54,22 +81,30 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     const pdfHeight = pdf.internal.pageSize.getHeight();
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
-    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-    const imgX = (pdfWidth - imgWidth * ratio) / 2;
-    const imgY = 0;
+    
+    // Calculate scaling to fit the page while maintaining aspect ratio
+    const ratio = Math.min(pdfWidth / (imgWidth * 0.264583), pdfHeight / (imgHeight * 0.264583));
+    const scaledWidth = imgWidth * 0.264583 * ratio;
+    const scaledHeight = imgHeight * 0.264583 * ratio;
+    
+    // Center the image on the page
+    const imgX = (pdfWidth - scaledWidth) / 2;
+    const imgY = (pdfHeight - scaledHeight) / 2;
 
-    pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+    pdf.addImage(imgData, 'PNG', imgX, imgY, scaledWidth, scaledHeight);
     
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().slice(0, 10);
-    const filename = `resume_${data.personalInfo.name?.replace(/\s+/g, '_') || 'user'}_${timestamp}.pdf`;
+    const name = data.personalInfo.name?.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'resume';
+    const filename = `${name}_resume_${timestamp}.pdf`;
     
+    console.log('Saving PDF:', filename);
     pdf.save(filename);
     
     return Promise.resolve();
   } catch (error) {
     console.error('Error exporting resume:', error);
-    throw error;
+    throw new Error(`Failed to export resume: ${error.message}`);
   }
 };
 
@@ -83,45 +118,56 @@ export const exportResumeAsHTML = (data: ExportData): void => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Resume - ${data.personalInfo.name}</title>
         <style>
-            body { font-family: Georgia, serif; margin: 20px; line-height: 1.6; }
-            h1 { text-align: center; margin-bottom: 10px; }
-            h2 { border-bottom: 1px solid #000; padding-bottom: 5px; margin-top: 20px; }
-            .contact-info { text-align: center; margin-bottom: 20px; }
-            .skill-bar { background: #f0f0f0; height: 10px; margin: 5px 0; border-radius: 5px; }
-            .skill-fill { height: 100%; border-radius: 5px; }
-            .skill-fill.high { background: #10b981; }
-            .skill-fill.medium { background: #3b82f6; }
-            .skill-fill.low { background: #eab308; }
+            body { font-family: Georgia, serif; margin: 20px; line-height: 1.6; color: #333; }
+            h1 { text-align: center; margin-bottom: 10px; color: #2c3e50; }
+            h2 { border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-top: 20px; color: #2c3e50; }
+            .contact-info { text-align: center; margin-bottom: 20px; color: #7f8c8d; }
+            .skill-item { margin: 8px 0; }
+            .skill-bar { background: #ecf0f1; height: 8px; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+            .skill-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+            .skill-fill.high { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+            .skill-fill.medium { background: linear-gradient(90deg, #2980b9, #3498db); }
+            .skill-fill.low { background: linear-gradient(90deg, #f39c12, #e67e22); }
             ul { margin: 10px 0; padding-left: 25px; }
+            li { margin: 4px 0; }
+            .job-header { margin-bottom: 8px; }
+            .job-title { font-weight: bold; color: #2c3e50; }
+            .job-meta { color: #7f8c8d; font-style: italic; font-size: 0.9em; }
         </style>
     </head>
     <body>
-        <h1>${data.personalInfo.name}</h1>
+        <h1>${data.personalInfo.name || 'Professional Resume'}</h1>
         <div class="contact-info">
-            ${data.personalInfo.jobTitle} | ${data.personalInfo.location} | 
-            ${data.personalInfo.email} | ${data.personalInfo.phone}
+            ${data.personalInfo.jobTitle ? `${data.personalInfo.jobTitle}<br>` : ''}
+            ${data.personalInfo.location ? `${data.personalInfo.location}<br>` : ''}
+            ${data.personalInfo.email ? `${data.personalInfo.email}<br>` : ''}
+            ${data.personalInfo.phone ? `${data.personalInfo.phone}` : ''}
         </div>
         
         ${data.summary ? `
-        <h2>Summary</h2>
+        <h2>Professional Summary</h2>
         <p>${data.summary}</p>
         ` : ''}
         
-        <h2>Experience</h2>
+        ${data.workExperience.length > 0 ? `
+        <h2>Professional Experience</h2>
         ${data.workExperience.map(job => `
-            <h3>${job.jobTitle} - ${job.company}</h3>
-            <p><em>${job.startDate} - ${job.endDate} | ${job.location}</em></p>
+            <div class="job-header">
+                <div class="job-title">${job.jobTitle} - ${job.company}</div>
+                <div class="job-meta">${job.startDate} - ${job.endDate} | ${job.location}</div>
+            </div>
             <ul>
                 ${job.responsibilities.filter((r: string) => r.trim()).map((responsibility: string) => `
                     <li>${responsibility}</li>
                 `).join('')}
             </ul>
         `).join('')}
+        ` : ''}
         
         ${data.skills.length > 0 ? `
         <h2>Skills</h2>
         ${data.skills.map(skill => `
-            <div>
+            <div class="skill-item">
                 <strong>${skill.name}</strong>
                 <div class="skill-bar">
                     <div class="skill-fill ${skill.level >= 80 ? 'high' : skill.level >= 60 ? 'medium' : 'low'}" 
@@ -131,20 +177,24 @@ export const exportResumeAsHTML = (data: ExportData): void => {
         `).join('')}
         ` : ''}
         
+        ${data.education.length > 0 ? `
         <h2>Education</h2>
         ${data.education.map(edu => `
-            <h3>${edu.degree}</h3>
-            <p>${edu.institution} - ${edu.graduationYear}</p>
-            ${edu.location ? `<p>${edu.location}</p>` : ''}
-            ${edu.gpa ? `<p>GPA: ${edu.gpa}</p>` : ''}
+            <div class="job-header">
+                <div class="job-title">${edu.degree}</div>
+                <div class="job-meta">${edu.institution} - ${edu.graduationYear}${edu.location ? ` | ${edu.location}` : ''}${edu.gpa ? ` | GPA: ${edu.gpa}` : ''}</div>
+            </div>
         `).join('')}
+        ` : ''}
         
         ${data.coursesAndCertifications.length > 0 ? `
         <h2>Courses & Certifications</h2>
         ${data.coursesAndCertifications.map(item => `
-            <h3>${item.title}</h3>
-            <p>${item.provider} - ${item.date}</p>
-            <p>${item.description}</p>
+            <div class="job-header">
+                <div class="job-title">${item.title}</div>
+                <div class="job-meta">${item.provider} - ${item.date}</div>
+                ${item.description ? `<p>${item.description}</p>` : ''}
+            </div>
         `).join('')}
         ` : ''}
     </body>
@@ -155,7 +205,7 @@ export const exportResumeAsHTML = (data: ExportData): void => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `resume_${data.personalInfo.name?.replace(/\s+/g, '_') || 'user'}.html`;
+  a.download = `${data.personalInfo.name?.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'resume'}_resume.html`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

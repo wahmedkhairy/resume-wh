@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import SubscriptionTiers from "./SubscriptionTiers";
 import PaymentModal from "./PaymentModal";
@@ -71,6 +72,9 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl text-center">Choose Your Plan</DialogTitle>
+            <DialogDescription className="text-center">
+              Select the plan that best fits your resume export needs. All plans include AI-powered optimization and ATS-friendly templates.
+            </DialogDescription>
           </DialogHeader>
           <div className="mt-6">
             <SubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />

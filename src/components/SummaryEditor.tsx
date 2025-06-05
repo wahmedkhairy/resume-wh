@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Wand2, Save } from "lucide-react";
+import { Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -96,17 +96,15 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({
           />
         </div>
         
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={handleGenerateWithAI} 
-            disabled={isGenerating}
-            className="flex-1"
-          >
-            <Wand2 className="mr-2 h-4 w-4" />
-            {isGenerating ? "Generating..." : "Generate with AI"}
-          </Button>
-        </div>
+        <Button 
+          variant="outline" 
+          onClick={handleGenerateWithAI} 
+          disabled={isGenerating}
+          className="w-full"
+        >
+          <Wand2 className="mr-2 h-4 w-4" />
+          {isGenerating ? "Generating..." : "Generate with AI"}
+        </Button>
         
         <div className="text-xs text-muted-foreground">
           <p>Tip: A good summary should be 2-3 sentences that highlight your most relevant experience and skills for your target role.</p>
