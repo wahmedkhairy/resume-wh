@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from "react";
-import { PayPalService, PayPalOrderData } from "@/services/paypalService";
+import { PayPalOrderData } from "@/services/paypalService";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,70 +23,88 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
   useEffect(() => {
     const initializePayPal = async () => {
       try {
-        const paypalService = PayPalService.getInstance();
-        const initialized = await paypalService.initialize();
+        // Load PayPal SDK with your client ID
+        const script = document.createElement('script');
+        script.src = `https://www.paypal.com/sdk/js?client-id=AcHWJYj8MwqfRNnNPGQmkSuJnpXi1ZfJl6YwqRDR0CYmNnJ2tQ_1ybJhGr3hBb5QeTk-KzpL8QiHD5Fp&currency=${orderData.currency}`;
+        script.async = true;
         
-        if (!initialized) {
-          throw new Error("Failed to initialize PayPal");
-        }
+        script.onload = () => {
+          if (window.paypal && paypalRef.current) {
+            window.paypal.Buttons({
+              createOrder: async () => {
+                try {
+                  const { data, error } = await supabase.functions.invoke('create-paypal-order', {
+                    body: {
+                      amount: orderData.amount,
+                      currency: orderData.currency,
+                      description: orderData.description,
+                      tier: orderData.tier
+                    }
+                  });
 
-        const paypal = paypalService.getPayPal();
-        
-        if (paypal && paypalRef.current) {
-          paypal.Buttons({
-            createOrder: async () => {
-              try {
-                return await paypalService.createOrder(orderData);
-              } catch (error) {
-                console.error("Error creating order:", error);
-                toast({
-                  title: "Payment Error",
-                  description: "Failed to create payment order. Please try again.",
-                  variant: "destructive",
-                });
-                onError(error);
-                throw error;
-              }
-            },
-            onApprove: async (data: any) => {
-              try {
-                const details = await paypalService.captureOrder(data.orderID);
-                
-                // Update user subscription
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                  const scanCount = orderData.tier === 'basic' ? 2 : 
-                                  orderData.tier === 'premium' ? 6 : 999;
-                  
-                  await supabase
-                    .from('subscriptions')
-                    .upsert({
-                      user_id: user.id,
-                      tier: orderData.tier,
-                      status: 'active',
-                      scan_count: scanCount,
-                      max_scans: scanCount,
-                      updated_at: new Date().toISOString()
-                    });
+                  if (error) throw error;
+                  return data.orderId;
+                } catch (error) {
+                  console.error("Error creating order:", error);
+                  toast({
+                    title: "Payment Error",
+                    description: "Failed to create payment order. Please try again.",
+                    variant: "destructive",
+                  });
+                  onError(error);
+                  throw error;
                 }
-                
-                onSuccess(details);
-              } catch (error) {
-                console.error("Error capturing order:", error);
+              },
+              onApprove: async (data: any) => {
+                try {
+                  const { data: captureData, error } = await supabase.functions.invoke('capture-paypal-order', {
+                    body: { orderId: data.orderID }
+                  });
+
+                  if (error) throw error;
+                  
+                  // Update user subscription
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const scanCount = orderData.tier === 'basic' ? 2 : 
+                                    orderData.tier === 'premium' ? 6 : 999;
+                    
+                    await supabase
+                      .from('subscriptions')
+                      .upsert({
+                        user_id: user.id,
+                        tier: orderData.tier,
+                        status: 'active',
+                        scan_count: scanCount,
+                        max_scans: scanCount,
+                        updated_at: new Date().toISOString()
+                      });
+                  }
+                  
+                  onSuccess(captureData);
+                } catch (error) {
+                  console.error("Error capturing order:", error);
+                  onError(error);
+                }
+              },
+              onError: (error: any) => {
+                console.error("PayPal error:", error);
                 onError(error);
+              },
+              onCancel: () => {
+                if (onCancel) {
+                  onCancel();
+                }
               }
-            },
-            onError: (error: any) => {
-              console.error("PayPal error:", error);
-              onError(error);
-            },
-            onCancel: () => {
-              if (onCancel) {
-                onCancel();
-              }
-            }
-          }).render(paypalRef.current);
-        }
+            }).render(paypalRef.current);
+          }
+        };
+        
+        document.body.appendChild(script);
+        
+        return () => {
+          document.body.removeChild(script);
+        };
       } catch (error) {
         console.error("PayPal initialization error:", error);
         toast({

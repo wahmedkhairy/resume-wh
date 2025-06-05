@@ -22,8 +22,10 @@ serve(async (req) => {
       throw new Error('PayPal credentials not configured');
     }
 
+    console.log('Capturing PayPal order:', orderId);
+
     // Get PayPal access token
-    const authResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+    const authResponse = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -35,11 +37,12 @@ serve(async (req) => {
     const authData = await authResponse.json();
     
     if (!authData.access_token) {
+      console.error('Failed to get PayPal access token:', authData);
       throw new Error('Failed to get PayPal access token');
     }
 
     // Capture PayPal order
-    const captureResponse = await fetch(`https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`, {
+    const captureResponse = await fetch(`https://api-m.paypal.com/v2/checkout/orders/${orderId}/capture`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -50,8 +53,11 @@ serve(async (req) => {
     const captureData = await captureResponse.json();
     
     if (captureData.status !== 'COMPLETED') {
+      console.error('PayPal payment capture failed:', captureData);
       throw new Error('PayPal payment capture failed');
     }
+
+    console.log('PayPal payment captured successfully:', captureData.id);
 
     return new Response(JSON.stringify({ 
       success: true, 

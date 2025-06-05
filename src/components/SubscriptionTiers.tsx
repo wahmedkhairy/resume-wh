@@ -64,7 +64,6 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
         });
       } catch (error) {
         console.error("Error detecting location:", error);
-        // Fallback to default USD pricing
         setCountryInfo({
           country: "Unknown",
           pricing: {
@@ -89,7 +88,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       exports: 2,
       price: countryInfo.pricing.basic,
       features: [
-        "Up to 2 exports",
+        "2 resume exports",
         "Basic resume templates",
         "AI-powered summary generation",
         "PDF export",
@@ -104,7 +103,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       exports: 6,
       price: countryInfo.pricing.premium,
       features: [
-        "Up to 6 exports",
+        "6 resume exports",
         "Premium resume templates",
         "Advanced AI optimization",
         "Multiple format exports",
@@ -146,9 +145,8 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
 
   return (
     <div className="space-y-4">
-      {/* Country Detection Info */}
       <div className="text-center text-sm text-muted-foreground">
-        Pricing for {countryInfo.country} • {countryInfo.pricing.basic.currency}
+        Pricing for {countryInfo.country} • {countryInfo.pricing.basic.currency} • One-time payment for exports
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -171,7 +169,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
               <div className="text-3xl font-bold">
                 {tier.price?.symbol}{tier.price?.amount}
                 <span className="text-sm font-normal text-muted-foreground">
-                  /month
+                  one-time
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -195,7 +193,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
                 onClick={() => handleTierSelect(tier.id)}
                 disabled={currentTier === tier.id}
               >
-                {currentTier === tier.id ? "Current Plan" : "Choose Plan"}
+                {currentTier === tier.id ? "Current Plan" : "Buy Now"}
               </Button>
             </CardContent>
           </Card>

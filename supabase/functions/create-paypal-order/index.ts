@@ -15,6 +15,7 @@ serve(async (req) => {
   try {
     const { amount, currency, description, tier } = await req.json();
     
+    // Use your PayPal credentials from environment variables
     const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID');
     const paypalClientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET');
     
@@ -22,8 +23,10 @@ serve(async (req) => {
       throw new Error('PayPal credentials not configured');
     }
 
+    console.log('Creating PayPal order for:', { amount, currency, tier });
+
     // Get PayPal access token
-    const authResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+    const authResponse = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -35,11 +38,12 @@ serve(async (req) => {
     const authData = await authResponse.json();
     
     if (!authData.access_token) {
+      console.error('Failed to get PayPal access token:', authData);
       throw new Error('Failed to get PayPal access token');
     }
 
     // Create PayPal order
-    const orderResponse = await fetch('https://api-m.sandbox.paypal.com/v2/checkout/orders', {
+    const orderResponse = await fetch('https://api-m.paypal.com/v2/checkout/orders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -65,8 +69,11 @@ serve(async (req) => {
     const orderData = await orderResponse.json();
     
     if (!orderData.id) {
+      console.error('Failed to create PayPal order:', orderData);
       throw new Error('Failed to create PayPal order');
     }
+
+    console.log('PayPal order created successfully:', orderData.id);
 
     return new Response(JSON.stringify({ orderId: orderData.id }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

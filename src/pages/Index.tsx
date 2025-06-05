@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -12,12 +11,13 @@ import AntiTheftProtection from "@/components/AntiTheftProtection";
 import PersonalInfoBar, { PersonalInfo } from "@/components/PersonalInfoBar";
 import WorkExperienceBar from "@/components/WorkExperienceBar";
 import EducationBar from "@/components/EducationBar";
-import PayPalSettings from "@/components/PayPalSettings";
+import UserSettings from "@/components/UserSettings";
+import SummaryEditor from "@/components/SummaryEditor";
 import { Button } from "@/components/ui/button";
-import { Download, Wand2, Lock, Shield } from "lucide-react";
+import { Download, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { exportResumeToPDF, exportResumeAsHTML } from "@/utils/resumeExport";
+import { exportResumeToPDF } from "@/utils/resumeExport";
 
 interface Skill {
   id: string;
@@ -70,7 +70,6 @@ const Index = () => {
   const [education, setEducation] = useState<Education[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [coursesAndCertifications, setCoursesAndCertifications] = useState<Course[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>("");
@@ -131,7 +130,7 @@ const Index = () => {
     if (!isPremiumUser || !currentSubscription || currentSubscription.scan_count <= 0) {
       toast({
         title: "Upgrade Required",
-        description: "Please upgrade your plan to export resumes.",
+        description: "Please purchase export credits to download your resume.",
         variant: "destructive",
       });
       return;
@@ -179,52 +178,6 @@ const Index = () => {
     }
   };
 
-  const handleGenerateSummary = async () => {
-    if (workExperience.length === 0) {
-      toast({
-        title: "No Experience Data",
-        description: "Please add work experience details first to generate a relevant summary.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-summary', {
-        body: { 
-          experience: workExperience,
-          education: education,
-          skills: skills,
-          personalInfo: personalInfo
-        }
-      });
-      
-      if (error) throw error;
-      
-      if (data?.summary) {
-        setResumeData(prev => ({
-          ...prev,
-          summary: data.summary
-        }));
-        toast({
-          title: "Summary Generated",
-          description: "Your professional summary has been generated using AI.",
-        });
-      }
-    } catch (error) {
-      console.error('Error generating summary:', error);
-      toast({
-        title: "Generation Failed",
-        description: "There was an error generating your summary. Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleSectionChange = (section: string) => {
     setCurrentSection(section);
   };
@@ -237,22 +190,7 @@ const Index = () => {
             <div className="lg:col-span-12">
               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
                 <h2 className="text-2xl font-bold mb-6">Settings</h2>
-                <div className="space-y-6">
-                  <PayPalSettings />
-                  
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Account Settings</h3>
-                    <p className="text-muted-foreground">Manage your account preferences and subscription.</p>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Export Settings</h3>
-                    <p className="text-muted-foreground">Configure your resume export preferences.</p>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Privacy Settings</h3>
-                    <p className="text-muted-foreground">Control your data and privacy preferences.</p>
-                  </div>
-                </div>
+                <UserSettings />
               </div>
             </div>
           </div>
@@ -297,19 +235,12 @@ const Index = () => {
                 <h2 className="text-xl font-bold">Resume Editor</h2>
                 <div className="flex gap-2">
                   <Button 
-                    variant="outline" 
-                    onClick={handleGenerateSummary} 
-                    disabled={isGenerating}
-                  >
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    {isGenerating ? "Generating..." : "Generate Summary"}
-                  </Button>
-                  <Button 
                     onClick={handleExport}
                     disabled={isExporting || (!isPremiumUser)}
+                    className={`${!isPremiumUser ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    {!isPremiumUser ? <Lock className="mr-2 h-4 w-4" /> : <Download className="mr-2 h-4 w-4" />}
-                    {isExporting ? "Exporting..." : "Export Resume"}
+                    <Download className="mr-2 h-4 w-4" />
+                    {isExporting ? "Exporting..." : isPremiumUser ? "Export Resume" : "🔒 Export Resume"}
                   </Button>
                 </div>
               </div>
@@ -333,6 +264,15 @@ const Index = () => {
               <PersonalInfoBar 
                 onInfoChange={handlePersonalInfoChange}
                 initialInfo={personalInfo}
+              />
+              
+              <SummaryEditor
+                initialSummary={resumeData.summary}
+                onSummaryChange={handleSummaryChange}
+                workExperience={workExperience}
+                education={education}
+                skills={skills}
+                personalInfo={personalInfo}
               />
               
               <WorkExperienceBar 
