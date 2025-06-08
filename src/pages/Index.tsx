@@ -1,146 +1,81 @@
+
 import React, { useState, useEffect } from "react";
-import Header from "@/components/Header";
-import Navigation from "@/components/Navigation";
-import SectionEditor from "@/components/SectionEditor";
-import ResumePreview from "@/components/ResumePreview";
-import ATSScanner from "@/components/ATSScanner";
-import KeywordMatcher from "@/components/KeywordMatcher";
-import SkillsBar from "@/components/SkillsBar";
-import CoursesAndCertifications from "@/components/CoursesAndCertifications";
-import AntiTheftProtection from "@/components/AntiTheftProtection";
-import PersonalInfoBar, { PersonalInfo } from "@/components/PersonalInfoBar";
-import WorkExperienceBar from "@/components/WorkExperienceBar";
-import EducationBar from "@/components/EducationBar";
-import UserSettings from "@/components/UserSettings";
-import SummaryEditor from "@/components/SummaryEditor";
-import { Button } from "@/components/ui/button";
-import { Download, Shield, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { exportResumeToPDF } from "@/utils/resumeExport";
-
-interface Skill {
-  id: string;
-  name: string;
-  level: number;
-}
-
-interface Course {
-  id: string;
-  title: string;
-  provider: string;
-  date: string;
-  description: string;
-  type: "course" | "certification";
-}
-
-interface WorkExperience {
-  id: string;
-  jobTitle: string;
-  company: string;
-  startDate: string;
-  endDate: string;
-  location: string;
-  responsibilities: string[];
-}
-
-interface Education {
-  id: string;
-  degree: string;
-  institution: string;
-  graduationYear: string;
-  gpa?: string;
-  location: string;
-}
+import Header from "@/components/Header";
+import Navigation from "@/components/Navigation";
+import ResumeData from "@/components/ResumeData";
+import PreviewSection from "@/components/PreviewSection";
+import SubscriptionStatus from "@/components/SubscriptionStatus";
+import ExportControls from "@/components/ExportControls";
+import SettingsSection from "@/components/SettingsSection";
+import ATSSection from "@/components/ATSSection";
+import { useResumeData } from "@/hooks/useResumeData";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const Index = () => {
   const [currentSection, setCurrentSection] = useState("editor");
-  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
-  const [resumeState, setResumeState] = useState({
-    summary: "",
-  });
-  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
-    name: "",
-    jobTitle: "",
-    location: "",
-    email: "",
-    phone: ""
-  });
-  const [workExperience, setWorkExperience] = useState<WorkExperience[]>([]);
-  const [education, setEducation] = useState<Education[]>([]);
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [coursesAndCertifications, setCoursesAndCertifications] = useState<Course[]>([]);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [sessionId] = useState(`session_${Date.now()}`);
   const { toast } = useToast();
 
-  // Check subscription status
+  const {
+    resumeState,
+    setResumeState,
+    personalInfo,
+    setPersonalInfo,
+    workExperience,
+    setWorkExperience,
+    education,
+    setEducation,
+    skills,
+    setSkills,
+    coursesAndCertifications,
+    setCoursesAndCertifications,
+    isSaving,
+    handleSave,
+  } = useResumeData(currentUserId);
+
+  const {
+    currentSubscription,
+    isPremiumUser,
+    isExporting,
+    handleExport,
+  } = useSubscription(currentUserId);
+
+  // Check user authentication and load data
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
-        
-        // Check subscription from database
-        const { data: subscription } = await supabase
-          .from('subscriptions')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        if (subscription && subscription.scan_count > 0) {
-          setIsPremiumUser(true);
-          setCurrentSubscription(subscription);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setCurrentUserId(user.id);
         }
-
-        // Load existing resume data
-        const { data: resume } = await supabase
-          .from('resumes')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (resume) {
-          // Safely type cast the data from Supabase using unknown as intermediate
-          setPersonalInfo((resume.personal_info as unknown as PersonalInfo) || {
-            name: "",
-            jobTitle: "",
-            location: "",
-            email: "",
-            phone: ""
-          });
-          setResumeState({ summary: (resume.summary as string) || "" });
-          setWorkExperience((resume.experience as unknown as WorkExperience[]) || []);
-          setEducation((resume.education as unknown as Education[]) || []);
-          setSkills((resume.skills as unknown as Skill[]) || []);
-          setCoursesAndCertifications((resume.courses as unknown as Course[]) || []);
-        }
+      } catch (error) {
+        console.error('Error checking user:', error);
       }
     };
     
     checkUser();
   }, []);
 
-  const handlePersonalInfoChange = (info: PersonalInfo) => {
+  const handlePersonalInfoChange = (info: any) => {
     setPersonalInfo(info);
   };
 
-  const handleWorkExperienceChange = (newExperience: WorkExperience[]) => {
+  const handleWorkExperienceChange = (newExperience: any) => {
     setWorkExperience(newExperience);
   };
 
-  const handleEducationChange = (newEducation: Education[]) => {
+  const handleEducationChange = (newEducation: any) => {
     setEducation(newEducation);
   };
 
-  const handleSkillsChange = (newSkills: Skill[]) => {
+  const handleSkillsChange = (newSkills: any) => {
     setSkills(newSkills);
   };
 
-  const handleCoursesChange = (newCourses: Course[]) => {
+  const handleCoursesChange = (newCourses: any) => {
     setCoursesAndCertifications(newCourses);
   };
 
@@ -151,108 +86,17 @@ const Index = () => {
     }));
   };
 
-  const handleSave = async () => {
-    if (!currentUserId) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to save your resume.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleExportResume = async () => {
+    const exportData = {
+      personalInfo,
+      summary: resumeState.summary,
+      workExperience,
+      education,
+      skills,
+      coursesAndCertifications
+    };
 
-    setIsSaving(true);
-    
-    try {
-      const resumeData = {
-        user_id: currentUserId,
-        personal_info: personalInfo as any,
-        summary: resumeState.summary,
-        experience: workExperience as any,
-        education: education as any,
-        skills: skills as any,
-        courses: coursesAndCertifications as any,
-        updated_at: new Date().toISOString()
-      };
-
-      const { error } = await supabase
-        .from('resumes')
-        .upsert(resumeData);
-
-      if (error) throw error;
-
-      toast({
-        title: "Resume Saved",
-        description: "Your resume has been saved successfully.",
-      });
-    } catch (error) {
-      console.error('Save error:', error);
-      toast({
-        title: "Save Failed",
-        description: "There was an error saving your resume. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleExport = async () => {
-    if (!isPremiumUser || !currentSubscription || currentSubscription.scan_count <= 0) {
-      toast({
-        title: "Upgrade Required",
-        description: "Please purchase export credits to download your resume.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsExporting(true);
-    
-    try {
-      const exportData = {
-        personalInfo,
-        summary: resumeState.summary,
-        workExperience,
-        education,
-        skills,
-        coursesAndCertifications
-      };
-
-      console.log('Starting export with data:', exportData);
-      await exportResumeToPDF(exportData);
-      
-      // Decrement scan count
-      const { error: updateError } = await supabase
-        .from('subscriptions')
-        .update({ scan_count: currentSubscription.scan_count - 1 })
-        .eq('user_id', currentUserId);
-      
-      if (updateError) {
-        console.error('Error updating scan count:', updateError);
-        throw updateError;
-      }
-      
-      // Update local state
-      setCurrentSubscription(prev => ({
-        ...prev,
-        scan_count: prev.scan_count - 1
-      }));
-
-      toast({
-        title: "Resume Exported Successfully!",
-        description: `Your resume has been downloaded as PDF. ${currentSubscription.scan_count - 1} exports remaining.`,
-      });
-    } catch (error) {
-      console.error('Export error:', error);
-      toast({
-        title: "Export Failed",
-        description: error.message || "There was an error exporting your resume. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsExporting(false);
-    }
+    await handleExport(exportData);
   };
 
   const handleSectionChange = (section: string) => {
@@ -262,151 +106,60 @@ const Index = () => {
   const renderMainContent = () => {
     switch (currentSection) {
       case "settings":
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-12">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <h2 className="text-2xl font-bold mb-6">Settings</h2>
-                <UserSettings />
-              </div>
-            </div>
-          </div>
-        );
+        return <SettingsSection />;
       
       case "ats":
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-12">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <h2 className="text-2xl font-bold mb-4">ATS Check</h2>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">ATS Compatibility Score</h3>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="text-3xl font-bold text-green-600 mb-2">85%</div>
-                        <p className="text-sm text-muted-foreground">Your resume is ATS-friendly</p>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Keyword Optimization</h3>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="text-3xl font-bold text-yellow-600 mb-2">72%</div>
-                        <p className="text-sm text-muted-foreground">Consider adding more relevant keywords</p>
-                      </div>
-                    </div>
-                  </div>
-                  <ATSScanner />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <ATSSection />;
       
       default:
         return (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left Column - Editor */}
             <div className="lg:col-span-6 space-y-6">
-              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex justify-between items-center">
-                <h2 className="text-xl font-bold">Resume Editor</h2>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handleSave}
-                    disabled={isSaving || !currentUserId}
-                    variant="outline"
-                  >
-                    <Save className="mr-2 h-4 w-4" />
-                    {isSaving ? "Saving..." : "Save"}
-                  </Button>
-                  <Button 
-                    onClick={handleExport}
-                    disabled={isExporting || (!isPremiumUser)}
-                    className={`${!isPremiumUser ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    {isExporting ? "Exporting..." : isPremiumUser ? "Export Resume" : "🔒 Export Resume"}
-                  </Button>
-                </div>
-              </div>
+              <ExportControls
+                onSave={handleSave}
+                onExport={handleExportResume}
+                isSaving={isSaving}
+                isExporting={isExporting}
+                currentUserId={currentUserId}
+                isPremiumUser={isPremiumUser}
+              />
 
-              {isPremiumUser && currentSubscription && (
-                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Shield className="h-5 w-5 text-green-600 mr-2" />
-                      <span className="font-medium text-green-800">
-                        {currentSubscription.tier.charAt(0).toUpperCase() + currentSubscription.tier.slice(1)} Plan Active
-                      </span>
-                    </div>
-                    <span className="text-green-600 font-medium">
-                      {currentSubscription.scan_count} exports remaining
-                    </span>
-                  </div>
-                </div>
-              )}
-              
-              <PersonalInfoBar 
-                onInfoChange={handlePersonalInfoChange}
-                initialInfo={personalInfo}
+              <SubscriptionStatus
+                isPremiumUser={isPremiumUser}
+                currentSubscription={currentSubscription}
               />
               
-              <WorkExperienceBar 
-                onExperienceChange={handleWorkExperienceChange}
-                initialExperience={workExperience}
-              />
-              
-              <EducationBar 
+              <ResumeData
+                personalInfo={personalInfo}
+                onPersonalInfoChange={handlePersonalInfoChange}
+                workExperience={workExperience}
+                onWorkExperienceChange={handleWorkExperienceChange}
+                education={education}
                 onEducationChange={handleEducationChange}
-                initialEducation={education}
-              />
-              
-              <SkillsBar 
+                skills={skills}
                 onSkillsChange={handleSkillsChange}
-                initialSkills={skills}
-              />
-              
-              <CoursesAndCertifications 
+                coursesAndCertifications={coursesAndCertifications}
                 onCoursesChange={handleCoursesChange}
-                initialCourses={coursesAndCertifications}
-              />
-
-              <SummaryEditor
-                initialSummary={resumeState.summary}
+                summary={resumeState.summary}
                 onSummaryChange={handleSummaryChange}
+              />
+            </div>
+            
+            {/* Right Column - Preview */}
+            <div className="lg:col-span-6">
+              <PreviewSection
+                personalInfo={personalInfo}
+                summary={resumeState.summary}
                 workExperience={workExperience}
                 education={education}
                 skills={skills}
-                personalInfo={personalInfo}
+                coursesAndCertifications={coursesAndCertifications}
+                onSummaryChange={handleSummaryChange}
+                isPremiumUser={isPremiumUser}
+                currentUserId={currentUserId}
+                sessionId={sessionId}
               />
-              
-              <KeywordMatcher />
-            </div>
-            
-            {/* Right Column - Preview & ATS */}
-            <div className="lg:col-span-6 space-y-6">
-              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-                <h2 className="text-xl font-bold mb-4">ATS Preview</h2>
-                <div className="border rounded-lg bg-white relative">
-                  <ResumePreview 
-                    watermark={!isPremiumUser}
-                    personalInfo={personalInfo}
-                    summary={resumeState.summary}
-                    workExperience={workExperience}
-                    education={education}
-                    skills={skills}
-                    coursesAndCertifications={coursesAndCertifications}
-                    onSummaryChange={handleSummaryChange}
-                  />
-                  <AntiTheftProtection 
-                    isActive={!isPremiumUser}
-                    userId={currentUserId}
-                    sessionId={sessionId}
-                  />
-                </div>
-              </div>
-              
-              <ATSScanner />
             </div>
           </div>
         );

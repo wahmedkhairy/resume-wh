@@ -34,7 +34,7 @@ const Auth = () => {
         setUser(session?.user ?? null);
         
         // Handle email confirmation
-        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+        if (event === 'SIGNED_IN' && session?.user) {
           toast({
             title: "Welcome!",
             description: "You have successfully signed in.",
@@ -46,11 +46,6 @@ const Auth = () => {
         if (event === 'TOKEN_REFRESHED') {
           console.log('Token refreshed successfully');
         }
-        
-        // Redirect to home if user is authenticated and email is confirmed
-        if (session?.user?.email_confirmed_at) {
-          navigate("/");
-        }
       }
     );
 
@@ -61,7 +56,7 @@ const Auth = () => {
       setUser(session?.user ?? null);
       setIsInitialLoading(false);
       
-      if (session?.user?.email_confirmed_at) {
+      if (session?.user) {
         navigate("/");
       }
     });
@@ -130,8 +125,8 @@ const Auth = () => {
       } else {
         setEmailSent(true);
         toast({
-          title: "Check Your Email",
-          description: "Please check your email for a confirmation link to complete your registration.",
+          title: "Account Created",
+          description: "Your account has been created successfully. You can now sign in.",
         });
         console.log('Sign up successful, user:', data.user);
       }
@@ -164,24 +159,15 @@ const Auth = () => {
             description: "Please check your email and password and try again.",
             variant: "destructive",
           });
-        } else if (error.message.includes('Email not confirmed')) {
-          toast({
-            title: "Email Not Confirmed",
-            description: "Please check your email and click the confirmation link before signing in.",
-            variant: "destructive",
-          });
         } else {
           throw error;
         }
       } else {
         console.log('Sign in successful:', data);
-        if (!data.user?.email_confirmed_at) {
-          toast({
-            title: "Email Confirmation Required",
-            description: "Please confirm your email address before accessing the application.",
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Welcome Back!",
+          description: "You have successfully signed in.",
+        });
       }
     } catch (error: any) {
       console.error('Sign in error:', error);
@@ -288,7 +274,7 @@ const Auth = () => {
             <Alert className="mb-6">
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>
-                We've sent you a confirmation email. Please check your inbox and click the link to verify your account.
+                Your account has been created successfully. You can now sign in.
                 <Button 
                   variant="link" 
                   className="p-0 h-auto ml-2 text-sm"
@@ -410,18 +396,17 @@ const Auth = () => {
             </Button>
           </div>
 
-          {user && !user.email_confirmed_at && (
+          {user && (
             <Alert className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Your email address is not confirmed. Please check your email for a confirmation link.
+                You are logged in. You should be redirected automatically.
                 <Button 
                   variant="link" 
                   className="p-0 h-auto ml-2 text-sm"
-                  onClick={handleResendConfirmation}
-                  disabled={isLoading}
+                  onClick={() => navigate("/")}
                 >
-                  Resend confirmation email
+                  Go to dashboard
                 </Button>
               </AlertDescription>
             </Alert>

@@ -1,0 +1,95 @@
+
+import React from "react";
+import ResumePreview from "@/components/ResumePreview";
+import ATSScanner from "@/components/ATSScanner";
+import AntiTheftProtection from "@/components/AntiTheftProtection";
+import { PersonalInfo } from "@/components/PersonalInfoBar";
+
+interface Skill {
+  id: string;
+  name: string;
+  level: number;
+}
+
+interface Course {
+  id: string;
+  title: string;
+  provider: string;
+  date: string;
+  description: string;
+  type: "course" | "certification";
+}
+
+interface WorkExperience {
+  id: string;
+  jobTitle: string;
+  company: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  responsibilities: string[];
+}
+
+interface Education {
+  id: string;
+  degree: string;
+  institution: string;
+  graduationYear: string;
+  gpa?: string;
+  location: string;
+}
+
+interface PreviewSectionProps {
+  personalInfo: PersonalInfo;
+  summary: string;
+  workExperience: WorkExperience[];
+  education: Education[];
+  skills: Skill[];
+  coursesAndCertifications: Course[];
+  onSummaryChange: (summary: string) => void;
+  isPremiumUser: boolean;
+  currentUserId: string;
+  sessionId: string;
+}
+
+const PreviewSection: React.FC<PreviewSectionProps> = ({
+  personalInfo,
+  summary,
+  workExperience,
+  education,
+  skills,
+  coursesAndCertifications,
+  onSummaryChange,
+  isPremiumUser,
+  currentUserId,
+  sessionId,
+}) => {
+  return (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+        <h2 className="text-xl font-bold mb-4">ATS Preview</h2>
+        <div className="border rounded-lg bg-white relative">
+          <ResumePreview 
+            watermark={!isPremiumUser}
+            personalInfo={personalInfo}
+            summary={summary}
+            workExperience={workExperience}
+            education={education}
+            skills={skills}
+            coursesAndCertifications={coursesAndCertifications}
+            onSummaryChange={onSummaryChange}
+          />
+          <AntiTheftProtection 
+            isActive={!isPremiumUser}
+            userId={currentUserId}
+            sessionId={sessionId}
+          />
+        </div>
+      </div>
+      
+      <ATSScanner />
+    </div>
+  );
+};
+
+export default PreviewSection;
