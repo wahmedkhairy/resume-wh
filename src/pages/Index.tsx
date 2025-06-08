@@ -57,7 +57,7 @@ interface Education {
 const Index = () => {
   const [currentSection, setCurrentSection] = useState("editor");
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
-  const [resumeData, setResumeData] = useState({
+  const [resumeState, setResumeState] = useState({
     summary: "",
   });
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
@@ -105,12 +105,19 @@ const Index = () => {
           .maybeSingle();
 
         if (resume) {
-          setPersonalInfo(resume.personal_info || {});
-          setResumeData({ summary: resume.summary || "" });
-          setWorkExperience(resume.experience || []);
-          setEducation(resume.education || []);
-          setSkills(resume.skills || []);
-          setCoursesAndCertifications(resume.courses || []);
+          // Properly type cast the data from Supabase
+          setPersonalInfo((resume.personal_info as PersonalInfo) || {
+            name: "",
+            jobTitle: "",
+            location: "",
+            email: "",
+            phone: ""
+          });
+          setResumeState({ summary: (resume.summary as string) || "" });
+          setWorkExperience((resume.experience as WorkExperience[]) || []);
+          setEducation((resume.education as Education[]) || []);
+          setSkills((resume.skills as Skill[]) || []);
+          setCoursesAndCertifications((resume.courses as Course[]) || []);
         }
       }
     };
@@ -139,7 +146,7 @@ const Index = () => {
   };
 
   const handleSummaryChange = (newSummary: string) => {
-    setResumeData(prev => ({
+    setResumeState(prev => ({
       ...prev,
       summary: newSummary
     }));
@@ -161,7 +168,7 @@ const Index = () => {
       const resumeData = {
         user_id: currentUserId,
         personal_info: personalInfo,
-        summary: resumeData.summary,
+        summary: resumeState.summary,
         experience: workExperience,
         education: education,
         skills: skills,
@@ -206,7 +213,7 @@ const Index = () => {
     try {
       const exportData = {
         personalInfo,
-        summary: resumeData.summary,
+        summary: resumeState.summary,
         workExperience,
         education,
         skills,
@@ -366,7 +373,7 @@ const Index = () => {
               />
 
               <SummaryEditor
-                initialSummary={resumeData.summary}
+                initialSummary={resumeState.summary}
                 onSummaryChange={handleSummaryChange}
                 workExperience={workExperience}
                 education={education}
@@ -385,7 +392,7 @@ const Index = () => {
                   <ResumePreview 
                     watermark={!isPremiumUser}
                     personalInfo={personalInfo}
-                    summary={resumeData.summary}
+                    summary={resumeState.summary}
                     workExperience={workExperience}
                     education={education}
                     skills={skills}
