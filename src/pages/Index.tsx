@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -105,8 +104,8 @@ const Index = () => {
           .maybeSingle();
 
         if (resume) {
-          // Properly type cast the data from Supabase
-          setPersonalInfo((resume.personal_info as PersonalInfo) || {
+          // Safely type cast the data from Supabase using unknown as intermediate
+          setPersonalInfo((resume.personal_info as unknown as PersonalInfo) || {
             name: "",
             jobTitle: "",
             location: "",
@@ -114,10 +113,10 @@ const Index = () => {
             phone: ""
           });
           setResumeState({ summary: (resume.summary as string) || "" });
-          setWorkExperience((resume.experience as WorkExperience[]) || []);
-          setEducation((resume.education as Education[]) || []);
-          setSkills((resume.skills as Skill[]) || []);
-          setCoursesAndCertifications((resume.courses as Course[]) || []);
+          setWorkExperience((resume.experience as unknown as WorkExperience[]) || []);
+          setEducation((resume.education as unknown as Education[]) || []);
+          setSkills((resume.skills as unknown as Skill[]) || []);
+          setCoursesAndCertifications((resume.courses as unknown as Course[]) || []);
         }
       }
     };
@@ -167,12 +166,12 @@ const Index = () => {
     try {
       const resumeData = {
         user_id: currentUserId,
-        personal_info: personalInfo,
+        personal_info: personalInfo as any,
         summary: resumeState.summary,
-        experience: workExperience,
-        education: education,
-        skills: skills,
-        courses: coursesAndCertifications,
+        experience: workExperience as any,
+        education: education as any,
+        skills: skills as any,
+        courses: coursesAndCertifications as any,
         updated_at: new Date().toISOString()
       };
 
