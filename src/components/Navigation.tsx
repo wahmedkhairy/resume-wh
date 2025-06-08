@@ -1,12 +1,10 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   FileText,
   Settings,
-  Download,
   Search,
-  CheckCircle,
 } from "lucide-react";
 
 interface NavigationProps {
@@ -48,15 +46,6 @@ const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection
             onClick={() => handleSectionClick("settings")}
           >
             <Settings className="mr-1 h-4 w-4" /> Settings
-          </Button>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" className="flex items-center">
-            <CheckCircle className="mr-1 h-4 w-4 text-resume-success" /> Save
-          </Button>
-          <Button variant="default" size="sm" className="flex items-center">
-            <Download className="mr-1 h-4 w-4" /> Export
           </Button>
         </div>
       </div>

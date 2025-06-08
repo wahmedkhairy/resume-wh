@@ -15,7 +15,7 @@ import EducationBar from "@/components/EducationBar";
 import UserSettings from "@/components/UserSettings";
 import SummaryEditor from "@/components/SummaryEditor";
 import { Button } from "@/components/ui/button";
-import { Download, Shield } from "lucide-react";
+import { Download, Shield, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { exportResumeToPDF } from "@/utils/resumeExport";
@@ -72,6 +72,7 @@ const Index = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [coursesAndCertifications, setCoursesAndCertifications] = useState<Course[]>([]);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [sessionId] = useState(`session_${Date.now()}`);
@@ -83,16 +84,33 @@ const Index = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setCurrentUserId(user.id);
+        
         // Check subscription from database
         const { data: subscription } = await supabase
           .from('subscriptions')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
         
         if (subscription && subscription.scan_count > 0) {
           setIsPremiumUser(true);
           setCurrentSubscription(subscription);
+        }
+
+        // Load existing resume data
+        const { data: resume } = await supabase
+          .from('resumes')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (resume) {
+          setPersonalInfo(resume.personal_info || {});
+          setResumeData({ summary: resume.summary || "" });
+          setWorkExperience(resume.experience || []);
+          setEducation(resume.education || []);
+          setSkills(resume.skills || []);
+          setCoursesAndCertifications(resume.courses || []);
         }
       }
     };
@@ -125,6 +143,52 @@ const Index = () => {
       ...prev,
       summary: newSummary
     }));
+  };
+
+  const handleSave = async () => {
+    if (!currentUserId) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to save your resume.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      const resumeData = {
+        user_id: currentUserId,
+        personal_info: personalInfo,
+        summary: resumeData.summary,
+        experience: workExperience,
+        education: education,
+        skills: skills,
+        courses: coursesAndCertifications,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('resumes')
+        .upsert(resumeData);
+
+      if (error) throw error;
+
+      toast({
+        title: "Resume Saved",
+        description: "Your resume has been saved successfully.",
+      });
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: "Save Failed",
+        description: "There was an error saving your resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleExport = async () => {
@@ -242,6 +306,14 @@ const Index = () => {
                 <h2 className="text-xl font-bold">Resume Editor</h2>
                 <div className="flex gap-2">
                   <Button 
+                    onClick={handleSave}
+                    disabled={isSaving || !currentUserId}
+                    variant="outline"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    {isSaving ? "Saving..." : "Save"}
+                  </Button>
+                  <Button 
                     onClick={handleExport}
                     disabled={isExporting || (!isPremiumUser)}
                     className={`${!isPremiumUser ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -273,15 +345,6 @@ const Index = () => {
                 initialInfo={personalInfo}
               />
               
-              <SummaryEditor
-                initialSummary={resumeData.summary}
-                onSummaryChange={handleSummaryChange}
-                workExperience={workExperience}
-                education={education}
-                skills={skills}
-                personalInfo={personalInfo}
-              />
-              
               <WorkExperienceBar 
                 onExperienceChange={handleWorkExperienceChange}
                 initialExperience={workExperience}
@@ -300,6 +363,15 @@ const Index = () => {
               <CoursesAndCertifications 
                 onCoursesChange={handleCoursesChange}
                 initialCourses={coursesAndCertifications}
+              />
+
+              <SummaryEditor
+                initialSummary={resumeData.summary}
+                onSummaryChange={handleSummaryChange}
+                workExperience={workExperience}
+                education={education}
+                skills={skills}
+                personalInfo={personalInfo}
               />
               
               <KeywordMatcher />

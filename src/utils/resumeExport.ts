@@ -14,13 +14,20 @@ export interface ExportData {
 export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
   try {
     // Get the resume preview element with better selector
-    const resumeElement = document.querySelector('[data-resume-preview]') || 
-                         document.querySelector('.resume-container') || 
-                         document.querySelector('.resume-preview');
+    const resumeElement = document.querySelector('[data-resume-preview]') as HTMLElement;
     
     if (!resumeElement) {
-      throw new Error('Resume preview not found. Please ensure the resume is visible on screen.');
+      // Fallback selectors
+      const fallbackElement = document.querySelector('.resume-container') || 
+                             document.querySelector('.resume-preview') ||
+                             document.querySelector('[class*="resume"]');
+      
+      if (!fallbackElement) {
+        throw new Error('Resume preview not found. Please ensure the resume is visible on screen and try again.');
+      }
     }
+
+    const targetElement = resumeElement || document.querySelector('.resume-container') as HTMLElement;
 
     console.log('Starting PDF export...');
 
@@ -39,16 +46,16 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     }
 
     // Wait a moment for DOM to update
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     // Create canvas from the resume element with better options
-    const canvas = await html2canvas(resumeElement as HTMLElement, {
+    const canvas = await html2canvas(targetElement, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
-      width: resumeElement.scrollWidth,
-      height: resumeElement.scrollHeight,
+      width: targetElement.scrollWidth || targetElement.offsetWidth,
+      height: targetElement.scrollHeight || targetElement.offsetHeight,
       logging: false,
       onclone: (clonedDoc) => {
         // Remove any remaining watermarks or anti-theft elements in the clone
@@ -95,7 +102,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().slice(0, 10);
-    const name = data.personalInfo.name?.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'resume';
+    const name = data.personalInfo?.name?.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'resume';
     const filename = `${name}_resume_${timestamp}.pdf`;
     
     console.log('Saving PDF:', filename);
