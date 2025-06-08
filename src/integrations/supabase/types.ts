@@ -113,6 +113,9 @@ export type Database = {
           created_at: string
           id: string
           paypal_client_id: string | null
+          paypal_client_secret: string | null
+          paypal_production_mode: boolean | null
+          paypal_webhook_id: string | null
           updated_at: string
           user_id: string
         }
@@ -120,6 +123,9 @@ export type Database = {
           created_at?: string
           id?: string
           paypal_client_id?: string | null
+          paypal_client_secret?: string | null
+          paypal_production_mode?: boolean | null
+          paypal_webhook_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -127,6 +133,9 @@ export type Database = {
           created_at?: string
           id?: string
           paypal_client_id?: string | null
+          paypal_client_secret?: string | null
+          paypal_production_mode?: boolean | null
+          paypal_webhook_id?: string | null
           updated_at?: string
           user_id?: string
         }
