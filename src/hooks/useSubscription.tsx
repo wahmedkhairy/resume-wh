@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,8 +33,18 @@ export const useSubscription = (currentUserId: string) => {
     checkSubscription();
   }, [currentUserId]);
 
+  const canExport = () => {
+    if (!isPremiumUser || !currentSubscription) return false;
+    
+    // Users with unlimited tier have unlimited exports
+    if (currentSubscription.tier === 'unlimited') return true;
+    
+    // Other paid users (basic, premium) are limited by scan_count
+    return currentSubscription.scan_count > 0;
+  };
+
   const handleExport = async (exportData: any) => {
-    if (!isPremiumUser || !currentSubscription || currentSubscription.scan_count <= 0) {
+    if (!canExport()) {
       toast({
         title: "Upgrade Required",
         description: "Please purchase export credits to download your resume.",
@@ -50,27 +59,34 @@ export const useSubscription = (currentUserId: string) => {
       console.log('Starting PDF export with data:', exportData);
       await exportResumeToPDF(exportData);
       
-      // Decrement scan count
-      const { error: updateError } = await supabase
-        .from('subscriptions')
-        .update({ scan_count: currentSubscription.scan_count - 1 })
-        .eq('user_id', currentUserId);
-      
-      if (updateError) {
-        console.error('Error updating scan count:', updateError);
-        throw updateError;
-      }
-      
-      // Update local state
-      setCurrentSubscription(prev => ({
-        ...prev,
-        scan_count: prev.scan_count - 1
-      }));
+      // Only decrement scan count for non-unlimited users
+      if (currentSubscription.tier !== 'unlimited') {
+        const { error: updateError } = await supabase
+          .from('subscriptions')
+          .update({ scan_count: currentSubscription.scan_count - 1 })
+          .eq('user_id', currentUserId);
+        
+        if (updateError) {
+          console.error('Error updating scan count:', updateError);
+          throw updateError;
+        }
+        
+        // Update local state
+        setCurrentSubscription(prev => ({
+          ...prev,
+          scan_count: prev.scan_count - 1
+        }));
 
-      toast({
-        title: "Resume Exported Successfully!",
-        description: `Your resume has been downloaded as PDF. ${currentSubscription.scan_count - 1} exports remaining.`,
-      });
+        toast({
+          title: "Resume Exported Successfully!",
+          description: `Your resume has been downloaded as PDF. ${currentSubscription.scan_count - 1} exports remaining.`,
+        });
+      } else {
+        toast({
+          title: "Resume Exported Successfully!",
+          description: "Your resume has been downloaded as PDF.",
+        });
+      }
     } catch (error) {
       console.error('Export error:', error);
       toast({
@@ -84,7 +100,7 @@ export const useSubscription = (currentUserId: string) => {
   };
 
   const handleWordExport = async (exportData: any) => {
-    if (!isPremiumUser || !currentSubscription || currentSubscription.scan_count <= 0) {
+    if (!canExport()) {
       toast({
         title: "Upgrade Required",
         description: "Please purchase export credits to download your resume.",
@@ -99,27 +115,34 @@ export const useSubscription = (currentUserId: string) => {
       console.log('Starting Word export with data:', exportData);
       await exportResumeAsWord(exportData);
       
-      // Decrement scan count
-      const { error: updateError } = await supabase
-        .from('subscriptions')
-        .update({ scan_count: currentSubscription.scan_count - 1 })
-        .eq('user_id', currentUserId);
-      
-      if (updateError) {
-        console.error('Error updating scan count:', updateError);
-        throw updateError;
-      }
-      
-      // Update local state
-      setCurrentSubscription(prev => ({
-        ...prev,
-        scan_count: prev.scan_count - 1
-      }));
+      // Only decrement scan count for non-unlimited users
+      if (currentSubscription.tier !== 'unlimited') {
+        const { error: updateError } = await supabase
+          .from('subscriptions')
+          .update({ scan_count: currentSubscription.scan_count - 1 })
+          .eq('user_id', currentUserId);
+        
+        if (updateError) {
+          console.error('Error updating scan count:', updateError);
+          throw updateError;
+        }
+        
+        // Update local state
+        setCurrentSubscription(prev => ({
+          ...prev,
+          scan_count: prev.scan_count - 1
+        }));
 
-      toast({
-        title: "Resume Exported Successfully!",
-        description: `Your resume has been downloaded as Word document. ${currentSubscription.scan_count - 1} exports remaining.`,
-      });
+        toast({
+          title: "Resume Exported Successfully!",
+          description: `Your resume has been downloaded as Word document. ${currentSubscription.scan_count - 1} exports remaining.`,
+        });
+      } else {
+        toast({
+          title: "Resume Exported Successfully!",
+          description: "Your resume has been downloaded as Word document.",
+        });
+      }
     } catch (error) {
       console.error('Word export error:', error);
       toast({
@@ -138,5 +161,6 @@ export const useSubscription = (currentUserId: string) => {
     isExporting,
     handleExport,
     handleWordExport,
+    canExport,
   };
 };

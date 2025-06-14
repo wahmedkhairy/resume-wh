@@ -20,6 +20,8 @@ interface ExportControlsProps {
   currentUserId: string;
   isPremiumUser: boolean;
   isTailoredResume?: boolean;
+  canExport?: boolean;
+  currentSubscription?: any;
 }
 
 const ExportControls: React.FC<ExportControlsProps> = ({
@@ -31,6 +33,8 @@ const ExportControls: React.FC<ExportControlsProps> = ({
   currentUserId,
   isPremiumUser,
   isTailoredResume = false,
+  canExport = false,
+  currentSubscription,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -45,8 +49,6 @@ const ExportControls: React.FC<ExportControlsProps> = ({
     }
     setDropdownOpen(false);
   };
-
-  const canExport = isPremiumUser || !isTailoredResume;
 
   return (
     <div className="space-y-4">
@@ -99,16 +101,21 @@ const ExportControls: React.FC<ExportControlsProps> = ({
         </div>
       </div>
 
-      {isTailoredResume && !isPremiumUser && (
+      {!canExport && (
         <Alert>
           <Crown className="h-4 w-4" />
           <AlertDescription>
             <div className="flex items-center justify-between">
-              <span>Upgrade to a paid plan to export your tailored resume as PDF or Word document.</span>
+              <span>
+                {!isPremiumUser 
+                  ? "Upgrade to a paid plan to export your resume as PDF or Word document."
+                  : `You have ${currentSubscription?.scan_count || 0} exports remaining. Upgrade to unlimited for unlimited exports.`
+                }
+              </span>
               <SubscriptionDialog>
                 <Button variant="outline" size="sm" className="ml-4">
                   <Crown className="mr-2 h-4 w-4" />
-                  Upgrade Now
+                  {!isPremiumUser ? "Upgrade Now" : "Get Unlimited"}
                 </Button>
               </SubscriptionDialog>
             </div>
