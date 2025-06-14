@@ -58,11 +58,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
     <div 
       className="resume-container bg-white relative"
       style={{ 
-        fontFamily: 'Times, "Times New Roman", serif',
-        fontSize: '11pt',
-        lineHeight: '1.3',
+        fontFamily: 'serif',
+        fontSize: '14px',
+        lineHeight: '1.5',
         color: '#000000',
-        padding: '1in',
+        padding: '40px',
         margin: '0',
         maxWidth: '8.5in',
         minHeight: '11in',
@@ -79,27 +79,26 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </div>
       )}
 
-      {/* Header Section */}
-      <header style={{ textAlign: 'center', marginBottom: '18pt' }}>
+      {/* Header with three bars */}
+      <header style={{ textAlign: 'center', marginBottom: '30px' }}>
+        <div style={{ fontSize: '20px', marginBottom: '20px' }}>|||</div>
+        
         <h1 
           style={{ 
-            fontSize: '20pt',
+            fontSize: '24px',
             fontWeight: 'bold',
-            margin: '0 0 8pt 0',
-            textTransform: 'uppercase',
-            letterSpacing: '3pt',
+            margin: '0 0 10px 0',
             color: '#000000'
           }}
         >
-          {personalInfo.name || "NAME"}
+          {personalInfo.name || "Your Name"}
         </h1>
         
         {personalInfo.jobTitle && (
           <div 
             style={{ 
-              fontSize: '12pt',
-              margin: '0 0 12pt 0',
-              fontWeight: 'normal',
+              fontSize: '16px',
+              margin: '0 0 15px 0',
               color: '#000000'
             }}
           >
@@ -109,118 +108,97 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         
         <div 
           style={{ 
-            fontSize: '11pt',
+            fontSize: '14px',
             color: '#000000',
-            lineHeight: '1.2'
+            lineHeight: '1.3'
           }}
         >
           {personalInfo.location && <span>{personalInfo.location}</span>}
           {personalInfo.location && personalInfo.email && <span> | </span>}
-          {personalInfo.email && (
-            <span style={{ textDecoration: 'underline' }}>{personalInfo.email}</span>
-          )}
+          {personalInfo.email && <span>{personalInfo.email}</span>}
           {(personalInfo.location || personalInfo.email) && personalInfo.phone && <span> | </span>}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
         </div>
       </header>
 
-      {/* Professional Summary Section */}
-      {summary ? (
-        <section style={{ marginBottom: '20pt' }}>
-          <div 
-            style={{ 
-              fontSize: '11pt',
-              lineHeight: '1.4',
-              textAlign: 'justify',
-              margin: '0',
-              color: '#000000',
-              fontStyle: 'italic'
-            }}
-          >
-            {summary}
-          </div>
-        </section>
-      ) : (
-        <section style={{ marginBottom: '20pt' }}>
-          <div 
-            style={{ 
-              fontSize: '11pt',
-              lineHeight: '1.4',
-              textAlign: 'justify',
-              margin: '0',
-              color: '#000000',
-              fontStyle: 'italic'
-            }}
-          >
-            Write 2-3 concise and compelling sentences highlighting your background and education. You may want to include your most note-worthy professional accomplishment, how you will add value to a company, goals, etc. as it correlates to the position you are applying for.
-          </div>
-        </section>
-      )}
-
-      {/* Work Experience Section */}
-      <section style={{ marginBottom: '20pt' }}>
+      {/* Summary Section */}
+      <section style={{ marginBottom: '30px' }}>
         <h2 
           style={{ 
-            fontSize: '12pt',
+            fontSize: '18px',
             fontWeight: 'bold',
-            margin: '0 0 12pt 0',
+            margin: '0 0 10px 0',
             color: '#000000',
-            textAlign: 'center',
-            textTransform: 'uppercase',
-            letterSpacing: '2pt'
+            borderBottom: '2px solid #000000',
+            paddingBottom: '5px'
           }}
         >
-          WORK EXPERIENCE
+          Summary
+        </h2>
+        
+        <div 
+          style={{ 
+            fontSize: '14px',
+            lineHeight: '1.5',
+            margin: '0',
+            color: '#000000'
+          }}
+        >
+          {summary || "Generate your professional summary using AI by clicking the 'Generate Summary' button."}
+        </div>
+      </section>
+
+      {/* Experience Section */}
+      <section style={{ marginBottom: '30px' }}>
+        <h2 
+          style={{ 
+            fontSize: '18px',
+            fontWeight: 'bold',
+            margin: '0 0 20px 0',
+            color: '#000000',
+            borderBottom: '2px solid #000000',
+            paddingBottom: '5px'
+          }}
+        >
+          Experience
         </h2>
         
         {workExperience.length > 0 ? workExperience.map((job, index) => (
-          <div key={job.id} style={{ marginBottom: '16pt' }}>
-            <div style={{ marginBottom: '6pt' }}>
-              <div 
-                style={{ 
-                  fontSize: '11pt',
-                  fontWeight: 'bold',
-                  margin: '0 0 2pt 0',
-                  color: '#000000'
-                }}
-              >
-                {job.jobTitle} – {job.startDate} to {job.endDate}
-              </div>
-              <div 
-                style={{ 
-                  fontSize: '11pt',
-                  margin: '0 0 6pt 0',
-                  color: '#000000',
-                  fontStyle: 'italic'
-                }}
-              >
-                {job.company}
-              </div>
-              
-              <div 
-                style={{ 
-                  fontSize: '11pt',
-                  margin: '0 0 6pt 0',
-                  color: '#000000',
-                  lineHeight: '1.4'
-                }}
-              >
-                Briefly describe what the company does as well as the purpose of your role. You may choose to skip this step and start immediately with the bullet point list. However, just make sure to use a consistent approach
-              </div>
+          <div key={job.id} style={{ marginBottom: '25px' }}>
+            <h3 
+              style={{ 
+                fontSize: '16px',
+                fontWeight: 'bold',
+                margin: '0 0 5px 0',
+                color: '#000000'
+              }}
+            >
+              {job.jobTitle} - {job.company}
+            </h3>
+            
+            <div 
+              style={{ 
+                fontSize: '14px',
+                margin: '0 0 10px 0',
+                color: '#000000',
+                fontStyle: 'italic'
+              }}
+            >
+              {job.startDate} - {job.endDate}
             </div>
             
             {job.responsibilities.length > 0 && (
-              <ul style={{ margin: '0', paddingLeft: '18pt', listStyleType: 'disc' }}>
+              <ul style={{ margin: '0', paddingLeft: '20px' }}>
                 {job.responsibilities
                   .filter(resp => resp.trim())
                   .map((responsibility, respIndex) => (
                   <li 
                     key={respIndex} 
                     style={{ 
-                      fontSize: '11pt',
-                      margin: '3pt 0',
+                      fontSize: '14px',
+                      margin: '5px 0',
                       color: '#000000',
-                      lineHeight: '1.4'
+                      lineHeight: '1.5'
                     }}
                   >
                     {responsibility}
@@ -230,224 +208,136 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             )}
           </div>
         )) : (
-          <>
-            <div style={{ marginBottom: '16pt' }}>
-              <div style={{ marginBottom: '6pt' }}>
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    fontWeight: 'bold',
-                    margin: '0 0 2pt 0',
-                    color: '#000000'
-                  }}
-                >
-                  Job Title – mm/yy to Present
-                </div>
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    margin: '0 0 6pt 0',
-                    color: '#000000',
-                    fontStyle: 'italic'
-                  }}
-                >
-                  Company Name
-                </div>
-                
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    margin: '0 0 6pt 0',
-                    color: '#000000',
-                    lineHeight: '1.4'
-                  }}
-                >
-                  Briefly describe what the company does as well as the purpose of your role. You may choose to skip this step and start immediately with the bullet point list. However, just make sure to use a consistent approach
-                </div>
-              </div>
-              
-              <ul style={{ margin: '0', paddingLeft: '18pt', listStyleType: 'disc' }}>
-                <li style={{ fontSize: '11pt', margin: '3pt 0', color: '#000000', lineHeight: '1.4' }}>
-                  In a bulleted list, describe your key responsibilities in this role
-                </li>
-                <li style={{ fontSize: '11pt', margin: '3pt 0', color: '#000000', lineHeight: '1.4' }}>
-                  Begin each bullet with an action verb (i.e., implemented, led, created)
-                </li>
-                <li style={{ fontSize: '11pt', margin: '3pt 0', color: '#000000', lineHeight: '1.4' }}>
-                  Using measurable terms, describe project achievements and ways you created value for the company (i.e., Redesigned plant layout to improve downtime by 15%)
-                </li>
-                <li style={{ fontSize: '11pt', margin: '3pt 0', color: '#000000', lineHeight: '1.4' }}>
-                  Ensure the verb tense you use is consistent
-                </li>
-                <li style={{ fontSize: '11pt', margin: '3pt 0', color: '#000000', lineHeight: '1.4' }}>
-                  Highlighting your most impactful and relevant duties (3-8 bullets per job)
-                </li>
-              </ul>
+          <div style={{ marginBottom: '25px' }}>
+            <h3 
+              style={{ 
+                fontSize: '16px',
+                fontWeight: 'bold',
+                margin: '0 0 5px 0',
+                color: '#000000'
+              }}
+            >
+              Senior Frontend Developer - Tech Solutions Inc.
+            </h3>
+            
+            <div 
+              style={{ 
+                fontSize: '14px',
+                margin: '0 0 10px 0',
+                color: '#000000',
+                fontStyle: 'italic'
+              }}
+            >
+              January 2020 - Present
             </div>
-
-            <div style={{ marginBottom: '16pt' }}>
-              <div style={{ marginBottom: '6pt' }}>
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    fontWeight: 'bold',
-                    margin: '0 0 2pt 0',
-                    color: '#000000'
-                  }}
-                >
-                  Job Title – mm/yy to mm/yy
-                </div>
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    margin: '0 0 6pt 0',
-                    color: '#000000',
-                    fontStyle: 'italic'
-                  }}
-                >
-                  Company Name
-                </div>
-                
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    margin: '0 0 6pt 0',
-                    color: '#000000',
-                    lineHeight: '1.4'
-                  }}
-                >
-                  Keep this step consistent with above approach
-                </div>
-              </div>
-              
-              <ul style={{ margin: '0', paddingLeft: '18pt', listStyleType: 'disc' }}>
-                <li style={{ fontSize: '11pt', margin: '3pt 0', color: '#000000', lineHeight: '1.4' }}>
-                  By reviewing the job description for the <u>position</u> you are applying for, how can you articulate your prior experiences to be as applicable as possible to the job you are pursuing?
-                </li>
-                <li style={{ fontSize: '11pt', margin: '3pt 0', color: '#000000', lineHeight: '1.4' }}>
-                  Have you listed key performance indicators to show how successful you were? (i.e., cold calls made per day, percentage of sales increased, amount of cost savings)
-                </li>
-              </ul>
-            </div>
-
-            <div style={{ marginBottom: '16pt' }}>
-              <div style={{ marginBottom: '6pt' }}>
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    fontWeight: 'bold',
-                    margin: '0 0 2pt 0',
-                    color: '#000000'
-                  }}
-                >
-                  Job Title – mm/yy to mm/yy
-                </div>
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    margin: '0 0 6pt 0',
-                    color: '#000000',
-                    fontStyle: 'italic'
-                  }}
-                >
-                  Company Name
-                </div>
-                
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    margin: '0 0 6pt 0',
-                    color: '#000000',
-                    lineHeight: '1.4'
-                  }}
-                >
-                  Keep this step consistent with above approach
-                </div>
-              </div>
-              
-              <ul style={{ margin: '0', paddingLeft: '18pt', listStyleType: 'disc' }}>
-                <li style={{ fontSize: '11pt', margin: '3pt 0', color: '#000000', lineHeight: '1.4' }}>
-                  Make sure to not cut out any prior jobs that might not seem relevant as this could be confusing and be seen as large gap in employment to employers
-                </li>
-                <li style={{ fontSize: '11pt', margin: '3pt 0', color: '#000000', lineHeight: '1.4' }}>
-                  Time to add a couple more details below and you will be application ready!
-                </li>
-              </ul>
-            </div>
-          </>
+            
+            <ul style={{ margin: '0', paddingLeft: '20px' }}>
+              <li style={{ fontSize: '14px', margin: '5px 0', color: '#000000', lineHeight: '1.5' }}>
+                Led development of company's flagship SaaS product using React and TypeScript
+              </li>
+              <li style={{ fontSize: '14px', margin: '5px 0', color: '#000000', lineHeight: '1.5' }}>
+                Improved application performance by <strong>40%</strong> through code optimization and efficient state management
+              </li>
+              <li style={{ fontSize: '14px', margin: '5px 0', color: '#000000', lineHeight: '1.5' }}>
+                Collaborated with cross-functional teams to deliver high-quality user experiences
+              </li>
+            </ul>
+          </div>
         )}
       </section>
 
       {/* Education Section */}
-      <section style={{ marginBottom: '20pt' }}>
-        <h2 
-          style={{ 
-            fontSize: '12pt',
-            fontWeight: 'bold',
-            margin: '0 0 12pt 0',
-            color: '#000000',
-            textAlign: 'center',
-            textTransform: 'uppercase',
-            letterSpacing: '2pt'
-          }}
-        >
-          EDUCATION
-        </h2>
-        
-        {education.length > 0 ? education.map((edu, index) => (
-          <div key={edu.id} style={{ marginBottom: '8pt' }}>
-            <div 
-              style={{ 
-                fontSize: '11pt',
-                fontWeight: 'bold',
-                margin: '0',
-                color: '#000000',
-                textTransform: 'uppercase'
-              }}
-            >
-              {edu.degree} / {edu.institution} / {edu.graduationYear}
-            </div>
-            {coursesAndCertifications.length > 0 && (
+      {(education.length > 0 || coursesAndCertifications.length > 0) && (
+        <section style={{ marginBottom: '30px' }}>
+          <h2 
+            style={{ 
+              fontSize: '18px',
+              fontWeight: 'bold',
+              margin: '0 0 20px 0',
+              color: '#000000',
+              borderBottom: '2px solid #000000',
+              paddingBottom: '5px'
+            }}
+          >
+            Education
+          </h2>
+          
+          {education.length > 0 ? education.map((edu, index) => (
+            <div key={edu.id} style={{ marginBottom: '15px' }}>
               <div 
                 style={{ 
-                  fontSize: '11pt',
+                  fontSize: '16px',
                   fontWeight: 'bold',
-                  margin: '4pt 0 0 0',
-                  color: '#000000',
-                  textTransform: 'uppercase'
+                  margin: '0 0 5px 0',
+                  color: '#000000'
                 }}
               >
-                TRAINING OR CERTIFICATION / {coursesAndCertifications[0]?.provider || 'INSTITUTION'} / {coursesAndCertifications[0]?.date || 'YYYY'}
+                {edu.degree}
               </div>
-            )}
-          </div>
-        )) : (
-          <div style={{ marginBottom: '8pt' }}>
-            <div 
-              style={{ 
-                fontSize: '11pt',
-                fontWeight: 'bold',
-                margin: '0',
-                color: '#000000',
-                textTransform: 'uppercase'
-              }}
-            >
-              DEGREE IN MAJOR / INSTITUTION / YYYY
+              <div 
+                style={{ 
+                  fontSize: '14px',
+                  margin: '0',
+                  color: '#000000'
+                }}
+              >
+                {edu.institution} - {edu.graduationYear}
+              </div>
             </div>
-            <div 
-              style={{ 
-                fontSize: '11pt',
-                fontWeight: 'bold',
-                margin: '4pt 0 0 0',
-                color: '#000000',
-                textTransform: 'uppercase'
-              }}
-            >
-              TRAINING OR CERTIFICATION / INSTITUTION / YYYY
+          )) : (
+            <div style={{ marginBottom: '15px' }}>
+              <div 
+                style={{ 
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  margin: '0 0 5px 0',
+                  color: '#000000'
+                }}
+              >
+                Bachelor of Science in Computer Science
+              </div>
+              <div 
+                style={{ 
+                  fontSize: '14px',
+                  margin: '0',
+                  color: '#000000'
+                }}
+              >
+                University Name - 2020
+              </div>
             </div>
-          </div>
-        )}
-      </section>
+          )}
+
+          {coursesAndCertifications.length > 0 && (
+            <>
+              <h3 
+                style={{ 
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  margin: '20px 0 10px 0',
+                  color: '#000000'
+                }}
+              >
+                Certifications
+              </h3>
+              {coursesAndCertifications.map((item, index) => (
+                <div key={item.id} style={{ marginBottom: '10px' }}>
+                  <div 
+                    style={{ 
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      margin: '0',
+                      color: '#000000'
+                    }}
+                  >
+                    {item.title} - {item.provider} ({item.date})
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </section>
+      )}
     </div>
   );
 };
