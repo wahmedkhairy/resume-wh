@@ -35,14 +35,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
     expiryDate: "",
     cvv: "",
     cardholderName: "",
-    email: "",
-    billingAddress: {
-      line1: "",
-      city: "",
-      state: "",
-      postalCode: "",
-      country: "US"
-    }
+    email: ""
   });
   const { toast } = useToast();
 
@@ -61,21 +54,10 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
   };
 
   const handleInputChange = (field: string, value: string) => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      setCardDetails(prev => ({
-        ...prev,
-        [parent]: {
-          ...(prev[parent as keyof typeof prev] as object),
-          [child]: value
-        }
-      }));
-    } else {
-      setCardDetails(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
+    setCardDetails(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,7 +76,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
   };
 
   const validateForm = () => {
-    const { cardNumber, expiryDate, cvv, cardholderName, email, billingAddress } = cardDetails;
+    const { cardNumber, expiryDate, cvv, cardholderName, email } = cardDetails;
     
     if (!cardholderName.trim()) {
       toast({
@@ -136,15 +118,6 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
       toast({
         title: "Invalid CVV",
         description: "Please enter a valid CVV.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (!billingAddress.line1.trim() || !billingAddress.city.trim() || !billingAddress.postalCode.trim()) {
-      toast({
-        title: "Incomplete Billing Address",
-        description: "Please fill in all billing address fields.",
         variant: "destructive",
       });
       return false;
@@ -302,77 +275,6 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
                 maxLength={4}
                 required
                 disabled={isProcessing}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Billing Address */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Billing Address</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="address">Street Address *</Label>
-            <Input
-              id="address"
-              type="text"
-              placeholder="123 Main Street"
-              value={cardDetails.billingAddress.line1}
-              onChange={(e) => handleInputChange('billingAddress.line1', e.target.value)}
-              required
-              disabled={isProcessing}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="city">City *</Label>
-              <Input
-                id="city"
-                type="text"
-                placeholder="New York"
-                value={cardDetails.billingAddress.city}
-                onChange={(e) => handleInputChange('billingAddress.city', e.target.value)}
-                required
-                disabled={isProcessing}
-              />
-            </div>
-            <div>
-              <Label htmlFor="state">State/Province</Label>
-              <Input
-                id="state"
-                type="text"
-                placeholder="NY"
-                value={cardDetails.billingAddress.state}
-                onChange={(e) => handleInputChange('billingAddress.state', e.target.value)}
-                disabled={isProcessing}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="postalCode">Postal Code *</Label>
-              <Input
-                id="postalCode"
-                type="text"
-                placeholder="10001"
-                value={cardDetails.billingAddress.postalCode}
-                onChange={(e) => handleInputChange('billingAddress.postalCode', e.target.value)}
-                required
-                disabled={isProcessing}
-              />
-            </div>
-            <div>
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                type="text"
-                value="United States"
-                disabled
               />
             </div>
           </div>
