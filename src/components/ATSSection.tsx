@@ -1,14 +1,26 @@
 
 import React from "react";
 import ATSScanner from "@/components/ATSScanner";
+import ATSPerformanceTracker from "@/components/ATSPerformanceTracker";
 
-const ATSSection: React.FC = () => {
+interface ATSSectionProps {
+  resumeData?: {
+    personalInfo?: any;
+    summary?: string;
+    workExperience?: any[];
+    education?: any[];
+    skills?: any[];
+    coursesAndCertifications?: any[];
+  };
+}
+
+const ATSSection: React.FC<ATSSectionProps> = ({ resumeData }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div className="lg:col-span-12">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <h2 className="text-2xl font-bold mb-4">ATS Check</h2>
-          <div className="space-y-4">
+          <h2 className="text-2xl font-bold mb-4">ATS Analysis</h2>
+          <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-lg font-semibold mb-2">ATS Compatibility Score</h3>
@@ -25,7 +37,11 @@ const ATSSection: React.FC = () => {
                 </div>
               </div>
             </div>
-            <ATSScanner />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ATSScanner resumeData={resumeData} />
+              <ATSPerformanceTracker resumeData={resumeData} />
+            </div>
           </div>
         </div>
       </div>

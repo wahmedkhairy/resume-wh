@@ -64,10 +64,20 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
   currentUserId,
   sessionId,
 }) => {
+  // Prepare resume data for ATS Scanner
+  const resumeData = {
+    personalInfo,
+    summary,
+    workExperience,
+    education,
+    skills,
+    coursesAndCertifications,
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-        <h2 className="text-xl font-bold mb-4">ATS Preview</h2>
+        <h2 className="text-xl font-bold mb-4">Resume Preview</h2>
         <div className="border rounded-lg bg-white relative">
           <ResumePreview 
             watermark={!isPremiumUser}
@@ -87,7 +97,7 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
         </div>
       </div>
       
-      <ATSScanner />
+      <ATSScanner resumeData={resumeData} />
     </div>
   );
 };

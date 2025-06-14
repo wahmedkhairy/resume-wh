@@ -63,17 +63,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   skills,
   coursesAndCertifications,
 }) => {
-  const getSkillColor = (level: number) => {
-    if (level >= 80) return "bg-green-500";
-    if (level >= 60) return "bg-blue-500";
-    if (level >= 40) return "bg-yellow-500";
-    return "bg-red-500";
-  };
-
   return (
     <div 
       className="resume-container bg-white p-8 shadow-lg relative min-h-[800px]" 
-      style={{ fontFamily: 'Georgia, serif' }}
+      style={{ fontFamily: 'Arial, sans-serif' }}
       data-resume-preview="true"
     >
       {/* Watermark */}
@@ -86,45 +79,45 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       )}
 
       {/* Header */}
-      <div className="text-center mb-8 border-b-2 border-gray-300 pb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+      <div className="mb-6 pb-4 border-b-2 border-blue-600">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
           {personalInfo.name || "Your Name"}
         </h1>
-        <h2 className="text-xl text-gray-600 mb-4">
+        <h2 className="text-xl text-blue-600 mb-3">
           {personalInfo.jobTitle || "Your Job Title"}
         </h2>
-        <div className="text-gray-600 space-y-1">
-          {personalInfo.location && <p>{personalInfo.location}</p>}
-          {personalInfo.email && <p>{personalInfo.email}</p>}
-          {personalInfo.phone && <p>{personalInfo.phone}</p>}
+        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+          {personalInfo.location && <span>📍 {personalInfo.location}</span>}
+          {personalInfo.email && <span>✉️ {personalInfo.email}</span>}
+          {personalInfo.phone && <span>📞 {personalInfo.phone}</span>}
         </div>
       </div>
 
       {/* Professional Summary */}
       {summary && (
         <div className="mb-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-3 border-b border-gray-300 pb-1">
+          <h3 className="text-lg font-bold text-blue-600 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
             Professional Summary
           </h3>
-          <p className="text-gray-700 leading-relaxed">{summary}</p>
+          <p className="text-gray-700 leading-relaxed text-justify">{summary}</p>
         </div>
       )}
 
       {/* Work Experience */}
       {workExperience.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-3 border-b border-gray-300 pb-1">
+          <h3 className="text-lg font-bold text-blue-600 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
             Professional Experience
           </h3>
           {workExperience.map((job) => (
-            <div key={job.id} className="mb-4">
+            <div key={job.id} className="mb-5">
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h4 className="font-semibold text-gray-800">{job.jobTitle}</h4>
-                  <p className="text-gray-600">{job.company}</p>
+                  <h4 className="font-bold text-gray-900 text-lg">{job.jobTitle}</h4>
+                  <p className="text-blue-600 font-semibold">{job.company}</p>
                 </div>
                 <div className="text-right text-sm text-gray-600">
-                  <p>{job.startDate} - {job.endDate}</p>
+                  <p className="font-medium">{job.startDate} - {job.endDate}</p>
                   <p>{job.location}</p>
                 </div>
               </div>
@@ -133,7 +126,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                   {job.responsibilities
                     .filter(resp => resp.trim())
                     .map((responsibility, index) => (
-                    <li key={index} className="text-sm">{responsibility}</li>
+                    <li key={index} className="text-sm leading-relaxed">{responsibility}</li>
                   ))}
                 </ul>
               )}
@@ -145,19 +138,19 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       {/* Education */}
       {education.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-3 border-b border-gray-300 pb-1">
+          <h3 className="text-lg font-bold text-blue-600 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
             Education
           </h3>
           {education.map((edu) => (
-            <div key={edu.id} className="mb-3">
+            <div key={edu.id} className="mb-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
-                  <p className="text-gray-600">{edu.institution}</p>
-                  {edu.gpa && <p className="text-sm text-gray-600">GPA: {edu.gpa}</p>}
+                  <h4 className="font-bold text-gray-900">{edu.degree}</h4>
+                  <p className="text-blue-600 font-semibold">{edu.institution}</p>
+                  {edu.gpa && <p className="text-sm text-gray-600 mt-1">GPA: {edu.gpa}</p>}
                 </div>
                 <div className="text-right text-sm text-gray-600">
-                  <p>{edu.graduationYear}</p>
+                  <p className="font-medium">{edu.graduationYear}</p>
                   <p>{edu.location}</p>
                 </div>
               </div>
@@ -166,52 +159,25 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         </div>
       )}
 
-      {/* Skills */}
-      {skills.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-3 border-b border-gray-300 pb-1">
-            Skills
-          </h3>
-          <div className="grid grid-cols-1 gap-3">
-            {skills.map((skill) => (
-              <div key={skill.id} className="flex items-center">
-                <span className="w-32 text-sm text-gray-700 font-medium">
-                  {skill.name}
-                </span>
-                <div className="flex-1 bg-gray-200 rounded-full h-3 ml-4">
-                  <div
-                    className={`h-3 rounded-full ${getSkillColor(skill.level)}`}
-                    style={{ width: `${skill.level}%` }}
-                  ></div>
-                </div>
-                <span className="ml-2 text-xs text-gray-600 w-8">
-                  {skill.level}%
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Courses and Certifications */}
       {coursesAndCertifications.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-3 border-b border-gray-300 pb-1">
+          <h3 className="text-lg font-bold text-blue-600 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
             Courses & Certifications
           </h3>
           {coursesAndCertifications.map((item) => (
-            <div key={item.id} className="mb-3">
+            <div key={item.id} className="mb-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="font-semibold text-gray-800">{item.title}</h4>
-                  <p className="text-gray-600">{item.provider}</p>
+                  <h4 className="font-bold text-gray-900">{item.title}</h4>
+                  <p className="text-blue-600 font-semibold">{item.provider}</p>
                   {item.description && (
                     <p className="text-sm text-gray-700 mt-1">{item.description}</p>
                   )}
                 </div>
                 <div className="text-right text-sm text-gray-600">
-                  <p>{item.date}</p>
-                  <span className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded capitalize">
+                  <p className="font-medium">{item.date}</p>
+                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded capitalize mt-1">
                     {item.type}
                   </span>
                 </div>

@@ -109,7 +109,15 @@ const Index = () => {
         return <SettingsSection />;
       
       case "ats":
-        return <ATSSection />;
+        const resumeDataForATS = {
+          personalInfo,
+          summary: resumeState.summary,
+          workExperience,
+          education,
+          skills,
+          coursesAndCertifications,
+        };
+        return <ATSSection resumeData={resumeDataForATS} />;
       
       default:
         return (
