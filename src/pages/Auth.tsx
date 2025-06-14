@@ -33,7 +33,7 @@ const Auth = () => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle email confirmation
+        // Handle successful authentication
         if (event === 'SIGNED_IN' && session?.user) {
           toast({
             title: "Welcome!",
@@ -45,6 +45,11 @@ const Auth = () => {
         // Handle token refresh
         if (event === 'TOKEN_REFRESHED') {
           console.log('Token refreshed successfully');
+        }
+
+        // Handle sign out
+        if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
         }
       }
     );
@@ -96,13 +101,11 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
@@ -185,28 +188,36 @@ const Auth = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
         }
       });
 
-      if (error) throw error;
-      
-      toast({
-        title: "Redirecting...",
-        description: "Redirecting to Google for authentication.",
-      });
+      if (error) {
+        // Handle specific Google OAuth errors
+        if (error.message.includes('provider is not enabled')) {
+          toast({
+            title: "Google Sign-In Not Available",
+            description: "Google authentication is not configured for this application. Please use email and password to sign in.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        console.log('Google sign in initiated:', data);
+        toast({
+          title: "Redirecting...",
+          description: "Redirecting to Google for authentication.",
+        });
+      }
     } catch (error: any) {
       console.error('Google sign in error:', error);
       toast({
         title: "Google Sign In Failed",
-        description: error.message || "There was an error signing you in with Google. Please try again.",
+        description: error.message || "There was an error signing you in with Google. Please try email and password instead.",
         variant: "destructive",
       });
     } finally {
@@ -254,7 +265,7 @@ const Auth = () => {
 
   if (isInitialLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
@@ -304,6 +315,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -315,6 +327,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
@@ -334,6 +347,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -346,6 +360,7 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -357,6 +372,7 @@ const Auth = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
