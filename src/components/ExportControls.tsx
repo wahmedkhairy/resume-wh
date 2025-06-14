@@ -35,17 +35,11 @@ const ExportControls: React.FC<ExportControlsProps> = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handlePDFExport = () => {
-    if (isTailoredResume && !isPremiumUser) {
-      return; // Prevent export for tailored resumes if not premium
-    }
     onExport();
     setDropdownOpen(false);
   };
 
   const handleWordExport = () => {
-    if (isTailoredResume && !isPremiumUser) {
-      return; // Prevent export for tailored resumes if not premium
-    }
     if (onExportWord) {
       onExportWord();
     }

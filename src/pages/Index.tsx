@@ -12,7 +12,7 @@ import ATSSection from "@/components/ATSSection";
 import TailoredResumeSection from "@/components/TailoredResumeSection";
 import { useResumeData } from "@/hooks/useResumeData";
 import { useSubscription } from "@/hooks/useSubscription";
-import { exportResumeAsText, exportResumeAsWord } from "@/utils/resumeExport";
+import { exportResumeAsText } from "@/utils/resumeExport";
 
 const Index = () => {
   const [currentSection, setCurrentSection] = useState("editor");
@@ -43,6 +43,7 @@ const Index = () => {
     isPremiumUser,
     isExporting,
     handleExport,
+    handleWordExport,
   } = useSubscription(currentUserId);
 
   // Check user authentication and load data
@@ -124,16 +125,7 @@ const Index = () => {
       coursesAndCertifications
     };
 
-    try {
-      await exportResumeAsWord(exportData);
-    } catch (error) {
-      console.error('Word export error:', error);
-      toast({
-        title: "Export Failed",
-        description: error.message || "There was an error exporting your resume as Word. Please try again.",
-        variant: "destructive",
-      });
-    }
+    await handleWordExport(exportData);
   };
 
   const handleSectionChange = (section: string) => {

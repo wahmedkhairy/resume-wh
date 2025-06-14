@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { exportResumeToPDF } from "@/utils/resumeExport";
+import { exportResumeAsWord } from "@/utils/wordExport";
 
 export const useSubscription = (currentUserId: string) => {
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
@@ -46,7 +47,7 @@ export const useSubscription = (currentUserId: string) => {
     setIsExporting(true);
     
     try {
-      console.log('Starting export with data:', exportData);
+      console.log('Starting PDF export with data:', exportData);
       await exportResumeToPDF(exportData);
       
       // Decrement scan count
@@ -82,10 +83,60 @@ export const useSubscription = (currentUserId: string) => {
     }
   };
 
+  const handleWordExport = async (exportData: any) => {
+    if (!isPremiumUser || !currentSubscription || currentSubscription.scan_count <= 0) {
+      toast({
+        title: "Upgrade Required",
+        description: "Please purchase export credits to download your resume.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    
+    try {
+      console.log('Starting Word export with data:', exportData);
+      await exportResumeAsWord(exportData);
+      
+      // Decrement scan count
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({ scan_count: currentSubscription.scan_count - 1 })
+        .eq('user_id', currentUserId);
+      
+      if (updateError) {
+        console.error('Error updating scan count:', updateError);
+        throw updateError;
+      }
+      
+      // Update local state
+      setCurrentSubscription(prev => ({
+        ...prev,
+        scan_count: prev.scan_count - 1
+      }));
+
+      toast({
+        title: "Resume Exported Successfully!",
+        description: `Your resume has been downloaded as Word document. ${currentSubscription.scan_count - 1} exports remaining.`,
+      });
+    } catch (error) {
+      console.error('Word export error:', error);
+      toast({
+        title: "Export Failed",
+        description: error.message || "There was an error exporting your resume as Word. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return {
     currentSubscription,
     isPremiumUser,
     isExporting,
     handleExport,
+    handleWordExport,
   };
 };
