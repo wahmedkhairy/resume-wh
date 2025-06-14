@@ -26,12 +26,6 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
       try {
         setIsLoading(true);
         
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error("User not authenticated");
-        }
-
         // Use environment variables for PayPal client ID
         const paypalClientId = 'AYlNUG36fCgcNlJ3-2X9FLpYvvfSMJ5QbFKuCB0rUNmAa0XjqK2xPfvl5tZu8-V5vf8s5y5c5p7t6_nE'; // Default sandbox client ID
         
@@ -49,13 +43,16 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
                 try {
                   console.log('Creating PayPal order with data:', orderData);
                   
+                  // Get current user - but don't fail if not authenticated
+                  const { data: { user } } = await supabase.auth.getUser();
+                  
                   const { data, error } = await supabase.functions.invoke('create-paypal-order', {
                     body: {
                       amount: orderData.amount,
                       currency: orderData.currency,
                       description: orderData.description,
                       tier: orderData.tier,
-                      user_id: user.id
+                      user_id: user?.id || null // Allow null user_id for guest payments
                     }
                   });
 
@@ -131,7 +128,14 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
         
         script.onerror = () => {
           setIsLoading(false);
-          throw new Error("Failed to load PayPal SDK");
+          const error = new Error("Failed to load PayPal SDK");
+          console.error("PayPal SDK loading error:", error);
+          toast({
+            title: "PayPal Error",
+            description: "Failed to load PayPal. Please try again.",
+            variant: "destructive",
+          });
+          onError(error);
         };
         
         document.body.appendChild(script);

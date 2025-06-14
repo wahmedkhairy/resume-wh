@@ -40,10 +40,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     setIsProcessing(true);
 
     try {
-      // Get current user
+      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
-        throw new Error("User not authenticated");
+        // If not authenticated, redirect to auth page with return URL
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to complete your purchase.",
+        });
+        window.location.href = `/auth?returnTo=${encodeURIComponent(`/payment-success?session_id=${details.id || 'completed'}`)}`;
+        return;
       }
 
       // Update subscription in database
