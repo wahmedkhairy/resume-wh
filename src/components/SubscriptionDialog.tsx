@@ -28,9 +28,9 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
         // Special pricing for Egypt
         if (data.country_code === 'EG') {
           setPricingInfo({
-            basic: { amount: 39, currency: "EGP", symbol: "E£" },
-            premium: { amount: 49, currency: "EGP", symbol: "E£" },
-            unlimited: { amount: 99, currency: "EGP", symbol: "E£" }
+            basic: { amount: 39, currency: "EGP", symbol: "EGP" },
+            premium: { amount: 49, currency: "EGP", symbol: "EGP" },
+            unlimited: { amount: 99, currency: "EGP", symbol: "EGP" }
           });
         }
       } catch (error) {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Card, 
@@ -55,7 +54,7 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
         
         // Special pricing for Egypt
         if (data.country_code === 'EG') {
-          pricing = { currency: "EGP", amount: 49, symbol: "E£" };
+          pricing = { currency: "EGP", amount: 49, symbol: "EGP" };
         }
         
         setCountryInfo({
@@ -208,10 +207,10 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
               {/* Plan Summary */}
               <div className="border rounded-lg p-4 bg-muted">
                 <h3 className="text-lg font-bold mb-2">
-                  Premium Plan - {countryInfo.pricing.symbol}{countryInfo.pricing.amount}/month
+                  Premium Plan - {countryInfo.pricing.currency === 'EGP' ? `${countryInfo.pricing.amount} ${countryInfo.pricing.symbol}` : `${countryInfo.pricing.symbol}${countryInfo.pricing.amount}`}/month
                 </h3>
                 <p className="text-sm text-gray-600 mb-3">
-                  Pricing for {countryInfo.country}: {countryInfo.pricing.symbol}{countryInfo.pricing.amount} {countryInfo.pricing.currency}
+                  Pricing for {countryInfo.country}: {countryInfo.pricing.currency === 'EGP' ? `${countryInfo.pricing.amount} ${countryInfo.pricing.symbol}` : `${countryInfo.pricing.symbol}${countryInfo.pricing.amount}`} {countryInfo.pricing.currency}
                 </p>
                 <ul className="text-sm space-y-1">
                   <li className="flex items-center">
@@ -313,7 +312,7 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
             className="flex-1"
             disabled={isProcessing || isLoading}
           >
-            {isProcessing ? "Processing..." : `Subscribe ${countryInfo.pricing.symbol}${countryInfo.pricing.amount}`}
+            {isProcessing ? "Processing..." : `Subscribe ${countryInfo.pricing.currency === 'EGP' ? `${countryInfo.pricing.amount} ${countryInfo.pricing.symbol}` : `${countryInfo.pricing.symbol}${countryInfo.pricing.amount}`}`}
           </Button>
         </CardFooter>
       </Card>

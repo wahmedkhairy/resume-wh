@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,9 +51,9 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
         // Special pricing for Egypt
         if (data.country_code === 'EG') {
           pricing = {
-            basic: { currency: "EGP", amount: 39, symbol: "E£" },
-            premium: { currency: "EGP", amount: 49, symbol: "E£" },
-            unlimited: { currency: "EGP", amount: 99, symbol: "E£" }
+            basic: { currency: "EGP", amount: 39, symbol: "EGP" },
+            premium: { currency: "EGP", amount: 49, symbol: "EGP" },
+            unlimited: { currency: "EGP", amount: 99, symbol: "EGP" }
           };
         }
         
@@ -167,7 +166,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
               </div>
               <CardTitle className="text-xl">{tier.name}</CardTitle>
               <div className="text-3xl font-bold">
-                {tier.price?.symbol}{tier.price?.amount}
+                {tier.price?.currency === 'EGP' ? `${tier.price?.amount} ${tier.price?.symbol}` : `${tier.price?.symbol}${tier.price?.amount}`}
                 <span className="text-sm font-normal text-muted-foreground">
                   one-time
                 </span>
