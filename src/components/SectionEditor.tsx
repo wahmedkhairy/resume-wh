@@ -23,43 +23,6 @@ interface SectionEditorProps {
   onContentChange?: (content: string) => void;
 }
 
-// Basic AI enhancement functions for fallback when the API is unavailable
-const enhanceContent = (content: string, type: string): string => {
-  if (!content.trim()) return content;
-  
-  let enhanced = content;
-  
-  // Basic enhancements based on content type
-  switch(type) {
-    case "summary":
-      enhanced = enhanced.replace(/^I am /i, "An experienced professional ");
-      enhanced = enhanced.replace(/^I have /i, "With ");
-      enhanced = enhanced.charAt(0).toUpperCase() + enhanced.slice(1);
-      if (!enhanced.endsWith('.')) enhanced += '.';
-      break;
-      
-    case "experience":
-      // Add action verbs to bullet points if they don't start with one
-      const actionVerbs = ["Developed", "Created", "Implemented", "Managed", "Led", "Designed", "Optimized", "Improved"];
-      const lines = enhanced.split('\n');
-      enhanced = lines.map(line => {
-        if (line.trim().startsWith('- ') && !actionVerbs.some(verb => line.trim().substring(2).startsWith(verb))) {
-          const randomVerb = actionVerbs[Math.floor(Math.random() * actionVerbs.length)];
-          return `- ${randomVerb} ${line.trim().substring(2)}`;
-        }
-        return line;
-      }).join('\n');
-      break;
-      
-    case "education":
-      // Ensure proper formatting for education entries
-      enhanced = enhanced.replace(/(\d{4})-(\d{4})/, "$1 - $2"); // Add spaces around date ranges
-      break;
-  }
-  
-  return enhanced;
-};
-
 const SectionEditor: React.FC<SectionEditorProps> = ({
   title,
   description,
@@ -94,6 +57,8 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
     setIsPolishing(true);
 
     try {
+      console.log('Calling polish-resume edge function with:', { content, sectionType });
+      
       const { data, error } = await supabase.functions.invoke('polish-resume', {
         body: { 
           content, 
@@ -101,8 +66,11 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
         }
       });
 
+      console.log('Polish response:', { data, error });
+
       if (error) {
-        throw new Error(error.message);
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to polish content');
       }
 
       if (data?.polishedContent) {
@@ -128,32 +96,15 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
           variant: "default",
         });
       } else {
-        // Fallback to basic enhancements if API doesn't return expected data
-        const enhancedContent = enhanceContent(content, sectionType);
-        setContent(enhancedContent);
-        if (onContentChange) {
-          onContentChange(enhancedContent);
-        }
-        toast({
-          title: "Content Polished",
-          description: "Your content has been enhanced using local processing.",
-          variant: "default",
-        });
+        throw new Error('No polished content received from AI service');
       }
     } catch (error) {
       console.error('Error polishing content:', error);
       
-      // Use local enhancement as fallback when API fails
-      const enhancedContent = enhanceContent(content, sectionType);
-      setContent(enhancedContent);
-      if (onContentChange) {
-        onContentChange(enhancedContent);
-      }
-      
       toast({
-        title: "AI Service Issue",
-        description: "Using local enhancements instead. The AI service may need configuration.",
-        variant: "default",
+        title: "Polishing Failed",
+        description: error.message || "There was an error polishing your content. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsPolishing(false);

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search } from "lucide-react";
+import { Search, CheckCircle } from "lucide-react";
 
 interface Keyword {
   text: string;
@@ -26,13 +26,30 @@ const KeywordMatcher = () => {
   const { toast } = useToast();
 
   const extractKeywordsFromText = (text: string): string[] => {
-    // Simple keyword extraction logic
-    const commonWords = new Set(['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'under', 'over', 'within', 'without', 'along', 'following', 'across', 'behind', 'beyond', 'plus', 'except', 'but', 'until', 'unless', 'since', 'while', 'where', 'when', 'why', 'how', 'what', 'which', 'who', 'whom', 'whose', 'whether', 'if', 'that', 'this', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'mine', 'yours', 'hers', 'ours', 'theirs', 'myself', 'yourself', 'himself', 'herself', 'itself', 'ourselves', 'yourselves', 'themselves', 'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now', 'a', 'an', 'as', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'get', 'got', 'go', 'went', 'gone', 'make', 'made', 'take', 'took', 'taken', 'come', 'came', 'give', 'gave', 'given', 'see', 'saw', 'seen', 'know', 'knew', 'known', 'think', 'thought', 'look', 'looked', 'use', 'used', 'find', 'found', 'want', 'wanted', 'tell', 'told', 'ask', 'asked', 'work', 'worked', 'try', 'tried', 'need', 'needed', 'feel', 'felt', 'become', 'became', 'leave', 'left', 'put', 'say', 'said', 'show', 'showed', 'shown', 'hear', 'heard', 'let', 'move', 'moved', 'live', 'lived', 'believe', 'believed', 'hold', 'held', 'bring', 'brought', 'happen', 'happened', 'write', 'wrote', 'written', 'sit', 'sat', 'stand', 'stood', 'lose', 'lost', 'pay', 'paid', 'meet', 'met', 'include', 'included', 'continue', 'continued', 'set', 'learn', 'learned', 'change', 'changed', 'lead', 'led', 'understand', 'understood', 'watch', 'watched', 'follow', 'followed', 'stop', 'stopped', 'create', 'created', 'speak', 'spoke', 'spoken', 'read', 'achieve', 'achieved', 'level', 'help', 'helped', 'allow', 'allowed', 'add', 'added', 'spend', 'spent', 'grow', 'grew', 'grown', 'open', 'opened', 'walk', 'walked', 'win', 'won', 'offer', 'offered', 'remember', 'remembered', 'love', 'loved', 'consider', 'considered', 'appear', 'appeared', 'buy', 'bought', 'wait', 'waited', 'serve', 'served', 'die', 'died', 'send', 'sent', 'expect', 'expected', 'build', 'built', 'stay', 'stayed', 'fall', 'fell', 'fallen', 'cut', 'kill', 'killed', 'remain', 'remained']);
+    // Enhanced keyword extraction logic
+    const commonWords = new Set(['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'under', 'over', 'within', 'without', 'along', 'following', 'across', 'behind', 'beyond', 'plus', 'except', 'but', 'until', 'unless', 'since', 'while', 'where', 'when', 'why', 'how', 'what', 'which', 'who', 'whom', 'whose', 'whether', 'if', 'that', 'this', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'mine', 'yours', 'hers', 'ours', 'theirs', 'myself', 'yourself', 'himself', 'herself', 'itself', 'ourselves', 'yourselves', 'themselves', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now', 'a', 'an', 'as', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'get', 'got', 'go', 'went', 'gone', 'make', 'made', 'take', 'took', 'taken', 'come', 'came', 'give', 'gave', 'given', 'see', 'saw', 'seen', 'know', 'knew', 'known', 'think', 'thought', 'look', 'looked', 'use', 'used', 'find', 'found', 'want', 'wanted', 'tell', 'told', 'ask', 'asked', 'work', 'worked', 'try', 'tried', 'need', 'needed', 'feel', 'felt', 'become', 'became', 'leave', 'left', 'put', 'say', 'said', 'show', 'showed', 'shown', 'hear', 'heard', 'let', 'move', 'moved', 'live', 'lived', 'believe', 'believed', 'hold', 'held', 'bring', 'brought', 'happen', 'happened', 'write', 'wrote', 'written', 'sit', 'sat', 'stand', 'stood', 'lose', 'lost', 'pay', 'paid', 'meet', 'met', 'include', 'included', 'continue', 'continued', 'set', 'learn', 'learned', 'change', 'changed', 'lead', 'led', 'understand', 'understood', 'watch', 'watched', 'follow', 'followed', 'stop', 'stopped', 'create', 'created', 'speak', 'spoke', 'spoken', 'read', 'achieve', 'achieved', 'level', 'help', 'helped', 'allow', 'allowed', 'add', 'added', 'spend', 'spent', 'grow', 'grew', 'grown', 'open', 'opened', 'walk', 'walked', 'win', 'won', 'offer', 'offered', 'remember', 'remembered', 'love', 'loved', 'consider', 'considered', 'appear', 'appeared', 'buy', 'bought', 'wait', 'waited', 'serve', 'served', 'die', 'died', 'send', 'sent', 'expect', 'expected', 'build', 'built', 'stay', 'stayed', 'fall', 'fell', 'fallen', 'cut', 'kill', 'killed', 'remain', 'remained']);
+    
+    // Extract multi-word technical terms and skills
+    const technicalPatterns = [
+      /\b(?:react|angular|vue|node\.?js|express|mongodb|postgresql|mysql|javascript|typescript|python|java|c\+\+|php|ruby|go|rust|kotlin|swift)\b/gi,
+      /\b(?:aws|azure|gcp|docker|kubernetes|jenkins|git|github|gitlab|jira|agile|scrum|devops)\b/gi,
+      /\b(?:machine learning|artificial intelligence|data science|web development|mobile development|full stack|front end|back end|ui\/ux|user experience|user interface)\b/gi,
+      /\b(?:project management|team lead|software engineer|developer|architect|analyst|manager|director|senior|junior|lead)\b/gi
+    ];
     
     const words = text.toLowerCase()
-      .replace(/[^\w\s]/g, ' ')
+      .replace(/[^\w\s\.\+\#]/g, ' ')
       .split(/\s+/)
       .filter(word => word.length > 2 && !commonWords.has(word));
+    
+    // Extract technical terms using patterns
+    const technicalTerms: string[] = [];
+    technicalPatterns.forEach(pattern => {
+      const matches = text.match(pattern);
+      if (matches) {
+        technicalTerms.push(...matches.map(match => match.toLowerCase()));
+      }
+    });
     
     // Count word frequency
     const wordCount = words.reduce((acc, word) => {
@@ -41,18 +58,31 @@ const KeywordMatcher = () => {
     }, {} as Record<string, number>);
     
     // Get top keywords (words that appear more than once or are longer than 4 characters)
-    return Object.entries(wordCount)
+    const topWords = Object.entries(wordCount)
       .filter(([word, count]) => count > 1 || word.length > 4)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 15)
+      .slice(0, 20)
       .map(([word]) => word);
+    
+    // Combine technical terms and top words, remove duplicates
+    const allKeywords = [...new Set([...technicalTerms, ...topWords])];
+    
+    return allKeywords.slice(0, 15);
   };
 
   const checkKeywordMatch = (keyword: string): boolean => {
-    // Simple mock logic - in a real app, this would check against the user's resume
-    const commonResumeKeywords = ['react', 'javascript', 'typescript', 'frontend', 'development', 'agile', 'redux', 'next.js', 'api', 'node.js', 'html', 'css', 'git', 'testing', 'ui', 'ux'];
+    // Enhanced mock logic - in a real app, this would check against the user's resume
+    const commonResumeKeywords = [
+      'react', 'javascript', 'typescript', 'frontend', 'development', 'agile', 'redux', 
+      'next.js', 'api', 'node.js', 'html', 'css', 'git', 'testing', 'ui', 'ux',
+      'python', 'java', 'aws', 'docker', 'mongodb', 'postgresql', 'express',
+      'project management', 'team lead', 'full stack', 'mobile development',
+      'machine learning', 'data science', 'devops', 'kubernetes', 'jenkins'
+    ];
+    
     return commonResumeKeywords.some(resumeKeyword => 
-      keyword.includes(resumeKeyword) || resumeKeyword.includes(keyword)
+      keyword.toLowerCase().includes(resumeKeyword.toLowerCase()) || 
+      resumeKeyword.toLowerCase().includes(keyword.toLowerCase())
     );
   };
 
@@ -112,12 +142,26 @@ const KeywordMatcher = () => {
                 <Badge 
                   key={index}
                   variant={keyword.matched ? "default" : "outline"}
-                  className={keyword.matched ? "bg-resume-success/20 text-resume-success border-resume-success/30" : ""}
+                  className={keyword.matched ? "bg-green-100 text-green-800 border-green-300" : ""}
                 >
                   {keyword.text}
-                  {keyword.matched && <CheckIcon className="ml-1 h-3 w-3" />}
+                  {keyword.matched && <CheckCircle className="ml-1 h-3 w-3" />}
                 </Badge>
               ))}
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Badge variant="default" className="h-4 px-1 bg-green-100 text-green-800 border-green-300">
+                  <CheckCircle className="h-2 w-2" />
+                </Badge>
+                = Already in your resume
+              </span>
+              <span className="ml-4 inline-flex items-center gap-1">
+                <Badge variant="outline" className="h-4 px-1">
+                  
+                </Badge>
+                = Consider adding
+              </span>
             </div>
           </div>
         )}
@@ -131,20 +175,5 @@ const KeywordMatcher = () => {
     </Card>
   );
 };
-
-const CheckIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
 
 export default KeywordMatcher;
