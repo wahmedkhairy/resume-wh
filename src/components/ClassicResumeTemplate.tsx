@@ -62,11 +62,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         fontSize: '14px',
         lineHeight: '1.5',
         color: '#000000',
-        padding: '40px',
-        margin: '0',
+        padding: '40px 20px',
+        margin: '0 auto',
         maxWidth: '8.5in',
         minHeight: '11in',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        textAlign: 'center'
       }}
       data-resume-preview="true"
     >
@@ -79,13 +80,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </div>
       )}
 
-      {/* Header with three bars */}
-      <header style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <div style={{ fontSize: '20px', marginBottom: '20px' }}>|||</div>
-        
+      {/* Header */}
+      <header style={{ marginBottom: '25px' }}>
         <h1 
           style={{ 
-            fontSize: '24px',
+            fontSize: '32px',
             fontWeight: 'bold',
             margin: '0 0 10px 0',
             color: '#000000'
@@ -97,39 +96,39 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         {personalInfo.jobTitle && (
           <div 
             style={{ 
-              fontSize: '16px',
-              margin: '0 0 15px 0',
+              fontSize: '18px',
+              margin: '0 0 10px 0',
               color: '#000000'
             }}
           >
             {personalInfo.jobTitle}
+            {personalInfo.location && <span> | {personalInfo.location}</span>}
           </div>
         )}
         
         <div 
           style={{ 
-            fontSize: '14px',
+            fontSize: '16px',
             color: '#000000',
-            lineHeight: '1.3'
+            lineHeight: '1.5'
           }}
         >
-          {personalInfo.location && <span>{personalInfo.location}</span>}
-          {personalInfo.location && personalInfo.email && <span> | </span>}
           {personalInfo.email && <span>{personalInfo.email}</span>}
-          {(personalInfo.location || personalInfo.email) && personalInfo.phone && <span> | </span>}
+          {personalInfo.email && personalInfo.phone && <span> | </span>}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
         </div>
       </header>
 
       {/* Summary Section */}
-      <section style={{ marginBottom: '30px' }}>
+      <section style={{ marginBottom: '25px', textAlign: 'left' }}>
         <h2 
           style={{ 
-            fontSize: '18px',
+            fontSize: '22px',
             fontWeight: 'bold',
-            margin: '0 0 10px 0',
+            margin: '0 0 15px 0',
             color: '#000000',
-            borderBottom: '2px solid #000000',
+            textAlign: 'left',
+            borderBottom: '1px solid #cccccc',
             paddingBottom: '5px'
           }}
         >
@@ -138,10 +137,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         
         <div 
           style={{ 
-            fontSize: '14px',
+            fontSize: '16px',
             lineHeight: '1.5',
             margin: '0',
-            color: '#000000'
+            color: '#000000',
+            textAlign: 'left'
           }}
         >
           {summary || "Generate your professional summary using AI by clicking the 'Generate Summary' button."}
@@ -149,14 +149,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       </section>
 
       {/* Experience Section */}
-      <section style={{ marginBottom: '30px' }}>
+      <section style={{ marginBottom: '25px', textAlign: 'left' }}>
         <h2 
           style={{ 
-            fontSize: '18px',
+            fontSize: '22px',
             fontWeight: 'bold',
-            margin: '0 0 20px 0',
+            margin: '0 0 15px 0',
             color: '#000000',
-            borderBottom: '2px solid #000000',
+            textAlign: 'left',
+            borderBottom: '1px solid #cccccc',
             paddingBottom: '5px'
           }}
         >
@@ -164,10 +165,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </h2>
         
         {workExperience.length > 0 ? workExperience.map((job, index) => (
-          <div key={job.id} style={{ marginBottom: '25px' }}>
+          <div key={job.id} style={{ marginBottom: '20px' }}>
             <h3 
               style={{ 
-                fontSize: '16px',
+                fontSize: '18px',
                 fontWeight: 'bold',
                 margin: '0 0 5px 0',
                 color: '#000000'
@@ -178,13 +179,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             
             <div 
               style={{ 
-                fontSize: '14px',
+                fontSize: '16px',
                 margin: '0 0 10px 0',
                 color: '#000000',
                 fontStyle: 'italic'
               }}
             >
               {job.startDate} - {job.endDate}
+              {job.location && <span> | {job.location}</span>}
             </div>
             
             {job.responsibilities.length > 0 && (
@@ -195,7 +197,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
                   <li 
                     key={respIndex} 
                     style={{ 
-                      fontSize: '14px',
+                      fontSize: '16px',
                       margin: '5px 0',
                       color: '#000000',
                       lineHeight: '1.5'
@@ -208,10 +210,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             )}
           </div>
         )) : (
-          <div style={{ marginBottom: '25px' }}>
+          <div style={{ marginBottom: '20px' }}>
             <h3 
               style={{ 
-                fontSize: '16px',
+                fontSize: '18px',
                 fontWeight: 'bold',
                 margin: '0 0 5px 0',
                 color: '#000000'
@@ -222,7 +224,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             
             <div 
               style={{ 
-                fontSize: '14px',
+                fontSize: '16px',
                 margin: '0 0 10px 0',
                 color: '#000000',
                 fontStyle: 'italic'
@@ -232,13 +234,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             </div>
             
             <ul style={{ margin: '0', paddingLeft: '20px' }}>
-              <li style={{ fontSize: '14px', margin: '5px 0', color: '#000000', lineHeight: '1.5' }}>
+              <li style={{ fontSize: '16px', margin: '5px 0', color: '#000000', lineHeight: '1.5' }}>
                 Led development of company's flagship SaaS product using React and TypeScript
               </li>
-              <li style={{ fontSize: '14px', margin: '5px 0', color: '#000000', lineHeight: '1.5' }}>
+              <li style={{ fontSize: '16px', margin: '5px 0', color: '#000000', lineHeight: '1.5' }}>
                 Improved application performance by <strong>40%</strong> through code optimization and efficient state management
               </li>
-              <li style={{ fontSize: '14px', margin: '5px 0', color: '#000000', lineHeight: '1.5' }}>
+              <li style={{ fontSize: '16px', margin: '5px 0', color: '#000000', lineHeight: '1.5' }}>
                 Collaborated with cross-functional teams to deliver high-quality user experiences
               </li>
             </ul>
@@ -248,14 +250,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
 
       {/* Education Section */}
       {(education.length > 0 || coursesAndCertifications.length > 0) && (
-        <section style={{ marginBottom: '30px' }}>
+        <section style={{ marginBottom: '25px', textAlign: 'left' }}>
           <h2 
             style={{ 
-              fontSize: '18px',
+              fontSize: '22px',
               fontWeight: 'bold',
-              margin: '0 0 20px 0',
+              margin: '0 0 15px 0',
               color: '#000000',
-              borderBottom: '2px solid #000000',
+              textAlign: 'left',
+              borderBottom: '1px solid #cccccc',
               paddingBottom: '5px'
             }}
           >
@@ -266,7 +269,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             <div key={edu.id} style={{ marginBottom: '15px' }}>
               <div 
                 style={{ 
-                  fontSize: '16px',
+                  fontSize: '18px',
                   fontWeight: 'bold',
                   margin: '0 0 5px 0',
                   color: '#000000'
@@ -276,19 +279,20 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               </div>
               <div 
                 style={{ 
-                  fontSize: '14px',
+                  fontSize: '16px',
                   margin: '0',
                   color: '#000000'
                 }}
               >
                 {edu.institution} - {edu.graduationYear}
+                {edu.location && <span> | {edu.location}</span>}
               </div>
             </div>
           )) : (
             <div style={{ marginBottom: '15px' }}>
               <div 
                 style={{ 
-                  fontSize: '16px',
+                  fontSize: '18px',
                   fontWeight: 'bold',
                   margin: '0 0 5px 0',
                   color: '#000000'
@@ -298,7 +302,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               </div>
               <div 
                 style={{ 
-                  fontSize: '14px',
+                  fontSize: '16px',
                   margin: '0',
                   color: '#000000'
                 }}
@@ -312,7 +316,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             <>
               <h3 
                 style={{ 
-                  fontSize: '16px',
+                  fontSize: '18px',
                   fontWeight: 'bold',
                   margin: '20px 0 10px 0',
                   color: '#000000'
@@ -324,7 +328,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
                 <div key={item.id} style={{ marginBottom: '10px' }}>
                   <div 
                     style={{ 
-                      fontSize: '14px',
+                      fontSize: '16px',
                       fontWeight: 'bold',
                       margin: '0',
                       color: '#000000'
