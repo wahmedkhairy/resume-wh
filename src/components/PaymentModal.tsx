@@ -1,12 +1,9 @@
 
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import OrderSummary from "./OrderSummary";
-import PaymentSection from "./PaymentSection";
-import { PayPalOrderData } from "@/services/paypalService";
+import CreditCardForm from "./CreditCardForm";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -27,13 +24,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-
-  const orderData: PayPalOrderData = {
-    amount: amount.toString(),
-    currency: currency,
-    description: `${selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} Plan - Resume Export Credits`,
-    tier: selectedTier
-  };
 
   const handlePaymentSuccess = async (details: any) => {
     console.log('Payment successful:', details);
@@ -102,16 +92,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const handlePaymentCancel = () => {
     console.log('Payment cancelled');
-    toast({
-      title: "Payment Cancelled",
-      description: "Your payment was cancelled. No charges were made.",
-    });
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Complete Your Payment</DialogTitle>
           <DialogDescription>
@@ -123,28 +109,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          <OrderSummary selectedTier={selectedTier} />
-
-          <PaymentSection
-            orderData={orderData}
+        <div className="mt-6">
+          <CreditCardForm
             onSuccess={handlePaymentSuccess}
             onError={handlePaymentError}
             onCancel={handlePaymentCancel}
+            amount={amount}
+            currency={currency}
+            symbol={symbol}
+            selectedTier={selectedTier}
+            isProcessing={isProcessing}
+            setIsProcessing={setIsProcessing}
           />
-
-          {isProcessing && (
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-sm text-muted-foreground">Processing your subscription...</p>
-            </div>
-          )}
-
-          <div className="flex space-x-3">
-            <Button variant="outline" onClick={onClose} className="flex-1" disabled={isProcessing}>
-              Cancel
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
