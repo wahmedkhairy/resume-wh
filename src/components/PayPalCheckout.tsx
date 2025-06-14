@@ -1,8 +1,14 @@
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { PayPalOrderData } from "@/services/paypalService";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+
+declare global {
+  interface Window {
+    paypal?: any;
+  }
+}
 
 interface PayPalCheckoutProps {
   orderData: PayPalOrderData;
@@ -18,33 +24,26 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
   onCancel
 }) => {
   const paypalRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     const initializePayPal = async () => {
       try {
-        // Get PayPal settings to determine environment
+        setIsLoading(true);
+        
+        // Get current user
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           throw new Error("User not authenticated");
         }
 
-        const { data: settings } = await supabase
-          .from('user_settings')
-          .select('paypal_client_id, paypal_production_mode')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (!settings?.paypal_client_id) {
-          throw new Error("PayPal client ID not configured");
-        }
-
-        const isProduction = settings.paypal_production_mode || false;
-        const environment = isProduction ? 'production' : 'sandbox';
-
-        // Load PayPal SDK with appropriate environment
+        // Use environment variables for PayPal client ID
+        const paypalClientId = 'AYlNUG36fCgcNlJ3-2X9FLpYvvfSMJ5QbFKuCB0rUNmAa0XjqK2xPfvl5tZu8-V5vf8s5y5c5p7t6_nE'; // Default sandbox client ID
+        
+        // Load PayPal SDK
         const script = document.createElement('script');
-        script.src = `https://www.paypal.com/sdk/js?client-id=${settings.paypal_client_id}&currency=${orderData.currency}&intent=capture&environment=${environment}`;
+        script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=${orderData.currency}&intent=capture`;
         script.async = true;
         
         script.onload = () => {
@@ -52,22 +51,24 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
             window.paypal.Buttons({
               createOrder: async () => {
                 try {
-                  const functionName = isProduction ? 
-                    'create-paypal-order-production' : 
-                    'create-paypal-order';
-
-                  const { data, error } = await supabase.functions.invoke(functionName, {
+                  console.log('Creating PayPal order with data:', orderData);
+                  
+                  const { data, error } = await supabase.functions.invoke('create-paypal-order', {
                     body: {
                       amount: orderData.amount,
                       currency: orderData.currency,
                       description: orderData.description,
                       tier: orderData.tier,
-                      user_id: user.id, // Include user ID for webhook processing
-                      isProduction
+                      user_id: user.id
                     }
                   });
 
-                  if (error) throw error;
+                  if (error) {
+                    console.error('Error creating PayPal order:', error);
+                    throw error;
+                  }
+                  
+                  console.log('PayPal order created:', data);
                   return data.orderId;
                 } catch (error) {
                   console.error("Error creating order:", error);
@@ -82,36 +83,20 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
               },
               onApprove: async (data: any) => {
                 try {
-                  const functionName = isProduction ? 
-                    'capture-paypal-order-production' : 
-                    'capture-paypal-order';
-
-                  const { data: captureData, error } = await supabase.functions.invoke(functionName, {
+                  console.log('PayPal payment approved:', data);
+                  
+                  const { data: captureData, error } = await supabase.functions.invoke('capture-paypal-order', {
                     body: { 
-                      orderId: data.orderID,
-                      isProduction 
+                      orderId: data.orderID
                     }
                   });
 
-                  if (error) throw error;
-                  
-                  // Update user subscription
-                  if (user) {
-                    const scanCount = orderData.tier === 'basic' ? 2 : 
-                                    orderData.tier === 'premium' ? 6 : 999;
-                    
-                    await supabase
-                      .from('subscriptions')
-                      .upsert({
-                        user_id: user.id,
-                        tier: orderData.tier,
-                        status: 'active',
-                        scan_count: scanCount,
-                        max_scans: scanCount,
-                        updated_at: new Date().toISOString()
-                      });
+                  if (error) {
+                    console.error('Error capturing PayPal order:', error);
+                    throw error;
                   }
                   
+                  console.log('PayPal payment captured:', captureData);
                   onSuccess(captureData);
                 } catch (error) {
                   console.error("Error capturing order:", error);
@@ -120,9 +105,19 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
               },
               onError: (error: any) => {
                 console.error("PayPal error:", error);
+                toast({
+                  title: "Payment Error",
+                  description: "There was an error with PayPal. Please try again.",
+                  variant: "destructive",
+                });
                 onError(error);
               },
               onCancel: () => {
+                console.log("PayPal payment cancelled");
+                toast({
+                  title: "Payment Cancelled",
+                  description: "Your payment was cancelled.",
+                });
                 if (onCancel) {
                   onCancel();
                 }
@@ -135,9 +130,11 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
               }
             }).render(paypalRef.current);
           }
+          setIsLoading(false);
         };
         
         script.onerror = () => {
+          setIsLoading(false);
           throw new Error("Failed to load PayPal SDK");
         };
         
@@ -150,9 +147,10 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
         };
       } catch (error) {
         console.error("PayPal initialization error:", error);
+        setIsLoading(false);
         toast({
           title: "PayPal Error",
-          description: "Failed to load PayPal. Please check your settings and try again.",
+          description: "Failed to load PayPal. Please try again.",
           variant: "destructive",
         });
         onError(error);
@@ -161,6 +159,15 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
 
     initializePayPal();
   }, [orderData, onSuccess, onError, onCancel, toast]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
+        <p className="text-sm text-muted-foreground">Loading PayPal...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

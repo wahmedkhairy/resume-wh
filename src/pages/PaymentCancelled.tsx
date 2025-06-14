@@ -8,6 +8,11 @@ import { XCircle, Home, CreditCard } from "lucide-react";
 const PaymentCancelled = () => {
   const navigate = useNavigate();
 
+  const handleTryAgain = () => {
+    // Navigate back to home where users can open the subscription dialog again
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="max-w-md w-full">
@@ -34,7 +39,7 @@ const PaymentCancelled = () => {
               <Home className="mr-2 h-4 w-4" />
               Return to Resume Builder
             </Button>
-            <Button variant="outline" onClick={() => navigate("/")} className="w-full">
+            <Button variant="outline" onClick={handleTryAgain} className="w-full">
               <CreditCard className="mr-2 h-4 w-4" />
               Try Payment Again
             </Button>

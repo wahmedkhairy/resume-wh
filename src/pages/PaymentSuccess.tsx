@@ -12,10 +12,11 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(true);
+  const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
   const sessionId = searchParams.get("session_id");
 
   useEffect(() => {
-    const updateSubscription = async () => {
+    const processPaymentSuccess = async () => {
       if (!sessionId) {
         setIsProcessing(false);
         return;
@@ -28,19 +29,17 @@ const PaymentSuccess = () => {
           return;
         }
 
-        // Update user's subscription in database
-        const { error } = await supabase
+        // Get updated subscription details
+        const { data: subscription, error } = await supabase
           .from('subscriptions')
-          .update({
-            status: 'active',
-            scan_count: 6, // Default to premium for now
-            tier: 'premium',
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id);
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
 
         if (error) {
-          console.error('Error updating subscription:', error);
+          console.error('Error fetching subscription:', error);
+        } else {
+          setSubscriptionDetails(subscription);
         }
 
         toast({
@@ -49,18 +48,25 @@ const PaymentSuccess = () => {
         });
       } catch (error) {
         console.error('Error processing payment success:', error);
+        toast({
+          title: "Payment Processed",
+          description: "Your payment was successful. Please refresh the page to see your updated subscription.",
+        });
       } finally {
         setIsProcessing(false);
       }
     };
 
-    updateSubscription();
+    processPaymentSuccess();
   }, [sessionId, navigate, toast]);
 
   if (isProcessing) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Processing your payment...</p>
+        </div>
       </div>
     );
   }
@@ -76,15 +82,26 @@ const PaymentSuccess = () => {
         </CardHeader>
         <CardContent className="text-center space-y-4">
           <p className="text-muted-foreground">
-            Thank you for your purchase. Your subscription has been activated and you can now access all premium features.
+            Thank you for your purchase! Your subscription has been activated and you can now access all premium features.
           </p>
           
-          <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-            <h3 className="font-semibold text-green-800 mb-2">What's included:</h3>
-            <ul className="text-sm text-green-700 space-y-1">
+          {subscriptionDetails && (
+            <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+              <h3 className="font-semibold text-green-800 mb-2">Your Plan Details:</h3>
+              <ul className="text-sm text-green-700 space-y-1">
+                <li>• Plan: {subscriptionDetails.tier?.charAt(0).toUpperCase() + subscriptionDetails.tier?.slice(1)}</li>
+                <li>• Export Credits: {subscriptionDetails.scan_count === 999 ? 'Unlimited' : subscriptionDetails.scan_count}</li>
+                <li>• Status: {subscriptionDetails.status}</li>
+              </ul>
+            </div>
+          )}
+
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+            <h3 className="font-semibold text-blue-800 mb-2">What's included:</h3>
+            <ul className="text-sm text-blue-700 space-y-1">
               <li>• ATS-optimized resume exports</li>
               <li>• AI-powered content generation</li>
-              <li>• Multiple scan attempts</li>
+              <li>• Multiple export formats</li>
               <li>• Premium templates</li>
             </ul>
           </div>
@@ -96,7 +113,7 @@ const PaymentSuccess = () => {
             </Button>
             <Button variant="outline" onClick={() => navigate("/")} className="w-full">
               <Download className="mr-2 h-4 w-4" />
-              Download My Resume
+              Export My Resume
             </Button>
           </div>
         </CardContent>
