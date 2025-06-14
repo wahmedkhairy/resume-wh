@@ -6,33 +6,33 @@ export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
   try {
     const children: (Paragraph)[] = [];
 
-    // Header - Name
+    // Header - Name (matching Resume Preview)
     if (data.personalInfo?.name) {
       children.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: data.personalInfo.name.toUpperCase(),
+              text: data.personalInfo.name,
               bold: true,
-              size: 32,
+              size: 64, // 32pt in half-points (matching Resume Preview)
+              color: "000000",
             }),
           ],
-          heading: HeadingLevel.HEADING_1,
           alignment: AlignmentType.CENTER,
           spacing: { after: 200 },
         })
       );
     }
 
-    // Job Title
+    // Job Title (matching Resume Preview)
     if (data.personalInfo?.jobTitle) {
       children.push(
         new Paragraph({
           children: [
             new TextRun({
               text: data.personalInfo.jobTitle,
-              italics: true,
-              size: 24,
+              size: 36, // 18pt in half-points
+              color: "000000",
             }),
           ],
           alignment: AlignmentType.CENTER,
@@ -41,11 +41,11 @@ export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
       );
     }
 
-    // Contact Information
+    // Contact Information (matching Resume Preview)
     const contactInfo = [
-      data.personalInfo?.location,
       data.personalInfo?.email,
       data.personalInfo?.phone,
+      data.personalInfo?.location,
     ].filter(Boolean);
 
     if (contactInfo.length > 0) {
@@ -54,28 +54,37 @@ export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
           children: [
             new TextRun({
               text: contactInfo.join(' | '),
-              size: 20,
+              size: 32, // 16pt in half-points
+              color: "000000",
             }),
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400 },
+          spacing: { after: 500 },
         })
       );
     }
 
-    // Professional Summary
+    // Summary Section (matching Resume Preview)
     if (data.summary) {
       children.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: 'PROFESSIONAL SUMMARY',
+              text: 'Summary',
               bold: true,
-              size: 24,
+              size: 44, // 22pt in half-points
+              color: "000000",
             }),
           ],
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 200, after: 200 },
+          spacing: { before: 200, after: 300 },
+          border: {
+            bottom: {
+              color: "CCCCCC",
+              space: 1,
+              value: "single",
+              size: 6,
+            },
+          },
         })
       );
 
@@ -84,75 +93,72 @@ export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
           children: [
             new TextRun({
               text: data.summary,
-              size: 20,
+              size: 32, // 16pt in half-points
+              color: "000000",
             }),
           ],
-          spacing: { after: 400 },
+          spacing: { after: 500 },
           alignment: AlignmentType.JUSTIFIED,
         })
       );
     }
 
-    // Work Experience
+    // Experience Section (matching Resume Preview)
     if (data.workExperience.length > 0) {
       children.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: 'PROFESSIONAL EXPERIENCE',
+              text: 'Experience',
               bold: true,
-              size: 24,
+              size: 44, // 22pt in half-points
+              color: "000000",
             }),
           ],
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 200, after: 200 },
+          spacing: { before: 200, after: 300 },
+          border: {
+            bottom: {
+              color: "CCCCCC",
+              space: 1,
+              value: "single",
+              size: 6,
+            },
+          },
         })
       );
 
-      data.workExperience.forEach((job) => {
-        // Job Title and Date
+      data.workExperience.forEach((job, index) => {
+        // Job Title and Company (matching Resume Preview)
         children.push(
           new Paragraph({
             children: [
               new TextRun({
-                text: `${job.jobTitle} - ${job.startDate} to ${job.endDate}`,
+                text: `${job.jobTitle} - ${job.company}`,
                 bold: true,
-                size: 20,
+                size: 36, // 18pt in half-points
+                color: "000000",
               }),
             ],
             spacing: { after: 100 },
           })
         );
 
-        // Company and Location
+        // Date and Location (matching Resume Preview)
         children.push(
           new Paragraph({
             children: [
               new TextRun({
-                text: `${job.company}${job.location ? `, ${job.location}` : ''}`,
+                text: `${job.startDate} - ${job.endDate}${job.location ? ` | ${job.location}` : ''}`,
                 italics: true,
-                size: 20,
+                size: 32, // 16pt in half-points
+                color: "000000",
               }),
             ],
-            spacing: { after: 100 },
+            spacing: { after: 200 },
           })
         );
 
-        // Job Description
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: 'Briefly describe what the company does as well as the purpose of your role.',
-                italics: true,
-                size: 20,
-              }),
-            ],
-            spacing: { after: 100 },
-          })
-        );
-
-        // Responsibilities
+        // Responsibilities (matching Resume Preview)
         if (job.responsibilities && job.responsibilities.length > 0) {
           job.responsibilities
             .filter((resp: string) => resp.trim())
@@ -162,51 +168,79 @@ export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
                   children: [
                     new TextRun({
                       text: `• ${responsibility}`,
-                      size: 20,
+                      size: 32, // 16pt in half-points
+                      color: "000000",
                     }),
                   ],
                   spacing: { after: 100 },
+                  indent: { left: 360 }, // Indent bullet points
                 })
               );
             });
         }
 
-        children.push(
-          new Paragraph({
-            children: [new TextRun({ text: '', size: 20 })],
-            spacing: { after: 200 },
-          })
-        );
+        // Add spacing between jobs
+        if (index < data.workExperience.length - 1) {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: '', size: 32 })],
+              spacing: { after: 300 },
+            })
+          );
+        }
       });
     }
 
-    // Education
-    if (data.education.length > 0) {
+    // Education Section (matching Resume Preview)
+    if (data.education.length > 0 || data.coursesAndCertifications.length > 0) {
       children.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: 'EDUCATION',
+              text: 'Education',
               bold: true,
-              size: 24,
+              size: 44, // 22pt in half-points
+              color: "000000",
             }),
           ],
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 200, after: 200 },
+          spacing: { before: 500, after: 300 },
+          border: {
+            bottom: {
+              color: "CCCCCC",
+              space: 1,
+              value: "single",
+              size: 6,
+            },
+          },
         })
       );
 
-      data.education.forEach((edu) => {
+      // Education entries (matching Resume Preview)
+      data.education.forEach((edu, index) => {
         children.push(
           new Paragraph({
             children: [
               new TextRun({
-                text: `${edu.degree} / ${edu.institution} / ${edu.graduationYear}`,
+                text: edu.degree,
                 bold: true,
-                size: 20,
+                size: 36, // 18pt in half-points
+                color: "000000",
               }),
             ],
             spacing: { after: 100 },
+          })
+        );
+
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `${edu.institution} - ${edu.graduationYear}${edu.location ? ` | ${edu.location}` : ''}`,
+                size: 32, // 16pt in half-points
+                color: "000000",
+              }),
+            ],
+            spacing: { after: edu.gpa ? 100 : 300 },
           })
         );
 
@@ -216,85 +250,78 @@ export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
               children: [
                 new TextRun({
                   text: `GPA: ${edu.gpa}`,
-                  size: 20,
+                  size: 32, // 16pt in half-points
+                  color: "000000",
                 }),
               ],
-              spacing: { after: 200 },
-            })
-          );
-        } else {
-          children.push(
-            new Paragraph({
-              children: [new TextRun({ text: '', size: 20 })],
-              spacing: { after: 200 },
+              spacing: { after: 300 },
             })
           );
         }
       });
-    }
 
-    // Courses and Certifications
-    if (data.coursesAndCertifications.length > 0) {
-      children.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: 'TRAINING OR CERTIFICATION',
-              bold: true,
-              size: 24,
-            }),
-          ],
-          heading: HeadingLevel.HEADING_2,
-          spacing: { before: 200, after: 200 },
-        })
-      );
-
-      data.coursesAndCertifications.forEach((item) => {
+      // Certifications (matching Resume Preview)
+      if (data.coursesAndCertifications.length > 0) {
         children.push(
           new Paragraph({
             children: [
               new TextRun({
-                text: `${item.title} / ${item.provider} / ${item.date}`,
+                text: 'Certifications',
                 bold: true,
-                size: 20,
+                size: 36, // 18pt in half-points
+                color: "000000",
               }),
             ],
-            spacing: { after: 100 },
+            spacing: { before: 300, after: 200 },
           })
         );
 
-        if (item.description) {
+        data.coursesAndCertifications.forEach((item) => {
           children.push(
             new Paragraph({
               children: [
                 new TextRun({
-                  text: item.description,
-                  italics: true,
-                  size: 20,
+                  text: `${item.title} - ${item.provider} (${item.date})`,
+                  bold: true,
+                  size: 32, // 16pt in half-points
+                  color: "000000",
                 }),
               ],
               spacing: { after: 200 },
             })
           );
-        } else {
-          children.push(
-            new Paragraph({
-              children: [new TextRun({ text: '', size: 20 })],
-              spacing: { after: 200 },
-            })
-          );
-        }
-      });
+        });
+      }
     }
 
-    // Create the document
+    // Create the document with proper styling
     const doc = new Document({
       sections: [
         {
-          properties: {},
+          properties: {
+            page: {
+              margin: {
+                top: 720, // 0.5 inch
+                right: 720,
+                bottom: 720,
+                left: 720,
+              },
+            },
+          },
           children: children,
         },
       ],
+      styles: {
+        default: {
+          document: {
+            run: {
+              font: "Times New Roman",
+              size: 32, // 16pt default
+              color: "000000",
+            },
+          },
+        },
+      },
     });
 
     // Generate and download the document using browser-compatible method
