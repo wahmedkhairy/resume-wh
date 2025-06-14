@@ -26,32 +26,21 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
       try {
         setIsLoading(true);
         
-        // Get PayPal client ID from environment/secrets
-        let paypalClientId = 'AYlNUG36fCgcNlJ3-2X9FLpYvvfSMJ5QbFKuCB0rUNmAa0XjqK2xPfvl5tZu8-V5vf8s5y5c5p7t6_nE';
+        // Get PayPal client ID from Supabase edge function
+        console.log('Fetching PayPal configuration...');
+        const { data: configData, error: configError } = await supabase.functions.invoke('get-paypal-config');
         
-        // Try to get the actual PayPal client ID from Supabase secrets
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { data: settings } = await supabase
-              .from('user_settings')
-              .select('paypal_client_id')
-              .eq('user_id', user.id)
-              .maybeSingle();
-            
-            if (settings?.paypal_client_id) {
-              paypalClientId = settings.paypal_client_id;
-            }
-          }
-        } catch (settingsError) {
-          console.log('Could not load PayPal settings, using default:', settingsError);
-        }
-
-        // Fallback to a known working sandbox client ID if the current one is invalid
-        if (!paypalClientId || paypalClientId === 'AYlNUG36fCgcNlJ3-2X9FLpYvvfSMJ5QbFKuCB0rUNmAa0XjqK2xPfvl5tZu8-V5vf8s5y5c5p7t6_nE') {
-          paypalClientId = 'AeIx6L88eL8kgaJlSUJVUkkNSyOfUJVOK6Q-8K3FWZcCMJ3Qk_sEJOKo4YkOcJ6VnPLJ8VcXFJOK'; // Known working sandbox client ID
+        if (configError) {
+          console.error('Error fetching PayPal config:', configError);
+          throw new Error('Failed to get PayPal configuration');
         }
         
+        if (!configData?.success || !configData?.clientId) {
+          console.error('Invalid PayPal config response:', configData);
+          throw new Error('Invalid PayPal configuration');
+        }
+        
+        const paypalClientId = configData.clientId;
         console.log('Using PayPal client ID:', paypalClientId.substring(0, 10) + '...');
         
         // Load PayPal SDK
@@ -157,7 +146,7 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
           console.error("PayPal SDK loading error:", error);
           toast({
             title: "PayPal Error",
-            description: "Failed to load PayPal. Please check your internet connection and try again.",
+            description: "Failed to load PayPal. Please check your PayPal configuration.",
             variant: "destructive",
           });
           onError(error);
