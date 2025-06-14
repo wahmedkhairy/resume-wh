@@ -1,6 +1,6 @@
-
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { exportResumeAsPlainText } from './textExport';
 
 export interface ExportData {
   personalInfo: any;
@@ -48,7 +48,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     // Wait a moment for DOM to update
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    // Create canvas from the resume element with better options
+    // Create canvas from the resume element with better options for ATS-Pro template
     const canvas = await html2canvas(targetElement, {
       scale: 2,
       useCORS: true,
@@ -63,6 +63,14 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
         const clonedAntiTheft = clonedDoc.querySelector('[data-anti-theft]');
         if (clonedWatermark) clonedWatermark.remove();
         if (clonedAntiTheft) clonedAntiTheft.remove();
+        
+        // Ensure ATS-Pro template fonts are properly rendered
+        const allElements = clonedDoc.querySelectorAll('*');
+        allElements.forEach((el: any) => {
+          if (el.style) {
+            el.style.fontFamily = 'Times New Roman, serif';
+          }
+        });
       }
     });
 
@@ -76,7 +84,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
 
     console.log('Canvas created, generating PDF...');
 
-    // Create PDF with proper sizing
+    // Create PDF with proper sizing for ATS compatibility
     const imgData = canvas.toDataURL('image/png', 1.0);
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -103,7 +111,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().slice(0, 10);
     const name = data.personalInfo?.name?.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'resume';
-    const filename = `${name}_resume_${timestamp}.pdf`;
+    const filename = `${name}_ATS_Pro_${timestamp}.pdf`;
     
     console.log('Saving PDF:', filename);
     pdf.save(filename);
@@ -115,7 +123,12 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
   }
 };
 
-// Alternative export as HTML
+// Export as plain text for ATS compatibility
+export const exportResumeAsText = (data: ExportData): void => {
+  exportResumeAsPlainText(data);
+};
+
+// Alternative export as HTML (keeping existing functionality)
 export const exportResumeAsHTML = (data: ExportData): void => {
   const html = `
     <!DOCTYPE html>
@@ -125,61 +138,85 @@ export const exportResumeAsHTML = (data: ExportData): void => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Resume - ${data.personalInfo.name}</title>
         <style>
-            body { font-family: Georgia, serif; margin: 20px; line-height: 1.6; color: #333; }
-            h1 { text-align: center; margin-bottom: 10px; color: #2c3e50; }
-            h2 { border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-top: 20px; color: #2c3e50; }
-            .contact-info { text-align: center; margin-bottom: 20px; color: #7f8c8d; }
-            .skill-item { margin: 8px 0; }
-            .skill-bar { background: #ecf0f1; height: 8px; margin: 4px 0; border-radius: 4px; overflow: hidden; }
-            .skill-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
-            .skill-fill.high { background: linear-gradient(90deg, #27ae60, #2ecc71); }
-            .skill-fill.medium { background: linear-gradient(90deg, #2980b9, #3498db); }
-            .skill-fill.low { background: linear-gradient(90deg, #f39c12, #e67e22); }
-            ul { margin: 10px 0; padding-left: 25px; }
-            li { margin: 4px 0; }
-            .job-header { margin-bottom: 8px; }
-            .job-title { font-weight: bold; color: #2c3e50; }
-            .job-meta { color: #7f8c8d; font-style: italic; font-size: 0.9em; }
+            body { 
+              font-family: 'Times New Roman', serif; 
+              margin: 20px; 
+              line-height: 1.25; 
+              color: #000; 
+              font-size: 11pt;
+            }
+            h1 { 
+              font-size: 14pt; 
+              font-weight: bold; 
+              margin: 0 0 4pt 0; 
+              text-align: left; 
+              color: #000; 
+            }
+            h2 { 
+              font-size: 13pt; 
+              font-weight: bold; 
+              margin: 12pt 0 8pt 0; 
+              text-transform: uppercase; 
+              letter-spacing: 0.5pt; 
+              color: #000; 
+            }
+            .contact-info { 
+              margin-bottom: 12pt; 
+              color: #000; 
+              line-height: 1.2; 
+            }
+            .job-title { 
+              font-weight: bold; 
+              color: #000; 
+              margin: 0; 
+            }
+            .job-meta { 
+              color: #000; 
+              margin: 2pt 0; 
+            }
+            ul { 
+              margin: 6pt 0; 
+              padding-left: 0; 
+              list-style: none; 
+            }
+            li { 
+              margin: 3pt 0; 
+              color: #000; 
+              line-height: 1.3; 
+            }
+            li:before { 
+              content: "• "; 
+              color: #000; 
+            }
         </style>
     </head>
     <body>
         <h1>${data.personalInfo.name || 'Professional Resume'}</h1>
+        ${data.personalInfo.jobTitle ? `<div style="margin: 0 0 8pt 0;">${data.personalInfo.jobTitle}</div>` : ''}
+        
         <div class="contact-info">
-            ${data.personalInfo.jobTitle ? `${data.personalInfo.jobTitle}<br>` : ''}
-            ${data.personalInfo.location ? `${data.personalInfo.location}<br>` : ''}
-            ${data.personalInfo.email ? `${data.personalInfo.email}<br>` : ''}
-            ${data.personalInfo.phone ? `${data.personalInfo.phone}` : ''}
+            ${data.personalInfo.phone ? `<div>${data.personalInfo.phone}</div>` : ''}
+            ${data.personalInfo.email ? `<div>${data.personalInfo.email}</div>` : ''}
+            ${data.personalInfo.location ? `<div>${data.personalInfo.location}</div>` : ''}
         </div>
         
         ${data.summary ? `
         <h2>Professional Summary</h2>
-        <p>${data.summary}</p>
+        <p style="margin: 0 0 12pt 0; line-height: 1.4;">${data.summary}</p>
         ` : ''}
         
         ${data.workExperience.length > 0 ? `
         <h2>Professional Experience</h2>
         ${data.workExperience.map(job => `
-            <div class="job-header">
-                <div class="job-title">${job.jobTitle} - ${job.company}</div>
-                <div class="job-meta">${job.startDate} - ${job.endDate} | ${job.location}</div>
-            </div>
-            <ul>
-                ${job.responsibilities.filter((r: string) => r.trim()).map((responsibility: string) => `
-                    <li>${responsibility}</li>
-                `).join('')}
-            </ul>
-        `).join('')}
-        ` : ''}
-        
-        ${data.skills.length > 0 ? `
-        <h2>Skills</h2>
-        ${data.skills.map(skill => `
-            <div class="skill-item">
-                <strong>${skill.name}</strong>
-                <div class="skill-bar">
-                    <div class="skill-fill ${skill.level >= 80 ? 'high' : skill.level >= 60 ? 'medium' : 'low'}" 
-                         style="width: ${skill.level}%"></div>
-                </div>
+            <div style="margin-bottom: 16pt;">
+                <div class="job-title">${job.jobTitle}</div>
+                <div class="job-meta">${job.company}${job.location ? `, ${job.location}` : ''}</div>
+                <div class="job-meta">${job.startDate} - ${job.endDate}</div>
+                <ul>
+                    ${job.responsibilities.filter((r: string) => r.trim()).map((responsibility: string) => `
+                        <li>${responsibility}</li>
+                    `).join('')}
+                </ul>
             </div>
         `).join('')}
         ` : ''}
@@ -187,9 +224,11 @@ export const exportResumeAsHTML = (data: ExportData): void => {
         ${data.education.length > 0 ? `
         <h2>Education</h2>
         ${data.education.map(edu => `
-            <div class="job-header">
+            <div style="margin-bottom: 12pt;">
                 <div class="job-title">${edu.degree}</div>
-                <div class="job-meta">${edu.institution} - ${edu.graduationYear}${edu.location ? ` | ${edu.location}` : ''}${edu.gpa ? ` | GPA: ${edu.gpa}` : ''}</div>
+                <div class="job-meta">${edu.institution}${edu.location ? `, ${edu.location}` : ''}</div>
+                <div class="job-meta">${edu.graduationYear}</div>
+                ${edu.gpa ? `<div class="job-meta">GPA: ${edu.gpa}</div>` : ''}
             </div>
         `).join('')}
         ` : ''}
@@ -197,10 +236,9 @@ export const exportResumeAsHTML = (data: ExportData): void => {
         ${data.coursesAndCertifications.length > 0 ? `
         <h2>Courses & Certifications</h2>
         ${data.coursesAndCertifications.map(item => `
-            <div class="job-header">
-                <div class="job-title">${item.title}</div>
-                <div class="job-meta">${item.provider} - ${item.date}</div>
-                ${item.description ? `<p>${item.description}</p>` : ''}
+            <div style="margin-bottom: 8pt;">
+                <div>${item.title} - ${item.provider} (${item.date})</div>
+                ${item.description ? `<div style="margin-top: 2pt;">${item.description}</div>` : ''}
             </div>
         `).join('')}
         ` : ''}
@@ -212,7 +250,7 @@ export const exportResumeAsHTML = (data: ExportData): void => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${data.personalInfo.name?.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'resume'}_resume.html`;
+  a.download = `${data.personalInfo.name?.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'resume'}_ATS_Pro.html`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

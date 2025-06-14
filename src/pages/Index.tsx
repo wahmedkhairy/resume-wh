@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +11,7 @@ import SettingsSection from "@/components/SettingsSection";
 import ATSSection from "@/components/ATSSection";
 import { useResumeData } from "@/hooks/useResumeData";
 import { useSubscription } from "@/hooks/useSubscription";
+import { exportResumeAsText } from "@/utils/resumeExport";
 
 const Index = () => {
   const [currentSection, setCurrentSection] = useState("editor");
@@ -99,6 +99,19 @@ const Index = () => {
     await handleExport(exportData);
   };
 
+  const handleExportResumeAsText = () => {
+    const exportData = {
+      personalInfo,
+      summary: resumeState.summary,
+      workExperience,
+      education,
+      skills,
+      coursesAndCertifications
+    };
+
+    exportResumeAsText(exportData);
+  };
+
   const handleSectionChange = (section: string) => {
     setCurrentSection(section);
   };
@@ -127,6 +140,7 @@ const Index = () => {
               <ExportControls
                 onSave={handleSave}
                 onExport={handleExportResume}
+                onExportText={handleExportResumeAsText}
                 isSaving={isSaving}
                 isExporting={isExporting}
                 currentUserId={currentUserId}
@@ -182,7 +196,7 @@ const Index = () => {
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <p className="text-center text-muted-foreground">Create ATS-optimized resumes with AI-powered content generation</p>
+            <p className="text-center text-muted-foreground">Create ATS-optimized resumes with the new ATS-Pro template - 100% compliant with all major tracking systems</p>
           </div>
 
           {renderMainContent()}
