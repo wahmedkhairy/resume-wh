@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Wand2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SectionEditorProps {
   title: string;
@@ -93,18 +94,11 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
     setIsPolishing(true);
 
     try {
-      const { data, error } = await fetch('/api/polish-resume', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content, sectionType }),
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+      const { data, error } = await supabase.functions.invoke('polish-resume', {
+        body: { 
+          content, 
+          sectionType: sectionType === "courses" || sectionType === "certifications" ? "courses-certifications" : sectionType
         }
-        return response.json();
       });
 
       if (error) {
@@ -121,8 +115,20 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
           description: "Your content has been enhanced with AI.",
           variant: "default",
         });
+      } else if (data?.polishedItems) {
+        // Handle courses and certifications response
+        const polishedContent = JSON.stringify(data.polishedItems, null, 2);
+        setContent(polishedContent);
+        if (onContentChange) {
+          onContentChange(polishedContent);
+        }
+        toast({
+          title: "Content Polished",
+          description: "Your courses and certifications have been enhanced with AI.",
+          variant: "default",
+        });
       } else {
-        // Fallback to basic enhancements if API doesn't return polished content
+        // Fallback to basic enhancements if API doesn't return expected data
         const enhancedContent = enhanceContent(content, sectionType);
         setContent(enhancedContent);
         if (onContentChange) {
@@ -145,8 +151,8 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
       }
       
       toast({
-        title: "AI Service Unavailable",
-        description: "Using local enhancements instead. Try again later for AI-powered improvements.",
+        title: "AI Service Issue",
+        description: "Using local enhancements instead. The AI service may need configuration.",
         variant: "default",
       });
     } finally {
