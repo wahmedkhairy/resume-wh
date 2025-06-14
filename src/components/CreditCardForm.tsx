@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -309,7 +308,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
               Processing...
             </>
           ) : (
-            `Pay ${currency === 'EGP' ? `${amount} ${symbol}` : `${symbol}${amount}`}`
+            `Subscribe Now ${currency === 'EGP' ? `${amount} ${symbol}` : `${symbol}${amount}`}`
           )}
         </Button>
       </div>
