@@ -108,6 +108,63 @@ export type Database = {
         }
         Relationships: []
       }
+      tailored_resumes: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          job_description: string
+          original_content: Json
+          tailored_content: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          job_description: string
+          original_content: Json
+          tailored_content: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          job_description?: string
+          original_content?: Json
+          tailored_content?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tailoring_usage: {
+        Row: {
+          created_at: string
+          id: string
+          last_reset_date: string
+          monthly_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_reset_date?: string
+          monthly_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_reset_date?: string
+          monthly_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           created_at: string
@@ -146,7 +203,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_tailored_resumes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      increment_tailoring_usage: {
+        Args: { user_uuid: string }
+        Returns: number
+      }
+      reset_monthly_tailoring_usage: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
