@@ -12,7 +12,7 @@ import ATSSection from "@/components/ATSSection";
 import TailoredResumeSection from "@/components/TailoredResumeSection";
 import { useResumeData } from "@/hooks/useResumeData";
 import { useSubscription } from "@/hooks/useSubscription";
-import { exportResumeAsText } from "@/utils/resumeExport";
+import { exportResumeAsText, exportResumeAsWord } from "@/utils/resumeExport";
 
 const Index = () => {
   const [currentSection, setCurrentSection] = useState("editor");
@@ -114,6 +114,28 @@ const Index = () => {
     exportResumeAsText(exportData);
   };
 
+  const handleExportResumeAsWord = async () => {
+    const exportData = tailoredResumeData || {
+      personalInfo,
+      summary: resumeState.summary,
+      workExperience,
+      education,
+      skills,
+      coursesAndCertifications
+    };
+
+    try {
+      await exportResumeAsWord(exportData);
+    } catch (error) {
+      console.error('Word export error:', error);
+      toast({
+        title: "Export Failed",
+        description: error.message || "There was an error exporting your resume as Word. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSectionChange = (section: string) => {
     setCurrentSection(section);
     // Clear tailored resume data when switching sections
@@ -198,7 +220,7 @@ const Index = () => {
               <ExportControls
                 onSave={handleSave}
                 onExport={handleExportResume}
-                onExportText={handleExportResumeAsText}
+                onExportWord={handleExportResumeAsWord}
                 isSaving={isSaving}
                 isExporting={isExporting}
                 currentUserId={currentUserId}

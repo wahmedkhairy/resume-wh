@@ -14,7 +14,7 @@ import SubscriptionDialog from "./SubscriptionDialog";
 interface ExportControlsProps {
   onSave: () => void;
   onExport: () => void;
-  onExportText?: () => void;
+  onExportWord?: () => void;
   isSaving: boolean;
   isExporting: boolean;
   currentUserId: string;
@@ -25,7 +25,7 @@ interface ExportControlsProps {
 const ExportControls: React.FC<ExportControlsProps> = ({
   onSave,
   onExport,
-  onExportText,
+  onExportWord,
   isSaving,
   isExporting,
   currentUserId,
@@ -42,12 +42,12 @@ const ExportControls: React.FC<ExportControlsProps> = ({
     setDropdownOpen(false);
   };
 
-  const handleTextExport = () => {
+  const handleWordExport = () => {
     if (isTailoredResume && !isPremiumUser) {
       return; // Prevent export for tailored resumes if not premium
     }
-    if (onExportText) {
-      onExportText();
+    if (onExportWord) {
+      onExportWord();
     }
     setDropdownOpen(false);
   };
@@ -88,9 +88,9 @@ const ExportControls: React.FC<ExportControlsProps> = ({
                   <Download className="mr-2 h-4 w-4" />
                   Export as PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleTextExport}>
+                <DropdownMenuItem onClick={handleWordExport}>
                   <FileText className="mr-2 h-4 w-4" />
-                  Export as Plain Text (.TXT)
+                  Export as Word (.DOCX)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -110,7 +110,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
           <Crown className="h-4 w-4" />
           <AlertDescription>
             <div className="flex items-center justify-between">
-              <span>Upgrade to a paid plan to export your tailored resume as PDF or text file.</span>
+              <span>Upgrade to a paid plan to export your tailored resume as PDF or Word document.</span>
               <SubscriptionDialog>
                 <Button variant="outline" size="sm" className="ml-4">
                   <Crown className="mr-2 h-4 w-4" />

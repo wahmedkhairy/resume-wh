@@ -1,4 +1,3 @@
-
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { exportResumeAsPlainText } from './textExport';
@@ -109,6 +108,12 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     console.error('Error exporting resume:', error);
     throw new Error(`Failed to export resume: ${error.message}`);
   }
+};
+
+// Export as Word
+export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
+  const { exportResumeAsWord: exportWordFunction } = await import('./wordExport');
+  return exportWordFunction(data);
 };
 
 // Export as plain text
