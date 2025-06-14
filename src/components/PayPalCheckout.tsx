@@ -4,12 +4,6 @@ import { PayPalOrderData } from "@/services/paypalService";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-declare global {
-  interface Window {
-    paypal?: any;
-  }
-}
-
 interface PayPalCheckoutProps {
   orderData: PayPalOrderData;
   onSuccess: (details: any) => void;
@@ -47,8 +41,10 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
         script.async = true;
         
         script.onload = () => {
-          if (window.paypal && paypalRef.current) {
-            window.paypal.Buttons({
+          // Access PayPal from window object
+          const paypalInstance = (window as any).paypal;
+          if (paypalInstance && paypalRef.current) {
+            paypalInstance.Buttons({
               createOrder: async () => {
                 try {
                   console.log('Creating PayPal order with data:', orderData);
