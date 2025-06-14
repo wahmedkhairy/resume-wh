@@ -192,7 +192,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
                 onClick={() => handleTierSelect(tier.id)}
                 disabled={currentTier === tier.id}
               >
-                {currentTier === tier.id ? "Current Plan" : "Buy Now"}
+                {currentTier === tier.id ? "Current Plan" : "Subscribe Now"}
               </Button>
             </CardContent>
           </Card>

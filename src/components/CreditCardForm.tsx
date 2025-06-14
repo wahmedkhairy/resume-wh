@@ -308,7 +308,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
               Processing...
             </>
           ) : (
-            `Subscribe Now ${currency === 'EGP' ? `${amount} ${symbol}` : `${symbol}${amount}`}`
+            `Pay Now ${currency === 'EGP' ? `${amount} ${symbol}` : `${symbol}${amount}`}`
           )}
         </Button>
       </div>
