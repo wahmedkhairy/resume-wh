@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -181,11 +180,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          <OrderSummary
-            selectedTier={selectedTier}
-            amount={amount}
-            symbol={symbol}
-          />
+          <OrderSummary selectedTier={selectedTier} />
 
           {/* Card Payment Form */}
           <div className="border rounded-lg p-4">
