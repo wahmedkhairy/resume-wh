@@ -45,7 +45,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex justify-between items-center">
       <div>
-        <h2 className="text-xl font-bold">Classic Resume Editor</h2>
+        <h2 className="text-xl font-bold">ATS Resume Editor</h2>
         <p className="text-sm text-muted-foreground">Professional resume template</p>
       </div>
       <div className="flex gap-2">
