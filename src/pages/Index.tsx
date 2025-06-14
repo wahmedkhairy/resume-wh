@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -196,7 +197,7 @@ const Index = () => {
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <p className="text-center text-muted-foreground">Create ATS-optimized resumes with the new ATS-Pro template - 100% compliant with all major tracking systems</p>
+            <p className="text-center text-muted-foreground">Create professional resumes with our classic template format</p>
           </div>
 
           {renderMainContent()}

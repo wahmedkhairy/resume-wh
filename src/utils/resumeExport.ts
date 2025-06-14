@@ -14,22 +14,21 @@ export interface ExportData {
 
 export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
   try {
-    // Get the ATS resume preview element
+    // Get the resume preview element
     const resumeElement = document.querySelector('[data-resume-preview]') as HTMLElement;
     
     if (!resumeElement) {
-      const fallbackElement = document.querySelector('.ats-resume-container') || 
-                             document.querySelector('.resume-container') ||
+      const fallbackElement = document.querySelector('.resume-container') || 
                              document.querySelector('[class*="resume"]');
       
       if (!fallbackElement) {
-        throw new Error('ATS-Pro resume preview not found. Please ensure the resume is visible and try again.');
+        throw new Error('Resume preview not found. Please ensure the resume is visible and try again.');
       }
     }
 
-    const targetElement = resumeElement || document.querySelector('.ats-resume-container') as HTMLElement;
+    const targetElement = resumeElement || document.querySelector('.resume-container') as HTMLElement;
 
-    console.log('Starting ATS-Pro PDF export...');
+    console.log('Starting PDF export...');
 
     // Temporarily hide watermark for export
     const watermark = document.querySelector('.watermark') as HTMLElement;
@@ -44,7 +43,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     // Wait for DOM updates
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    // Create high-quality canvas for ATS compatibility
+    // Create high-quality canvas
     const canvas = await html2canvas(targetElement, {
       scale: 2.5,
       useCORS: true,
@@ -59,15 +58,6 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
         const clonedAntiTheft = clonedDoc.querySelector('[data-anti-theft]');
         if (clonedWatermark) clonedWatermark.remove();
         if (clonedAntiTheft) clonedAntiTheft.remove();
-        
-        // Ensure ATS-compatible fonts in clone
-        const allElements = clonedDoc.querySelectorAll('*');
-        allElements.forEach((el: any) => {
-          if (el.style) {
-            // Force Arial for maximum ATS compatibility
-            el.style.fontFamily = 'Arial, Helvetica, sans-serif';
-          }
-        });
       }
     });
 
@@ -79,15 +69,15 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
       antiTheft.style.display = originalAntiTheftDisplay;
     }
 
-    console.log('Canvas created for ATS-Pro template, generating PDF...');
+    console.log('Canvas created, generating PDF...');
 
-    // Create ATS-optimized PDF
+    // Create PDF
     const imgData = canvas.toDataURL('image/png', 1.0);
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
-      compress: false // Better quality for ATS scanning
+      compress: false
     });
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -95,7 +85,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
     
-    // Calculate optimal scaling for ATS reading
+    // Calculate optimal scaling
     const ratio = Math.min(pdfWidth / (imgWidth * 0.264583), pdfHeight / (imgHeight * 0.264583));
     const scaledWidth = imgWidth * 0.264583 * ratio;
     const scaledHeight = imgHeight * 0.264583 * ratio;
@@ -106,27 +96,27 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
 
     pdf.addImage(imgData, 'PNG', imgX, imgY, scaledWidth, scaledHeight, '', 'FAST');
     
-    // Generate ATS-friendly filename
+    // Generate filename
     const timestamp = new Date().toISOString().slice(0, 10);
     const name = data.personalInfo?.name?.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'resume';
-    const filename = `${name}_ATS_Pro_Resume_${timestamp}.pdf`;
+    const filename = `${name}_Resume_${timestamp}.pdf`;
     
-    console.log('Saving ATS-Pro PDF:', filename);
+    console.log('Saving PDF:', filename);
     pdf.save(filename);
     
     return Promise.resolve();
   } catch (error) {
-    console.error('Error exporting ATS-Pro resume:', error);
-    throw new Error(`Failed to export ATS-Pro resume: ${error.message}`);
+    console.error('Error exporting resume:', error);
+    throw new Error(`Failed to export resume: ${error.message}`);
   }
 };
 
-// Export as plain text for maximum ATS compatibility
+// Export as plain text
 export const exportResumeAsText = (data: ExportData): void => {
   exportResumeAsPlainText(data);
 };
 
-// Export as ATS-optimized HTML
+// Export as HTML
 export const exportResumeAsHTML = (data: ExportData): void => {
   const html = `
     <!DOCTYPE html>
@@ -134,111 +124,116 @@ export const exportResumeAsHTML = (data: ExportData): void => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ATS-Pro Resume - ${data.personalInfo.name}</title>
+        <title>Resume - ${data.personalInfo.name}</title>
         <style>
-            /* ATS-Optimized CSS */
             body { 
-              font-family: Arial, Helvetica, sans-serif; 
-              margin: 0.5in; 
-              line-height: 1.15; 
+              font-family: Times, "Times New Roman", serif; 
+              margin: 1in; 
+              line-height: 1.4; 
               color: #000; 
-              font-size: 11pt;
+              font-size: 12pt;
               background: white;
             }
             h1 { 
-              font-size: 16pt; 
+              font-size: 18pt; 
               font-weight: bold; 
               margin: 0 0 8pt 0; 
               text-align: center; 
               color: #000; 
               text-transform: uppercase;
-              letter-spacing: 1pt;
+              letter-spacing: 2pt;
             }
             h2 { 
-              font-size: 12pt; 
+              font-size: 14pt; 
               font-weight: bold; 
-              margin: 0 0 12pt 0; 
+              margin: 0 0 16pt 0; 
               text-transform: uppercase; 
               color: #000;
-              border-bottom: 1pt solid #000;
-              padding-bottom: 2pt;
+              text-align: center;
+              letter-spacing: 1pt;
             }
             .contact-info { 
               text-align: center;
-              margin-bottom: 20pt; 
+              margin-bottom: 24pt; 
               color: #000; 
               line-height: 1.2; 
             }
-            .job-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-start;
-              margin-bottom: 4pt;
-            }
             .job-title { 
+              font-size: 14pt;
+              font-style: italic;
+              margin: 0 0 12pt 0;
+              text-align: center;
+            }
+            .job-header {
+              margin-bottom: 8pt;
+            }
+            .job-name { 
               font-weight: bold; 
               color: #000; 
-              margin: 0; 
+              margin: 0 0 2pt 0; 
             }
             .job-company { 
               color: #000; 
-              margin: 2pt 0; 
+              margin: 2pt 0;
+              font-style: italic; 
             }
-            .job-dates {
-              font-weight: bold;
-              color: #000;
+            .job-description {
+              font-style: italic;
+              margin: 0 0 8pt 0;
+              line-height: 1.4;
             }
             ul { 
-              margin: 6pt 0; 
-              padding-left: 18pt; 
+              margin: 0; 
+              padding-left: 20pt; 
               list-style-type: disc;
             }
             li { 
-              margin: 3pt 0; 
+              margin: 4pt 0; 
               color: #000; 
-              line-height: 1.2; 
+              line-height: 1.4; 
             }
-            .education-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-start;
+            .education-item {
+              margin-bottom: 12pt;
             }
-            .cert-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-start;
+            .education-title {
+              font-weight: bold;
+              text-transform: uppercase;
+            }
+            .cert-item {
               margin-bottom: 8pt;
+            }
+            .cert-title {
+              font-weight: bold;
+              text-transform: uppercase;
             }
             .summary {
               text-align: justify;
-              line-height: 1.3;
+              line-height: 1.5;
+              font-style: italic;
+              margin-bottom: 24pt;
             }
         </style>
     </head>
     <body>
-        <h1>${data.personalInfo.name || 'PROFESSIONAL RESUME'}</h1>
-        ${data.personalInfo.jobTitle ? `<div style="text-align: center; margin: 0 0 12pt 0; font-size: 12pt;">${data.personalInfo.jobTitle}</div>` : ''}
+        <h1>${data.personalInfo.name || 'NAME'}</h1>
+        ${data.personalInfo.jobTitle ? `<div class="job-title">${data.personalInfo.jobTitle}</div>` : ''}
         
         <div class="contact-info">
-            ${[data.personalInfo.phone, data.personalInfo.email, data.personalInfo.location].filter(Boolean).join(' | ')}
+            ${[data.personalInfo.location, data.personalInfo.email, data.personalInfo.phone].filter(Boolean).join(' | ')}
         </div>
         
         ${data.summary ? `
-        <h2>Professional Summary</h2>
         <div class="summary">${data.summary}</div>
-        <br>
         ` : ''}
         
         ${data.workExperience.length > 0 ? `
-        <h2>Professional Experience</h2>
+        <h2>Work Experience</h2>
         ${data.workExperience.map(job => `
-            <div style="margin-bottom: 16pt;">
+            <div style="margin-bottom: 20pt;">
                 <div class="job-header">
-                    <div>
-                        <div class="job-title">${job.jobTitle}</div>
-                        <div class="job-company">${job.company}${job.location ? `, ${job.location}` : ''}</div>
-                    </div>
-                    <div class="job-dates">${job.startDate} - ${job.endDate}</div>
+                    <div class="job-name">${job.jobTitle} - ${job.startDate} to ${job.endDate}</div>
+                    <div class="job-company">${job.company}${job.location ? `, ${job.location}` : ''}</div>
+                    <div class="job-description">Briefly describe what the company does as well as the purpose of your role.</div>
                 </div>
                 <ul>
                     ${job.responsibilities.filter((r: string) => r.trim()).map((responsibility: string) => `
@@ -252,29 +247,19 @@ export const exportResumeAsHTML = (data: ExportData): void => {
         ${data.education.length > 0 ? `
         <h2>Education</h2>
         ${data.education.map(edu => `
-            <div style="margin-bottom: 12pt;">
-                <div class="education-header">
-                    <div>
-                        <div class="job-title">${edu.degree}</div>
-                        <div class="job-company">${edu.institution}${edu.location ? `, ${edu.location}` : ''}</div>
-                        ${edu.gpa ? `<div style="margin: 2pt 0;">GPA: ${edu.gpa}</div>` : ''}
-                    </div>
-                    <div class="job-dates">${edu.graduationYear}</div>
-                </div>
+            <div class="education-item">
+                <div class="education-title">${edu.degree} / ${edu.institution} / ${edu.graduationYear}</div>
+                ${edu.gpa ? `<div style="margin: 2pt 0 0 0;">GPA: ${edu.gpa}</div>` : ''}
             </div>
         `).join('')}
         ` : ''}
         
         ${data.coursesAndCertifications.length > 0 ? `
-        <h2>Certifications & Professional Development</h2>
+        <h2>Training or Certification</h2>
         ${data.coursesAndCertifications.map(item => `
-            <div class="cert-header">
-                <div>
-                    <div class="job-title">${item.title}</div>
-                    <div class="job-company">${item.provider}</div>
-                    ${item.description ? `<div style="font-style: italic; font-size: 10pt; margin: 2pt 0;">${item.description}</div>` : ''}
-                </div>
-                <div class="job-dates">${item.date}</div>
+            <div class="cert-item">
+                <div class="cert-title">${item.title} / ${item.provider} / ${item.date}</div>
+                ${item.description ? `<div style="font-style: italic; margin: 2pt 0;">${item.description}</div>` : ''}
             </div>
         `).join('')}
         ` : ''}
@@ -286,7 +271,7 @@ export const exportResumeAsHTML = (data: ExportData): void => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${data.personalInfo.name?.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'resume'}_ATS_Pro_Resume.html`;
+  a.download = `${data.personalInfo.name?.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'resume'}_Resume.html`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

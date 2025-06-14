@@ -1,5 +1,6 @@
+
 import React from "react";
-import ATSProResumePreview from "@/components/ATSProResumePreview";
+import ClassicResumePreview from "@/components/ClassicResumePreview";
 
 interface PersonalInfo {
   name: string;
@@ -63,10 +64,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   skills,
   coursesAndCertifications,
 }) => {
-  // Use the new ATS-Pro template
+  // Use the new Classic template
   // Note: Skills are intentionally not passed to the preview as they're for AI input only
   return (
-    <ATSProResumePreview
+    <ClassicResumePreview
       watermark={watermark}
       personalInfo={personalInfo}
       summary={summary}
