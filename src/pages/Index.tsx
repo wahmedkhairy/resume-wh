@@ -203,6 +203,7 @@ const Index = () => {
                 isExporting={isExporting}
                 currentUserId={currentUserId}
                 isPremiumUser={isPremiumUser}
+                isTailoredResume={!!tailoredResumeData}
               />
 
               <SubscriptionStatus

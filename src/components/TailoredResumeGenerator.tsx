@@ -4,11 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, FileText, AlertCircle, Crown } from "lucide-react";
+import { Loader2, Sparkles, FileText, AlertCircle, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import SubscriptionDialog from "./SubscriptionDialog";
 
 interface TailoredResumeGeneratorProps {
   resumeData: any;
@@ -30,19 +29,19 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const [monthlyUsage, setMonthlyUsage] = useState<number | null>(null);
   const { toast } = useToast();
 
-  // Usage limits based on subscription tier
+  // Free users get 3 tailored resumes per month, paid users get more based on tier
   const getUsageLimit = () => {
-    if (!isPremiumUser || !currentSubscription) return 0; // Free users get 0 tailored resumes
+    if (!isPremiumUser || !currentSubscription) return 3; // Free users get 3 tailored resumes
     
     switch (currentSubscription.tier) {
       case 'basic':
-        return 5; // Basic users get 5 tailored resumes per month
+        return 10; // Basic users get 10 tailored resumes per month
       case 'premium':
-        return 15; // Premium users get 15 tailored resumes per month
+        return 25; // Premium users get 25 tailored resumes per month
       case 'unlimited':
         return 999; // Unlimited users get unlimited tailored resumes
       default:
-        return 0;
+        return 3;
     }
   };
 
@@ -83,15 +82,6 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
       toast({
         title: "Authentication Required",
         description: "Please log in to use the resume tailoring feature.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!isPremiumUser || !currentSubscription) {
-      toast({
-        title: "Subscription Required",
-        description: "Please upgrade to a paid plan to use the resume tailoring feature.",
         variant: "destructive",
       });
       return;
@@ -187,66 +177,17 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const usageLimit = getUsageLimit();
   const remainingUses = Math.max(0, usageLimit - (monthlyUsage || 0));
 
-  // Show upgrade prompt for free users
-  if (!isPremiumUser || !currentSubscription) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Crown className="h-5 w-5 text-yellow-500" />
-            Premium Feature: Tailored Resume Generator
-          </CardTitle>
-          <CardDescription>
-            Generate customized versions of your resume tailored to specific job descriptions.
-            Our AI analyzes job requirements and emphasizes your most relevant experience.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Alert>
-            <Crown className="h-4 w-4" />
-            <AlertDescription>
-              The resume tailoring feature is available to premium subscribers only. 
-              Upgrade to access AI-powered resume customization with different monthly limits based on your plan.
-            </AlertDescription>
-          </Alert>
-
-          <div className="text-center space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold">Basic Plan</h4>
-                <p className="text-muted-foreground">5 tailored resumes/month</p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold">Premium Plan</h4>
-                <p className="text-muted-foreground">15 tailored resumes/month</p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold">Unlimited Plan</h4>
-                <p className="text-muted-foreground">Unlimited tailored resumes</p>
-              </div>
-            </div>
-
-            <SubscriptionDialog>
-              <Button className="w-full" size="lg">
-                <Crown className="mr-2 h-4 w-4" />
-                Upgrade to Premium
-              </Button>
-            </SubscriptionDialog>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-blue-500" />
           Tailored Resume Generator
-          <Badge variant="secondary" className="ml-auto">
-            {currentSubscription.tier} Plan
-          </Badge>
+          {isPremiumUser && currentSubscription && (
+            <Badge variant="secondary" className="ml-auto">
+              {currentSubscription.tier} Plan
+            </Badge>
+          )}
         </CardTitle>
         <CardDescription>
           Generate a customized version of your resume tailored to a specific job description.
@@ -254,6 +195,16 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {!isPremiumUser && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Free users can generate 3 tailored resumes per month. To export your tailored resume as PDF, 
+              please upgrade to a paid plan. Premium plans offer more tailored resumes and unlimited exports.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
