@@ -1,4 +1,3 @@
-
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 import { ExportData } from './resumeExport';
 
@@ -81,7 +80,7 @@ export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
             bottom: {
               color: "CCCCCC",
               space: 1,
-              value: "single",
+              style: "single",
               size: 6,
             },
           },
@@ -120,7 +119,7 @@ export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
             bottom: {
               color: "CCCCCC",
               space: 1,
-              value: "single",
+              style: "single",
               size: 6,
             },
           },
@@ -208,7 +207,7 @@ export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
             bottom: {
               color: "CCCCCC",
               space: 1,
-              value: "single",
+              style: "single",
               size: 6,
             },
           },
