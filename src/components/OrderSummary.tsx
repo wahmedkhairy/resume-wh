@@ -21,8 +21,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         return currencyConfig.basicPrice;
       case 'premium':
         return currencyConfig.premiumPrice;
-      case 'enterprise':
-        return currencyConfig.enterprisePrice;
+      case 'unlimited':
+        return currencyConfig.unlimitedPrice;
       default:
         return currencyConfig.basicPrice;
     }

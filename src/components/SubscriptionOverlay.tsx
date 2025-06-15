@@ -25,7 +25,9 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
     currency: {
       symbol: string;
       code: string;
+      basicPrice: number;
       premiumPrice: number;
+      unlimitedPrice: number;
     };
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +50,9 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
           currency: {
             symbol: data.currency.symbol,
             code: data.currency.code,
-            premiumPrice: data.currency.premiumPrice
+            basicPrice: data.currency.basicPrice,
+            premiumPrice: data.currency.premiumPrice,
+            unlimitedPrice: data.currency.unlimitedPrice
           }
         });
         console.log('SubscriptionOverlay: Location data loaded', data);
@@ -60,7 +64,9 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
           currency: {
             symbol: "$",
             code: "USD",
-            premiumPrice: 3
+            basicPrice: 2,
+            premiumPrice: 3,
+            unlimitedPrice: 9.9
           }
         });
       } finally {
