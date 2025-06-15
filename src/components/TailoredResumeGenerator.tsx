@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -216,7 +215,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
             <Info className="h-4 w-4" />
             <AlertDescription>
               Free users can generate 1 targeted resume. To export your targeted resume as PDF 
-              and get more generations, please upgrade to a paid plan.
+              and get more generations, please upgrade to a plan.
             </AlertDescription>
           </Alert>
         )}
@@ -241,7 +240,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
             <Crown className="h-4 w-4" />
             <AlertDescription>
               <div className="flex items-center justify-between">
-                <span>Upgrade to a paid plan to export your targeted resumes as PDF or Word document.</span>
+                <span>Upgrade to a plan to export your targeted resumes as PDF or Word document.</span>
                 <SubscriptionDialog>
                   <Button variant="outline" size="sm" className="ml-4">
                     <Crown className="mr-2 h-4 w-4" />
