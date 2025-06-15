@@ -68,21 +68,27 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
     );
   }
 
+  // Define exports and targeted resumes for each plan in one spot for easier referencing
+  const planQuotas = {
+    basic: { exports: 2, targeted: 2 },
+    premium: { exports: 6, targeted: 5 },
+    unlimited: { exports: "Unlimited", targeted: "Unlimited" }
+  };
+
   const tiers = [
     {
       id: "basic",
       name: "Basic",
       icon: <Star className="h-6 w-6" />,
-      exports: 2,
+      exports: planQuotas.basic.exports,
+      targeted: planQuotas.basic.targeted,
       price: {
         amount: locationData.currency.basicPrice,
         currency: locationData.currency.code,
         symbol: locationData.currency.symbol
       },
       features: [
-        "Export targeted resumes",
-        "2 targeted resumes",
-        "2 resume exports",
+        // We'll remove "2 resume exports" and "2 targeted resumes" from here
         "Basic resume templates",
         "AI-powered summary generation",
         "PDF export",
@@ -94,16 +100,15 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       id: "premium",
       name: "Premium",
       icon: <Crown className="h-6 w-6" />,
-      exports: 6,
+      exports: planQuotas.premium.exports,
+      targeted: planQuotas.premium.targeted,
       price: {
         amount: locationData.currency.premiumPrice,
         currency: locationData.currency.code,
         symbol: locationData.currency.symbol
       },
       features: [
-        "Export targeted resumes",
-        "5 targeted resumes",
-        "6 resume exports",
+        // Remove "6 resume exports" and "5 targeted resumes"
         "Premium resume templates",
         "Advanced AI optimization",
         "Multiple format exports",
@@ -116,16 +121,15 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       id: "unlimited",
       name: "Unlimited",
       icon: <Infinity className="h-6 w-6" />,
-      exports: "Unlimited",
+      exports: planQuotas.unlimited.exports,
+      targeted: planQuotas.unlimited.targeted,
       price: {
         amount: locationData.currency.unlimitedPrice,
         currency: locationData.currency.code,
         symbol: locationData.currency.symbol
       },
       features: [
-        "Export targeted resumes",
-        "Unlimited targeted resumes",
-        "Unlimited exports",
+        // Remove "Unlimited exports" and "Unlimited targeted resumes"
         "All premium templates",
         "Advanced AI features",
         "Multiple format exports",
@@ -173,6 +177,11 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
 
             <CardContent>
               <ul className="space-y-3 mb-6">
+                {/* Summary at the top: Exports and Targeted Resumes */}
+                <li className="flex items-center font-medium">
+                  <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                  Exports: {tier.exports} &nbsp;•&nbsp; Targeted Resumes: {tier.targeted}
+                </li>
                 {tier.features.map((feature, index) => (
                   <li key={index} className="flex items-center">
                     <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
@@ -198,3 +207,4 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
 };
 
 export default SubscriptionTiers;
+
