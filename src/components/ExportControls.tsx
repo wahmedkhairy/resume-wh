@@ -104,7 +104,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
             <SubscriptionDialog>
               <Button className="opacity-75">
                 <Crown className="mr-2 h-4 w-4" />
-                🔒 Export Resume
+                Export Resume
               </Button>
             </SubscriptionDialog>
           )}
