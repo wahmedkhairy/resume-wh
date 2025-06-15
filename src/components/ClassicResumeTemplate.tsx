@@ -1,4 +1,3 @@
-
 import React from "react";
 
 interface PersonalInfo {
@@ -322,7 +321,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
                   color: '#000000'
                 }}
               >
-                Certifications
+                Courses & Certifications
               </h3>
               {coursesAndCertifications.map((item, index) => (
                 <div key={item.id} style={{ marginBottom: '10px' }}>

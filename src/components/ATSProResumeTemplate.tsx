@@ -301,7 +301,7 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
         </section>
       )}
 
-      {/* Certifications and Courses Section */}
+      {/* Courses & Certifications Section */}
       {coursesAndCertifications.length > 0 && (
         <section style={{ marginBottom: '20pt' }}>
           <h2 
@@ -315,7 +315,7 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
               paddingBottom: '2pt'
             }}
           >
-            CERTIFICATIONS & PROFESSIONAL DEVELOPMENT
+            COURSES & CERTIFICATIONS
           </h2>
           
           {coursesAndCertifications.map((item, index) => (
