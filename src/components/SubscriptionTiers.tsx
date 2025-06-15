@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -170,18 +169,17 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
                   one-time
                 </span>
               </div>
+              {/* Compose both values inline */}
               <p className="text-sm text-muted-foreground">
-                {typeof tier.exports === 'number' ? `${tier.exports} exports` : `${tier.exports} exports`}
+                {typeof tier.exports === 'number' 
+                  ? `${tier.exports} exports • ${tier.targeted} targeted resumes`
+                  : `${tier.exports} exports • ${tier.targeted} targeted resumes`}
               </p>
             </CardHeader>
 
             <CardContent>
               <ul className="space-y-3 mb-6">
-                {/* Summary at the top: Exports and Targeted Resumes */}
-                <li className="flex items-center font-medium">
-                  <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                  Exports: {tier.exports} &nbsp;•&nbsp; Targeted Resumes: {tier.targeted}
-                </li>
+                {/* Remove the summary item here */}
                 {tier.features.map((feature, index) => (
                   <li key={index} className="flex items-center">
                     <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
@@ -207,4 +205,3 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
 };
 
 export default SubscriptionTiers;
-
