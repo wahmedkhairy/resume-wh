@@ -169,11 +169,11 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
                   one-time
                 </span>
               </div>
-              {/* Compose both values inline */}
+              {/* Updated text to "targeted job resumes" */}
               <p className="text-sm text-muted-foreground">
                 {typeof tier.exports === 'number' 
-                  ? `${tier.exports} exports • ${tier.targeted} targeted resumes`
-                  : `${tier.exports} exports • ${tier.targeted} targeted resumes`}
+                  ? `${tier.exports} exports • ${tier.targeted} targeted job resumes`
+                  : `${tier.exports} exports • ${tier.targeted} targeted job resumes`}
               </p>
             </CardHeader>
 
