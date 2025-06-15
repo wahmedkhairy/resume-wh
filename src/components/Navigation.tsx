@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, Settings, Target, Sparkles } from "lucide-react";
@@ -18,7 +17,7 @@ const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection
     },
     {
       id: "tailor",
-      label: "Tailor Resume",
+      label: "Targeted Job Resume",
       icon: Sparkles,
       description: "Generate job-specific versions"
     },
