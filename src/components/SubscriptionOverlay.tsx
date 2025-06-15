@@ -12,26 +12,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { detectUserLocation, formatCurrency } from "@/utils/currencyUtils";
 
 interface SubscriptionOverlayProps {
   onClose: () => void;
   onSubscriptionComplete?: () => void;
 }
 
-interface PricingInfo {
-  currency: string;
-  amount: number;
-  symbol: string;
-}
-
 const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSubscriptionComplete }) => {
-  const [countryInfo, setCountryInfo] = useState<{
+  const [locationData, setLocationData] = useState<{
     country: string;
-    pricing: PricingInfo;
-  }>({
-    country: "",
-    pricing: { currency: "USD", amount: 3, symbol: "$" }
-  });
+    currency: {
+      symbol: string;
+      code: string;
+      premiumPrice: number;
+    };
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [cardDetails, setCardDetails] = useState({
     cardNumber: "",
@@ -43,36 +39,36 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
   const { toast } = useToast();
 
   useEffect(() => {
-    const detectLocation = async () => {
+    const loadLocationData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        
-        // Default pricing (USD)
-        let pricing: PricingInfo = { currency: "USD", amount: 3, symbol: "$" };
-        
-        // Special pricing for Egypt
-        if (data.country_code === 'EG') {
-          pricing = { currency: "EGP", amount: 49, symbol: "EGP" };
-        }
-        
-        setCountryInfo({
-          country: data.country_name || "Unknown",
-          pricing
+        const data = await detectUserLocation();
+        setLocationData({
+          country: data.country,
+          currency: {
+            symbol: data.currency.symbol,
+            code: data.currency.code,
+            premiumPrice: data.currency.premiumPrice
+          }
         });
+        console.log('SubscriptionOverlay: Location data loaded', data);
       } catch (error) {
-        console.error("Error detecting location:", error);
-        setCountryInfo({
-          country: "Unknown",
-          pricing: { currency: "USD", amount: 3, symbol: "$" }
+        console.error("SubscriptionOverlay: Error loading location data:", error);
+        // Set default values on error
+        setLocationData({
+          country: "United States",
+          currency: {
+            symbol: "$",
+            code: "USD",
+            premiumPrice: 3
+          }
         });
       } finally {
         setIsLoading(false);
       }
     };
     
-    detectLocation();
+    loadLocationData();
   }, []);
 
   const handleInputChange = (field: string, value: string) => {
@@ -198,7 +194,7 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {isLoading ? (
+          {isLoading || !locationData ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-resume-primary"></div>
             </div>
@@ -207,10 +203,10 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
               {/* Plan Summary */}
               <div className="border rounded-lg p-4 bg-muted">
                 <h3 className="text-lg font-bold mb-2">
-                  Premium Plan - {countryInfo.pricing.currency === 'EGP' ? `${countryInfo.pricing.amount} ${countryInfo.pricing.symbol}` : `${countryInfo.pricing.symbol}${countryInfo.pricing.amount}`}/month
+                  Premium Plan - {formatCurrency(locationData.currency.premiumPrice, locationData.currency)}/month
                 </h3>
                 <p className="text-sm text-gray-600 mb-3">
-                  Pricing for {countryInfo.country}: {countryInfo.pricing.currency === 'EGP' ? `${countryInfo.pricing.amount} ${countryInfo.pricing.symbol}` : `${countryInfo.pricing.symbol}${countryInfo.pricing.amount}`} {countryInfo.pricing.currency}
+                  Pricing for {locationData.country}: {formatCurrency(locationData.currency.premiumPrice, locationData.currency)} {locationData.currency.code}
                 </p>
                 <ul className="text-sm space-y-1">
                   <li className="flex items-center">
@@ -310,9 +306,9 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
           <Button 
             onClick={handlePayment} 
             className="flex-1"
-            disabled={isProcessing || isLoading}
+            disabled={isProcessing || isLoading || !locationData}
           >
-            {isProcessing ? "Processing..." : `Subscribe ${countryInfo.pricing.currency === 'EGP' ? `${countryInfo.pricing.amount} ${countryInfo.pricing.symbol}` : `${countryInfo.pricing.symbol}${countryInfo.pricing.amount}`}`}
+            {isProcessing ? "Processing..." : locationData ? `Subscribe ${formatCurrency(locationData.currency.premiumPrice, locationData.currency)}` : "Subscribe"}
           </Button>
         </CardFooter>
       </Card>

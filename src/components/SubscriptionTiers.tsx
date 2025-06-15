@@ -5,12 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Crown, Infinity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface PricingInfo {
-  currency: string;
-  amount: number;
-  symbol: string;
-}
+import { detectUserLocation, formatCurrency } from "@/utils/currencyUtils";
 
 interface SubscriptionTiersProps {
   onSubscriptionSelect: (tier: string) => void;
@@ -18,58 +13,39 @@ interface SubscriptionTiersProps {
 }
 
 const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSelect, currentTier }) => {
-  const [countryInfo, setCountryInfo] = useState<{
+  const [locationData, setLocationData] = useState<{
     country: string;
-    pricing: {
-      basic: PricingInfo;
-      premium: PricingInfo;
-      unlimited: PricingInfo;
+    countryCode: string;
+    currency: {
+      symbol: string;
+      code: string;
+      basicPrice: number;
+      premiumPrice: number;
+      unlimitedPrice: number;
     };
-  }>({
-    country: "",
-    pricing: {
-      basic: { currency: "USD", amount: 2, symbol: "$" },
-      premium: { currency: "USD", amount: 3, symbol: "$" },
-      unlimited: { currency: "USD", amount: 9.9, symbol: "$" }
-    }
-  });
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    const detectLocation = async () => {
+    const loadLocationData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        
-        let pricing = {
-          basic: { currency: "USD", amount: 2, symbol: "$" },
-          premium: { currency: "USD", amount: 3, symbol: "$" },
-          unlimited: { currency: "USD", amount: 9.9, symbol: "$" }
-        };
-        
-        // Special pricing for Egypt
-        if (data.country_code === 'EG') {
-          pricing = {
-            basic: { currency: "EGP", amount: 39, symbol: "EGP" },
-            premium: { currency: "EGP", amount: 49, symbol: "EGP" },
-            unlimited: { currency: "EGP", amount: 99, symbol: "EGP" }
-          };
-        }
-        
-        setCountryInfo({
-          country: data.country_name || "Unknown",
-          pricing
-        });
+        const data = await detectUserLocation();
+        setLocationData(data);
+        console.log('SubscriptionTiers: Location data loaded', data);
       } catch (error) {
-        console.error("Error detecting location:", error);
-        setCountryInfo({
-          country: "Unknown",
-          pricing: {
-            basic: { currency: "USD", amount: 2, symbol: "$" },
-            premium: { currency: "USD", amount: 3, symbol: "$" },
-            unlimited: { currency: "USD", amount: 9.9, symbol: "$" }
+        console.error("SubscriptionTiers: Error loading location data:", error);
+        // Set default values on error
+        setLocationData({
+          country: "United States",
+          countryCode: "US",
+          currency: {
+            symbol: "$",
+            code: "USD",
+            basicPrice: 2,
+            premiumPrice: 3,
+            unlimitedPrice: 9.9
           }
         });
       } finally {
@@ -77,8 +53,20 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       }
     };
     
-    detectLocation();
+    loadLocationData();
   }, []);
+
+  const handleTierSelect = (tierId: string) => {
+    onSubscriptionSelect(tierId);
+  };
+
+  if (isLoading || !locationData) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const tiers = [
     {
@@ -86,7 +74,11 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Basic",
       icon: <Star className="h-6 w-6" />,
       exports: 2,
-      price: countryInfo.pricing.basic,
+      price: {
+        amount: locationData.currency.basicPrice,
+        currency: locationData.currency.code,
+        symbol: locationData.currency.symbol
+      },
       features: [
         "Export targeted resumes",
         "2 targeted resumes per month",
@@ -103,7 +95,11 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Premium",
       icon: <Crown className="h-6 w-6" />,
       exports: 6,
-      price: countryInfo.pricing.premium,
+      price: {
+        amount: locationData.currency.premiumPrice,
+        currency: locationData.currency.code,
+        symbol: locationData.currency.symbol
+      },
       features: [
         "Export targeted resumes",
         "5 targeted resumes per month",
@@ -121,7 +117,11 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Unlimited",
       icon: <Infinity className="h-6 w-6" />,
       exports: "Unlimited",
-      price: countryInfo.pricing.unlimited,
+      price: {
+        amount: locationData.currency.unlimitedPrice,
+        currency: locationData.currency.code,
+        symbol: locationData.currency.symbol
+      },
       features: [
         "Export targeted resumes",
         "Unlimited targeted resumes",
@@ -137,22 +137,10 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
     }
   ];
 
-  const handleTierSelect = (tierId: string) => {
-    onSubscriptionSelect(tierId);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="text-center text-sm text-muted-foreground">
-        Pricing for {countryInfo.country} • {countryInfo.pricing.basic.currency} • One-time payment for exports
+        Pricing for {locationData.country} • {locationData.currency.code} • One-time payment for exports
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -173,7 +161,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
               </div>
               <CardTitle className="text-xl">{tier.name}</CardTitle>
               <div className="text-3xl font-bold">
-                {tier.price?.currency === 'EGP' ? `${tier.price?.amount} ${tier.price?.symbol}` : `${tier.price?.symbol}${tier.price?.amount}`}
+                {formatCurrency(tier.price.amount, locationData.currency)}
                 <span className="text-sm font-normal text-muted-foreground">
                   one-time
                 </span>

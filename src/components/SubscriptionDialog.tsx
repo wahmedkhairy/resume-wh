@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import SubscriptionTiers from "./SubscriptionTiers";
 import PaymentModal from "./PaymentModal";
+import { detectUserLocation } from "@/utils/currencyUtils";
 
 interface SubscriptionDialogProps {
   children: React.ReactNode;
@@ -20,26 +20,34 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
   });
 
   useEffect(() => {
-    const detectLocation = async () => {
+    const loadPricingInfo = async () => {
       try {
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        
-        // Special pricing for Egypt
-        if (data.country_code === 'EG') {
-          setPricingInfo({
-            basic: { amount: 39, currency: "EGP", symbol: "EGP" },
-            premium: { amount: 49, currency: "EGP", symbol: "EGP" },
-            unlimited: { amount: 99, currency: "EGP", symbol: "EGP" }
-          });
-        }
+        const locationData = await detectUserLocation();
+        setPricingInfo({
+          basic: { 
+            amount: locationData.currency.basicPrice, 
+            currency: locationData.currency.code, 
+            symbol: locationData.currency.symbol 
+          },
+          premium: { 
+            amount: locationData.currency.premiumPrice, 
+            currency: locationData.currency.code, 
+            symbol: locationData.currency.symbol 
+          },
+          unlimited: { 
+            amount: locationData.currency.unlimitedPrice, 
+            currency: locationData.currency.code, 
+            symbol: locationData.currency.symbol 
+          }
+        });
+        console.log('SubscriptionDialog: Pricing info loaded', locationData);
       } catch (error) {
-        console.error("Error detecting location:", error);
+        console.error("SubscriptionDialog: Error loading pricing info:", error);
         // Keep default USD pricing on error
       }
     };
     
-    detectLocation();
+    loadPricingInfo();
   }, []);
 
   const handleSubscriptionSelect = (tier: string) => {

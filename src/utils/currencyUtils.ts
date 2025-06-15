@@ -4,11 +4,103 @@ interface CurrencyConfig {
   code: string;
   basicPrice: number;
   premiumPrice: number;
-  enterprisePrice: number;
+  unlimitedPrice: number;
 }
 
+interface LocationData {
+  country: string;
+  countryCode: string;
+  currency: CurrencyConfig;
+}
+
+// Cache to avoid repeated API calls
+let cachedLocationData: LocationData | null = null;
+let isDetecting = false;
+
+export const detectUserLocation = async (): Promise<LocationData> => {
+  // Return cached data if available
+  if (cachedLocationData) {
+    return cachedLocationData;
+  }
+
+  // Prevent multiple simultaneous API calls
+  if (isDetecting) {
+    // Wait for ongoing detection
+    while (isDetecting) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return cachedLocationData || getDefaultLocationData();
+  }
+
+  isDetecting = true;
+
+  try {
+    console.log('Detecting user location for pricing...');
+    const response = await fetch('https://ipapi.co/json/');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Location data received:', data);
+    
+    const locationData: LocationData = {
+      country: data.country_name || "Unknown",
+      countryCode: data.country_code || "US",
+      currency: getCurrencyForCountry(data.country_code || "US")
+    };
+
+    cachedLocationData = locationData;
+    console.log('Cached location data:', cachedLocationData);
+    return locationData;
+  } catch (error) {
+    console.error('Error detecting location:', error);
+    const defaultData = getDefaultLocationData();
+    cachedLocationData = defaultData;
+    return defaultData;
+  } finally {
+    isDetecting = false;
+  }
+};
+
+const getCurrencyForCountry = (countryCode: string): CurrencyConfig => {
+  switch (countryCode) {
+    case 'EG': // Egypt
+      return {
+        symbol: 'EGP',
+        code: 'EGP',
+        basicPrice: 39,
+        premiumPrice: 49,
+        unlimitedPrice: 99
+      };
+    default: // Default to USD
+      return {
+        symbol: '$',
+        code: 'USD',
+        basicPrice: 2,
+        premiumPrice: 3,
+        unlimitedPrice: 9.9
+      };
+  }
+};
+
+const getDefaultLocationData = (): LocationData => ({
+  country: "United States",
+  countryCode: "US",
+  currency: getCurrencyForCountry("US")
+});
+
+export const formatCurrency = (amount: number, currencyConfig: CurrencyConfig): string => {
+  if (currencyConfig.code === 'EGP') {
+    return `${amount} ${currencyConfig.symbol}`;
+  }
+  return `${currencyConfig.symbol}${amount}`;
+};
+
+// Legacy function for backward compatibility
 export const detectUserCurrency = (): CurrencyConfig => {
-  // Try to detect user's location
+  // Try to detect user's location using browser APIs first
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const userLocale = navigator.language || 'en-US';
   
@@ -19,28 +111,8 @@ export const detectUserCurrency = (): CurrencyConfig => {
     userLocale.toLowerCase().includes('en-eg');
 
   if (isEgyptUser) {
-    return {
-      symbol: 'EGP',
-      code: 'EGP',
-      basicPrice: 150,     // ~$5 USD equivalent
-      premiumPrice: 300,   // ~$10 USD equivalent  
-      enterprisePrice: 750 // ~$25 USD equivalent
-    };
+    return getCurrencyForCountry('EG');
   }
 
-  // Default to USD for worldwide users
-  return {
-    symbol: '$',
-    code: 'USD',
-    basicPrice: 5,
-    premiumPrice: 10,
-    enterprisePrice: 25
-  };
-};
-
-export const formatCurrency = (amount: number, currencyConfig: CurrencyConfig): string => {
-  if (currencyConfig.code === 'EGP') {
-    return `${amount} ${currencyConfig.symbol}`;
-  }
-  return `${currencyConfig.symbol}${amount}`;
+  return getCurrencyForCountry('US');
 };
