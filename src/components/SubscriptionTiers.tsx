@@ -88,12 +88,12 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       exports: 2,
       price: countryInfo.pricing.basic,
       features: [
+        "Export targeted resumes",
+        "2 targeted resumes per month",
         "2 resume exports",
         "Basic resume templates",
         "AI-powered summary generation",
         "PDF export",
-        "2 targeted resumes per month",
-        "Export targeted resumes",
         "Email support"
       ],
       popular: false
@@ -105,12 +105,12 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       exports: 6,
       price: countryInfo.pricing.premium,
       features: [
+        "Export targeted resumes",
+        "5 targeted resumes per month",
         "6 resume exports",
         "Premium resume templates",
         "Advanced AI optimization",
         "Multiple format exports",
-        "5 targeted resumes per month",
-        "Export targeted resumes",
         "Priority email support",
         "Analytics dashboard"
       ],
@@ -123,12 +123,12 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       exports: "Unlimited",
       price: countryInfo.pricing.unlimited,
       features: [
+        "Export targeted resumes",
+        "Unlimited targeted resumes",
         "Unlimited exports",
         "All premium templates",
         "Advanced AI features",
         "Multiple format exports",
-        "Unlimited targeted resumes",
-        "Export targeted resumes",
         "Priority support",
         "Advanced analytics",
         "Custom branding"
