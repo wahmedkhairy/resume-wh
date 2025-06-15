@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, FileText, AlertCircle, Info } from "lucide-react";
+import { Loader2, Sparkles, FileText, AlertCircle, Info, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import SubscriptionDialog from "./SubscriptionDialog";
 
 interface TailoredResumeGeneratorProps {
   resumeData: any;
@@ -27,38 +28,51 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const [jobDescription, setJobDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [monthlyUsage, setMonthlyUsage] = useState<number | null>(null);
+  const [totalUsage, setTotalUsage] = useState<number | null>(null);
   const { toast } = useToast();
 
-  // Free users get 3 targeted resumes per month, paid users get more based on tier
+  // Get usage limits based on subscription tier
   const getUsageLimit = () => {
-    if (!isPremiumUser || !currentSubscription) return 3; // Free users get 3 targeted resumes
+    if (!isPremiumUser || !currentSubscription) {
+      return { limit: 1, isMonthly: false }; // Free users get 1 lifetime resume
+    }
     
     switch (currentSubscription.tier) {
       case 'basic':
-        return 10; // Basic users get 10 targeted resumes per month
+        return { limit: 2, isMonthly: true }; // Basic users get 2 resumes per month
       case 'premium':
-        return 25; // Premium users get 25 targeted resumes per month
+        return { limit: 5, isMonthly: true }; // Premium users get 5 resumes per month
       case 'unlimited':
-        return 999; // Unlimited users get unlimited targeted resumes
+        return { limit: 999, isMonthly: true }; // Unlimited users get unlimited resumes
       default:
-        return 3;
+        return { limit: 1, isMonthly: false };
     }
+  };
+
+  const canExportResume = () => {
+    // Free users cannot export
+    if (!isPremiumUser || !currentSubscription) return false;
+    
+    // All paid users can export
+    return true;
   };
 
   const checkUsageLimit = async () => {
     try {
       const { data: usage } = await supabase
         .from('tailoring_usage')
-        .select('monthly_count')
+        .select('monthly_count, total_count')
         .eq('user_id', currentUserId)
         .maybeSingle();
       
-      const currentUsage = usage?.monthly_count || 0;
-      setMonthlyUsage(currentUsage);
-      return currentUsage;
+      const currentMonthlyUsage = usage?.monthly_count || 0;
+      const currentTotalUsage = usage?.total_count || 0;
+      setMonthlyUsage(currentMonthlyUsage);
+      setTotalUsage(currentTotalUsage);
+      return { monthly: currentMonthlyUsage, total: currentTotalUsage };
     } catch (error) {
       console.error('Error checking usage:', error);
-      return 0;
+      return { monthly: 0, total: 0 };
     }
   };
 
@@ -87,13 +101,15 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
       return;
     }
 
-    const currentUsage = await checkUsageLimit();
-    const usageLimit = getUsageLimit();
+    const usage = await checkUsageLimit();
+    const usageConfig = getUsageLimit();
+    const currentUsageCount = usageConfig.isMonthly ? usage.monthly : usage.total;
 
-    if (currentUsage >= usageLimit) {
+    if (currentUsageCount >= usageConfig.limit) {
+      const limitText = usageConfig.isMonthly ? "monthly" : "lifetime";
       toast({
         title: "Usage Limit Reached",
-        description: `You've reached your monthly limit of ${usageLimit} targeted resumes. Your limit will reset next month.`,
+        description: `You've reached your ${limitText} limit of ${usageConfig.limit === 999 ? "unlimited" : usageConfig.limit} targeted resumes. ${usageConfig.isMonthly ? "Your limit will reset next month." : "Please upgrade to generate more resumes."}`,
         variant: "destructive",
       });
       return;
@@ -122,7 +138,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
         throw new Error(data.error || 'Failed to generate targeted resume');
       }
 
-      // Increment usage count
+      // Update usage count
       const { error: usageError } = await supabase.rpc('increment_tailoring_usage', {
         user_uuid: currentUserId
       });
@@ -148,15 +164,18 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
         // Don't throw here as the generation was successful
       }
 
-      // Update usage count in UI
-      setMonthlyUsage(currentUsage + 1);
+      // Update usage counts in UI
+      const newUsage = await checkUsageLimit();
 
       // Pass the targeted data to parent component
       onTailoredResumeGenerated(data.tailoredContent);
 
+      const remainingCount = usageConfig.limit === 999 ? "unlimited" : (usageConfig.limit - (usageConfig.isMonthly ? newUsage.monthly : newUsage.total));
+      const periodText = usageConfig.isMonthly ? "this month" : "total";
+
       toast({
         title: "Targeted Resume Created Successfully!",
-        description: `Your resume has been customized for this job. ${getUsageLimit() - (currentUsage + 1)} targeted resumes remaining this month.`,
+        description: `Your resume has been customized for this job. ${remainingCount === "unlimited" ? "Unlimited resumes remaining." : `${remainingCount} targeted resumes remaining ${periodText}.`}`,
       });
 
       // Clear the job description after successful generation
@@ -174,8 +193,10 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     }
   };
 
-  const usageLimit = getUsageLimit();
-  const remainingUses = Math.max(0, usageLimit - (monthlyUsage || 0));
+  const usageConfig = getUsageLimit();
+  const currentUsageCount = usageConfig.isMonthly ? (monthlyUsage || 0) : (totalUsage || 0);
+  const remainingUses = Math.max(0, usageConfig.limit - currentUsageCount);
+  const canGenerate = remainingUses > 0 || usageConfig.limit === 999;
 
   return (
     <Card className="w-full">
@@ -199,8 +220,8 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Free users can generate 3 targeted resumes per month. To export your targeted resume as PDF, 
-              please upgrade to a paid plan. Premium plans offer more targeted resumes and unlimited exports.
+              Free users can generate 1 targeted resume (lifetime). To export your targeted resume as PDF 
+              and get more generations, please upgrade to a paid plan.
             </AlertDescription>
           </Alert>
         )}
@@ -208,15 +229,34 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            <span className="text-sm font-medium">Monthly Usage:</span>
-            <Badge variant={remainingUses > 0 ? "default" : "destructive"}>
-              {monthlyUsage || 0} / {usageLimit === 999 ? "∞" : usageLimit}
+            <span className="text-sm font-medium">
+              {usageConfig.isMonthly ? "Monthly" : "Lifetime"} Usage:
+            </span>
+            <Badge variant={canGenerate ? "default" : "destructive"}>
+              {currentUsageCount} / {usageConfig.limit === 999 ? "∞" : usageConfig.limit}
             </Badge>
           </div>
           <Badge variant="outline">
-            {usageLimit === 999 ? "Unlimited" : `${remainingUses} remaining`}
+            {usageConfig.limit === 999 ? "Unlimited" : `${remainingUses} remaining`}
           </Badge>
         </div>
+
+        {!canExportResume() && (
+          <Alert>
+            <Crown className="h-4 w-4" />
+            <AlertDescription>
+              <div className="flex items-center justify-between">
+                <span>Upgrade to a paid plan to export your targeted resumes as PDF or Word document.</span>
+                <SubscriptionDialog>
+                  <Button variant="outline" size="sm" className="ml-4">
+                    <Crown className="mr-2 h-4 w-4" />
+                    Upgrade Now
+                  </Button>
+                </SubscriptionDialog>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="space-y-2">
           <label htmlFor="job-description" className="text-sm font-medium">
@@ -235,29 +275,41 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           </p>
         </div>
 
-        <Button
-          onClick={handleGenerateTargetedResume}
-          disabled={isGenerating || !jobDescription.trim() || remainingUses <= 0}
-          className="w-full"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating Targeted Resume...
-            </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Generate Custom Resume for This Job
-            </>
-          )}
-        </Button>
+        {canGenerate ? (
+          <Button
+            onClick={handleGenerateTargetedResume}
+            disabled={isGenerating || !jobDescription.trim()}
+            className="w-full"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Targeted Resume...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate Custom Resume for This Job
+              </>
+            )}
+          </Button>
+        ) : (
+          <SubscriptionDialog>
+            <Button className="w-full opacity-75">
+              <Crown className="mr-2 h-4 w-4" />
+              🔒 Upgrade to Generate More Resumes
+            </Button>
+          </SubscriptionDialog>
+        )}
 
-        {remainingUses <= 0 && usageLimit !== 999 && (
+        {!canGenerate && usageConfig.limit !== 999 && (
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              You've reached your monthly limit. Your limit will reset next month or upgrade for more targeted resumes.
+              {usageConfig.isMonthly 
+                ? "You've reached your monthly limit. Your limit will reset next month or upgrade for more targeted resumes."
+                : "You've used your lifetime generation. Upgrade to a paid plan for more targeted resumes."
+              }
             </AlertDescription>
           </Alert>
         )}

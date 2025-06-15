@@ -25,7 +25,7 @@ const TailoredResumeSection: React.FC<TailoredResumeSectionProps> = ({
         <h2 className="text-2xl font-bold mb-2">Targeted Job Resume Generator</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Transform your resume for specific job applications. Our AI analyzes job descriptions 
-          and targets your content to highlight the most relevant experience and skills.
+          and tailors your content to highlight the most relevant experience and skills.
         </p>
       </div>
 

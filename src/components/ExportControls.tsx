@@ -38,6 +38,14 @@ const ExportControls: React.FC<ExportControlsProps> = ({
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // For targeted resumes, check if user can export them
+  const canExportTailoredResume = () => {
+    if (!isTailoredResume) return canExport; // Regular resume export logic
+    
+    // For targeted resumes, only paid users can export
+    return isPremiumUser && currentSubscription;
+  };
+
   const handlePDFExport = () => {
     onExport();
     setDropdownOpen(false);
@@ -49,6 +57,8 @@ const ExportControls: React.FC<ExportControlsProps> = ({
     }
     setDropdownOpen(false);
   };
+
+  const canExportResume = canExportTailoredResume();
 
   return (
     <div className="space-y-4">
@@ -71,7 +81,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
             {isSaving ? "Saving..." : "Save"}
           </Button>
           
-          {canExport ? (
+          {canExportResume ? (
             <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <Button disabled={isExporting}>
@@ -101,15 +111,17 @@ const ExportControls: React.FC<ExportControlsProps> = ({
         </div>
       </div>
 
-      {!canExport && (
+      {!canExportResume && (
         <Alert>
           <Crown className="h-4 w-4" />
           <AlertDescription>
             <div className="flex items-center justify-between">
               <span>
-                {!isPremiumUser 
-                  ? "Upgrade to a paid plan to export your resume as PDF or Word document."
-                  : `You have ${currentSubscription?.scan_count || 0} exports remaining. Upgrade to unlimited for unlimited exports.`
+                {isTailoredResume 
+                  ? "Upgrade to a paid plan to export your targeted resumes as PDF or Word document."
+                  : !isPremiumUser 
+                    ? "Upgrade to a paid plan to export your resume as PDF or Word document."
+                    : `You have ${currentSubscription?.scan_count || 0} exports remaining. Upgrade to unlimited for unlimited exports.`
                 }
               </span>
               <SubscriptionDialog>
