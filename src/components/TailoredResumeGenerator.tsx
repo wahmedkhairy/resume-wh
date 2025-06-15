@@ -28,13 +28,12 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const [jobDescription, setJobDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [monthlyUsage, setMonthlyUsage] = useState<number | null>(null);
-  const [totalUsage, setTotalUsage] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Get usage limits based on subscription tier
   const getUsageLimit = () => {
     if (!isPremiumUser || !currentSubscription) {
-      return { limit: 1, isMonthly: false }; // Free users get 1 lifetime resume
+      return { limit: 1, isMonthly: true }; // Free users get 1 resume per month
     }
     
     switch (currentSubscription.tier) {
@@ -45,7 +44,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
       case 'unlimited':
         return { limit: 999, isMonthly: true }; // Unlimited users get unlimited resumes
       default:
-        return { limit: 1, isMonthly: false };
+        return { limit: 1, isMonthly: true };
     }
   };
 
@@ -61,18 +60,16 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     try {
       const { data: usage } = await supabase
         .from('tailoring_usage')
-        .select('monthly_count, total_count')
+        .select('monthly_count')
         .eq('user_id', currentUserId)
         .maybeSingle();
       
       const currentMonthlyUsage = usage?.monthly_count || 0;
-      const currentTotalUsage = usage?.total_count || 0;
       setMonthlyUsage(currentMonthlyUsage);
-      setTotalUsage(currentTotalUsage);
-      return { monthly: currentMonthlyUsage, total: currentTotalUsage };
+      return { monthly: currentMonthlyUsage };
     } catch (error) {
       console.error('Error checking usage:', error);
-      return { monthly: 0, total: 0 };
+      return { monthly: 0 };
     }
   };
 
@@ -103,13 +100,12 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
 
     const usage = await checkUsageLimit();
     const usageConfig = getUsageLimit();
-    const currentUsageCount = usageConfig.isMonthly ? usage.monthly : usage.total;
+    const currentUsageCount = usage.monthly;
 
     if (currentUsageCount >= usageConfig.limit) {
-      const limitText = usageConfig.isMonthly ? "monthly" : "lifetime";
       toast({
         title: "Usage Limit Reached",
-        description: `You've reached your ${limitText} limit of ${usageConfig.limit === 999 ? "unlimited" : usageConfig.limit} targeted resumes. ${usageConfig.isMonthly ? "Your limit will reset next month." : "Please upgrade to generate more resumes."}`,
+        description: `You've reached your monthly limit of ${usageConfig.limit === 999 ? "unlimited" : usageConfig.limit} targeted resumes. Your limit will reset next month.`,
         variant: "destructive",
       });
       return;
@@ -170,12 +166,11 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
       // Pass the targeted data to parent component
       onTailoredResumeGenerated(data.tailoredContent);
 
-      const remainingCount = usageConfig.limit === 999 ? "unlimited" : (usageConfig.limit - (usageConfig.isMonthly ? newUsage.monthly : newUsage.total));
-      const periodText = usageConfig.isMonthly ? "this month" : "total";
+      const remainingCount = usageConfig.limit === 999 ? "unlimited" : (usageConfig.limit - newUsage.monthly);
 
       toast({
         title: "Targeted Resume Created Successfully!",
-        description: `Your resume has been customized for this job. ${remainingCount === "unlimited" ? "Unlimited resumes remaining." : `${remainingCount} targeted resumes remaining ${periodText}.`}`,
+        description: `Your resume has been customized for this job. ${remainingCount === "unlimited" ? "Unlimited resumes remaining." : `${remainingCount} targeted resumes remaining this month.`}`,
       });
 
       // Clear the job description after successful generation
@@ -194,7 +189,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   };
 
   const usageConfig = getUsageLimit();
-  const currentUsageCount = usageConfig.isMonthly ? (monthlyUsage || 0) : (totalUsage || 0);
+  const currentUsageCount = monthlyUsage || 0;
   const remainingUses = Math.max(0, usageConfig.limit - currentUsageCount);
   const canGenerate = remainingUses > 0 || usageConfig.limit === 999;
 
@@ -220,7 +215,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Free users can generate 1 targeted resume (lifetime). To export your targeted resume as PDF 
+              Free users can generate 1 targeted resume per month. To export your targeted resume as PDF 
               and get more generations, please upgrade to a paid plan.
             </AlertDescription>
           </Alert>
@@ -230,7 +225,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             <span className="text-sm font-medium">
-              {usageConfig.isMonthly ? "Monthly" : "Lifetime"} Usage:
+              Monthly Usage:
             </span>
             <Badge variant={canGenerate ? "default" : "destructive"}>
               {currentUsageCount} / {usageConfig.limit === 999 ? "∞" : usageConfig.limit}
@@ -306,10 +301,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {usageConfig.isMonthly 
-                ? "You've reached your monthly limit. Your limit will reset next month or upgrade for more targeted resumes."
-                : "You've used your lifetime generation. Upgrade to a paid plan for more targeted resumes."
-              }
+              You've reached your monthly limit. Your limit will reset next month or upgrade for more targeted resumes.
             </AlertDescription>
           </Alert>
         )}
