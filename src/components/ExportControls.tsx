@@ -55,7 +55,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold">
-            {isTailoredResume ? "Tailored Resume Preview" : "ATS Resume Editor"}
+            {isTailoredResume ? "Targeted Resume Preview" : "ATS Resume Editor"}
           </h2>
           <p className="text-sm text-muted-foreground">
             {isTailoredResume ? "Your customized resume for the job" : "Professional resume template"}

@@ -29,17 +29,17 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const [monthlyUsage, setMonthlyUsage] = useState<number | null>(null);
   const { toast } = useToast();
 
-  // Free users get 3 tailored resumes per month, paid users get more based on tier
+  // Free users get 3 targeted resumes per month, paid users get more based on tier
   const getUsageLimit = () => {
-    if (!isPremiumUser || !currentSubscription) return 3; // Free users get 3 tailored resumes
+    if (!isPremiumUser || !currentSubscription) return 3; // Free users get 3 targeted resumes
     
     switch (currentSubscription.tier) {
       case 'basic':
-        return 10; // Basic users get 10 tailored resumes per month
+        return 10; // Basic users get 10 targeted resumes per month
       case 'premium':
-        return 25; // Premium users get 25 tailored resumes per month
+        return 25; // Premium users get 25 targeted resumes per month
       case 'unlimited':
-        return 999; // Unlimited users get unlimited tailored resumes
+        return 999; // Unlimited users get unlimited targeted resumes
       default:
         return 3;
     }
@@ -68,11 +68,11 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     }
   }, [currentUserId]);
 
-  const handleGenerateTailoredResume = async () => {
+  const handleGenerateTargetedResume = async () => {
     if (!jobDescription.trim()) {
       toast({
         title: "Job Description Required",
-        description: "Please enter a job description to tailor your resume.",
+        description: "Please enter a job description to create your targeted resume.",
         variant: "destructive",
       });
       return;
@@ -81,7 +81,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     if (!currentUserId) {
       toast({
         title: "Authentication Required",
-        description: "Please log in to use the resume tailoring feature.",
+        description: "Please log in to use the targeted resume feature.",
         variant: "destructive",
       });
       return;
@@ -93,7 +93,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     if (currentUsage >= usageLimit) {
       toast({
         title: "Usage Limit Reached",
-        description: `You've reached your monthly limit of ${usageLimit} tailored resumes. Your limit will reset next month.`,
+        description: `You've reached your monthly limit of ${usageLimit} targeted resumes. Your limit will reset next month.`,
         variant: "destructive",
       });
       return;
@@ -102,9 +102,9 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     setIsGenerating(true);
 
     try {
-      console.log('Starting resume tailoring process...');
+      console.log('Starting targeted resume generation process...');
 
-      // Call the edge function to generate tailored resume
+      // Call the edge function to generate targeted resume
       const { data, error } = await supabase.functions.invoke('tailor-resume', {
         body: {
           resumeData,
@@ -115,11 +115,11 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
 
       if (error) {
         console.error('Supabase function error:', error);
-        throw new Error(error.message || 'Failed to generate tailored resume');
+        throw new Error(error.message || 'Failed to generate targeted resume');
       }
 
       if (!data.success) {
-        throw new Error(data.error || 'Failed to generate tailored resume');
+        throw new Error(data.error || 'Failed to generate targeted resume');
       }
 
       // Increment usage count
@@ -131,7 +131,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
         console.error('Error updating usage:', usageError);
       }
 
-      // Store the tailored resume
+      // Store the targeted resume
       const { error: storeError } = await supabase
         .from('tailored_resumes')
         .insert([
@@ -144,29 +144,29 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
         ]);
 
       if (storeError) {
-        console.error('Error storing tailored resume:', storeError);
+        console.error('Error storing targeted resume:', storeError);
         // Don't throw here as the generation was successful
       }
 
       // Update usage count in UI
       setMonthlyUsage(currentUsage + 1);
 
-      // Pass the tailored data to parent component
+      // Pass the targeted data to parent component
       onTailoredResumeGenerated(data.tailoredContent);
 
       toast({
-        title: "Resume Tailored Successfully!",
-        description: `Your resume has been customized for this job. ${getUsageLimit() - (currentUsage + 1)} tailored resumes remaining this month.`,
+        title: "Targeted Resume Created Successfully!",
+        description: `Your resume has been customized for this job. ${getUsageLimit() - (currentUsage + 1)} targeted resumes remaining this month.`,
       });
 
       // Clear the job description after successful generation
       setJobDescription("");
 
     } catch (error) {
-      console.error('Error generating tailored resume:', error);
+      console.error('Error generating targeted resume:', error);
       toast({
-        title: "Tailoring Failed",
-        description: error.message || "There was an error tailoring your resume. Please try again.",
+        title: "Generation Failed",
+        description: error.message || "There was an error creating your targeted resume. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -182,7 +182,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-blue-500" />
-          Tailored Resume Generator
+          Targeted Job Resume Generator
           {isPremiumUser && currentSubscription && (
             <Badge variant="secondary" className="ml-auto">
               {currentSubscription.tier} Plan
@@ -190,7 +190,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           )}
         </CardTitle>
         <CardDescription>
-          Generate a customized version of your resume tailored to a specific job description.
+          Generate a customized version of your resume targeted to a specific job description.
           Our AI will analyze the job requirements and emphasize your most relevant experience.
         </CardDescription>
       </CardHeader>
@@ -199,8 +199,8 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Free users can generate 3 tailored resumes per month. To export your tailored resume as PDF, 
-              please upgrade to a paid plan. Premium plans offer more tailored resumes and unlimited exports.
+              Free users can generate 3 targeted resumes per month. To export your targeted resume as PDF, 
+              please upgrade to a paid plan. Premium plans offer more targeted resumes and unlimited exports.
             </AlertDescription>
           </Alert>
         )}
@@ -231,24 +231,24 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
             className="resize-none"
           />
           <p className="text-xs text-muted-foreground">
-            Tip: Include the complete job posting for better tailoring results.
+            Tip: Include the complete job posting for better targeting results.
           </p>
         </div>
 
         <Button
-          onClick={handleGenerateTailoredResume}
+          onClick={handleGenerateTargetedResume}
           disabled={isGenerating || !jobDescription.trim() || remainingUses <= 0}
           className="w-full"
         >
           {isGenerating ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Tailoring Resume...
+              Creating Targeted Resume...
             </>
           ) : (
             <>
               <Sparkles className="mr-2 h-4 w-4" />
-              Generate Tailored Resume
+              Generate Custom Resume for This Job
             </>
           )}
         </Button>
@@ -257,7 +257,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              You've reached your monthly limit. Your limit will reset next month or upgrade for more tailored resumes.
+              You've reached your monthly limit. Your limit will reset next month or upgrade for more targeted resumes.
             </AlertDescription>
           </Alert>
         )}

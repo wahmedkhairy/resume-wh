@@ -132,7 +132,7 @@ const Index = () => {
 
   const handleSectionChange = (section: string) => {
     setCurrentSection(section);
-    // Clear tailored resume data when switching sections
+    // Clear targeted resume data when switching sections
     if (section !== "editor") {
       setTailoredResumeData(null);
     }
@@ -141,8 +141,8 @@ const Index = () => {
   const handleTailoredResumeGenerated = (tailoredData: any) => {
     setTailoredResumeData(tailoredData);
     toast({
-      title: "Tailored Resume Ready",
-      description: "Your tailored resume is now displayed in the preview. You can export it or make further adjustments.",
+      title: "Targeted Resume Ready",
+      description: "Your targeted resume is now displayed in the preview. You can export it or make further adjustments.",
     });
   };
 
@@ -196,9 +196,9 @@ const Index = () => {
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium text-blue-900 dark:text-blue-100">Tailored Resume Active</h3>
+                      <h3 className="font-medium text-blue-900 dark:text-blue-100">Targeted Resume Active</h3>
                       <p className="text-sm text-blue-700 dark:text-blue-300">
-                        You're viewing a tailored version of your resume.
+                        You're viewing a targeted version of your resume.
                       </p>
                     </div>
                     <button

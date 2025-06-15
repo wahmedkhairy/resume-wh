@@ -92,7 +92,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
         "Basic resume templates",
         "AI-powered summary generation",
         "PDF export",
-        "1 tailored resume per month",
+        "1 targeted resume per month",
         "Email support"
       ],
       popular: false
@@ -108,7 +108,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
         "Premium resume templates",
         "Advanced AI optimization",
         "Multiple format exports",
-        "3 tailored resumes per month",
+        "3 targeted resumes per month",
         "Priority email support",
         "Analytics dashboard"
       ],
@@ -125,7 +125,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
         "All premium templates",
         "Advanced AI features",
         "Multiple format exports",
-        "Unlimited tailored resumes",
+        "Unlimited targeted resumes",
         "Priority support",
         "Advanced analytics",
         "Custom branding"
