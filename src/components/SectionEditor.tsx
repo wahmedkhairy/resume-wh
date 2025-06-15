@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, Wand2 } from "lucide-react";
+import { CheckCircle, Wand2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SectionEditorProps {
@@ -21,6 +21,8 @@ interface SectionEditorProps {
   initialContent: string;
   sectionType?: "summary" | "experience" | "education" | "skills" | "courses" | "certifications";
   onContentChange?: (content: string) => void;
+  workExperience?: any[];
+  showAIGenerateButton?: boolean;
 }
 
 const SectionEditor: React.FC<SectionEditorProps> = ({
@@ -30,9 +32,12 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
   initialContent,
   sectionType = "summary",
   onContentChange,
+  workExperience = [],
+  showAIGenerateButton = false,
 }) => {
   const [content, setContent] = useState(initialContent);
   const [isPolishing, setIsPolishing] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
@@ -111,6 +116,65 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
     }
   };
 
+  const handleAIGenerate = async () => {
+    if (sectionType !== "summary" || workExperience.length === 0) {
+      toast({
+        title: "Cannot Generate",
+        description: "AI generation is only available for summary section and requires work experience.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      console.log('Calling polish-resume edge function for summary generation');
+      
+      const experienceText = workExperience
+        .map(exp => `${exp.jobTitle} at ${exp.company}: ${exp.responsibilities.join(', ')}`)
+        .join('\n');
+
+      const { data, error } = await supabase.functions.invoke('polish-resume', {
+        body: { 
+          content: experienceText,
+          action: "generate-summary"
+        }
+      });
+
+      console.log('Generate summary response:', { data, error });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to generate summary');
+      }
+
+      if (data?.summary) {
+        setContent(data.summary);
+        if (onContentChange) {
+          onContentChange(data.summary);
+        }
+        toast({
+          title: "Summary Generated",
+          description: "Your professional summary has been generated with AI.",
+          variant: "default",
+        });
+      } else {
+        throw new Error('No summary received from AI service');
+      }
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      
+      toast({
+        title: "Generation Failed",
+        description: error.message || "There was an error generating your summary. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleSave = () => {
     if (!content.trim()) {
       toast({
@@ -149,7 +213,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
         />
       </CardContent>
       <CardFooter className="flex justify-between">
-        <div>
+        <div className="flex gap-2">
           <Button 
             variant="outline" 
             size="sm" 
@@ -165,6 +229,24 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
             <Wand2 className="mr-1 h-4 w-4" /> 
             {isPolishing ? "Polishing..." : "Polish with AI"}
           </Button>
+
+          {showAIGenerateButton && sectionType === "summary" && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAIGenerate}
+              disabled={isGenerating}
+              className="relative"
+            >
+              {isGenerating && (
+                <span className="absolute inset-0 flex items-center justify-center bg-background/80">
+                  <div className="h-4 w-4 rounded-full border-2 border-t-transparent border-primary animate-spin"></div>
+                </span>
+              )}
+              <Sparkles className="mr-1 h-4 w-4" /> 
+              {isGenerating ? "Generating..." : "Generate with AI"}
+            </Button>
+          )}
         </div>
         <div className="flex items-center space-x-2">
           <Button 
