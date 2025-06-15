@@ -13,7 +13,6 @@ import { User, CreditCard, History, Settings, Mail, Shield, Edit, Save, X } from
 const UserSettings: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [subscription, setSubscription] = useState<any>(null);
-  const [paypalSettings, setPaypalSettings] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -43,17 +42,6 @@ const UserSettings: React.FC = () => {
         
         if (subData) {
           setSubscription(subData);
-        }
-
-        // Load PayPal settings
-        const { data: paypalData } = await supabase
-          .from('user_settings')
-          .select('paypal_client_id, paypal_production_mode')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        if (paypalData) {
-          setPaypalSettings(paypalData);
         }
       }
     } catch (error) {
@@ -278,40 +266,6 @@ const UserSettings: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* PayPal Integration */}
-      {paypalSettings && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              PayPal Integration
-            </CardTitle>
-            <CardDescription>Your PayPal payment configuration</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Environment</label>
-                <div className="mt-1">
-                  <Badge variant={paypalSettings.paypal_production_mode ? 'default' : 'secondary'}>
-                    {paypalSettings.paypal_production_mode ? 'Production' : 'Sandbox'}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Client ID</label>
-                <p className="text-xs font-mono text-muted-foreground mt-1">
-                  {paypalSettings.paypal_client_id ? 
-                    `${paypalSettings.paypal_client_id.substring(0, 10)}...` : 
-                    'Not configured'
-                  }
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* General Settings */}
       <Card>
