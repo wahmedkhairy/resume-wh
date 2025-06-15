@@ -118,9 +118,9 @@ const ExportControls: React.FC<ExportControlsProps> = ({
             <div className="flex items-center justify-between">
               <span>
                 {isTailoredResume 
-                  ? "Upgrade to a paid plan to export your targeted resumes as PDF or Word document."
+                  ? "Upgrade to a plan to export your targeted resumes as PDF or Word document."
                   : !isPremiumUser 
-                    ? "Upgrade to a paid plan to export your resume as PDF or Word document."
+                    ? "Upgrade to a plan to export your resume as PDF or Word document."
                     : `You have ${currentSubscription?.scan_count || 0} exports remaining. Upgrade to unlimited for unlimited exports.`
                 }
               </span>
