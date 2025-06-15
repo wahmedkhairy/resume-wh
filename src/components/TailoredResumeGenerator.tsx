@@ -215,7 +215,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Free users can generate 1 targeted resume per month. To export your targeted resume as PDF 
+              Free users can generate 1 targeted resume. To export your targeted resume as PDF 
               and get more generations, please upgrade to a paid plan.
             </AlertDescription>
           </Alert>
