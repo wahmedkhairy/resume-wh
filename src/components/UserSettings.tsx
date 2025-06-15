@@ -155,17 +155,17 @@ const UserSettings: React.FC = () => {
 
   const getPayPalStatus = () => {
     if (!paypalSettings?.paypal_client_id) {
-      return { status: 'not_configured', color: 'destructive', icon: AlertTriangle };
+      return { status: 'not_configured', variant: 'destructive' as const, icon: AlertTriangle };
     }
     
     if (paypalSettings.paypal_production_mode) {
       if (!paypalSettings.paypal_client_secret) {
-        return { status: 'production_incomplete', color: 'destructive', icon: AlertTriangle };
+        return { status: 'production_incomplete', variant: 'destructive' as const, icon: AlertTriangle };
       }
-      return { status: 'production_ready', color: 'default', icon: CheckCircle };
+      return { status: 'production_ready', variant: 'default' as const, icon: CheckCircle };
     }
     
-    return { status: 'sandbox_mode', color: 'secondary', icon: Settings };
+    return { status: 'sandbox_mode', variant: 'secondary' as const, icon: Settings };
   };
 
   if (isLoading) {
@@ -320,7 +320,7 @@ const UserSettings: React.FC = () => {
                 </p>
               </div>
             </div>
-            <Badge variant={paypalStatus.color}>
+            <Badge variant={paypalStatus.variant}>
               {paypalStatus.status === 'not_configured' && 'Not Configured'}
               {paypalStatus.status === 'sandbox_mode' && 'Sandbox'}
               {paypalStatus.status === 'production_incomplete' && 'Incomplete'}
