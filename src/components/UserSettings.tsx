@@ -142,6 +142,21 @@ const UserSettings: React.FC = () => {
     }
   };
 
+  // Helper function to get proper badge variant for subscription status
+  const getSubscriptionStatusVariant = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'default';
+      case 'inactive':
+      case 'cancelled':
+        return 'destructive';
+      case 'pending':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
@@ -238,7 +253,7 @@ const UserSettings: React.FC = () => {
                   <Badge variant="outline" className="capitalize">
                     {subscription.tier}
                   </Badge>
-                  <Badge variant={subscription.status === 'active' ? 'default' : 'destructive'}>
+                  <Badge variant={getSubscriptionStatusVariant(subscription.status)}>
                     {subscription.status}
                   </Badge>
                 </div>
