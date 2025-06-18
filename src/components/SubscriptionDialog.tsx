@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import EnhancedSubscriptionTiers from "./EnhancedSubscriptionTiers";
 import PaymentModal from "./PaymentModal";
-import { getPayPalPricing } from "@/utils/paypalCurrencyUtils";
 
 interface SubscriptionDialogProps {
   children: React.ReactNode;
@@ -42,17 +41,17 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
         <DialogTrigger asChild>
           {children}
         </DialogTrigger>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl text-center">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl">
+          <DialogHeader className="space-y-3 pb-6">
+            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white text-center">
               Choose Your Plan
             </DialogTitle>
-            <DialogDescription className="text-center">
+            <DialogDescription className="text-gray-600 dark:text-gray-400 text-center text-lg">
               Select the plan that best fits your resume export needs.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="mt-6">
+          <div className="px-6 pb-6">
             <EnhancedSubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
           </div>
         </DialogContent>
