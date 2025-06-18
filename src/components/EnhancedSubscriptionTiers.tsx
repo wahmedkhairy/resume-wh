@@ -69,50 +69,50 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
   };
 
   return (
-    <div className="w-full min-h-[400px] bg-white dark:bg-gray-900">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Choose Your Plan</h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
+    <div className="w-full bg-white dark:bg-gray-900">
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Choose Your Plan</h2>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
           One-time payment, no recurring charges. Secure payment via PayPal.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
         {tiers.map((tier) => {
           const Icon = tier.icon;
           return (
-            <Card key={tier.id} className="relative hover:shadow-lg transition-shadow bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+            <Card key={tier.id} className="relative hover:shadow-lg transition-shadow bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 h-full">
               {tier.badgeText && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
                   <Badge variant={tier.badgeVariant} className="text-xs px-2 py-1">
                     {tier.badgeText}
                   </Badge>
                 </div>
               )}
               
-              <CardHeader className="text-center pb-4 pt-6">
-                <div className="flex justify-center mb-3">
-                  <Icon className="h-8 w-8 text-blue-600" />
+              <CardHeader className="text-center pb-3 pt-4">
+                <div className="flex justify-center mb-2">
+                  <Icon className="h-6 w-6 text-blue-600" />
                 </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">{tier.name}</CardTitle>
+                <CardTitle className="text-lg text-gray-900 dark:text-white">{tier.name}</CardTitle>
                 <div className="space-y-1">
-                  <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
                     ${tier.price.toFixed(2)}
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     {tier.exports} resume exports
                   </p>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   {tier.description}
                 </p>
               </CardHeader>
               
-              <CardContent className="space-y-4 px-6 pb-6">
-                <ul className="space-y-2">
+              <CardContent className="space-y-3 px-4 pb-4 flex-1 flex flex-col">
+                <ul className="space-y-1 flex-1">
                   {tier.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <li key={index} className="flex items-start gap-2 text-xs text-gray-700 dark:text-gray-300">
+                      <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -120,8 +120,8 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
                 
                 <Button 
                   onClick={() => handleTierSelect(tier.id)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
-                  size="lg"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-sm"
+                  size="sm"
                 >
                   Choose {tier.name}
                 </Button>
@@ -131,7 +131,7 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
         })}
       </div>
 
-      <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8 space-y-1">
+      <div className="text-center text-xs text-gray-500 dark:text-gray-400 mt-6 space-y-1">
         <p>• All plans include ATS optimization and AI-powered suggestions</p>
         <p>• One-time payment, no recurring charges</p>
         <p>• Secure payment processing via PayPal</p>

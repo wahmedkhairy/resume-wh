@@ -41,18 +41,20 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
         <DialogTrigger asChild>
           {children}
         </DialogTrigger>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl">
-          <DialogHeader className="space-y-3 pb-6">
-            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white text-center">
-              Choose Your Plan
-            </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400 text-center text-lg">
-              Select the plan that best fits your resume export needs.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="px-6 pb-6">
-            <EnhancedSubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
+        <DialogContent className="max-w-4xl w-full max-h-[85vh] overflow-y-auto p-0">
+          <div className="p-6 bg-white dark:bg-gray-900">
+            <DialogHeader className="space-y-3 mb-6">
+              <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white text-center">
+                Choose Your Plan
+              </DialogTitle>
+              <DialogDescription className="text-gray-600 dark:text-gray-400 text-center text-lg">
+                Select the plan that best fits your resume export needs.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="w-full">
+              <EnhancedSubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
+            </div>
           </div>
         </DialogContent>
       </Dialog>
