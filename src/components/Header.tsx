@@ -50,7 +50,7 @@ const Header = () => {
           <SubscriptionDialog>
             <Button variant="default" size="sm" className="flex items-center">
               <CreditCard className="mr-2 h-4 w-4" />
-              Subscribe
+              Upgrade
             </Button>
           </SubscriptionDialog>
         </div>
