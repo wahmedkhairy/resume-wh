@@ -6,11 +6,30 @@ import SubscriptionTiers from "@/components/SubscriptionTiers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Subscription = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubscriptionSelect = (tier: string) => {
+    console.log('Subscription page: Plan selected', tier);
+    
+    // Check if live PayPal is configured
+    const savedClientId = localStorage.getItem('paypal_live_client_id');
+    
+    if (savedClientId) {
+      toast({
+        title: "Redirecting to Payment",
+        description: "You'll be redirected to secure PayPal payment processing.",
+      });
+    } else {
+      toast({
+        title: "Demo Payment Selected",
+        description: "This is a demo payment flow. Configure live PayPal for real transactions.",
+      });
+    }
+    
     // Navigate back to home with subscription selection
     navigate(`/?subscription=${tier}`);
   };

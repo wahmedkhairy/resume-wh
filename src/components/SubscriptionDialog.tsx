@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
   const [pricingInfo, setPricingInfo] = useState({
     basic: { amount: 2, currency: "USD", symbol: "$" },
     premium: { amount: 3, currency: "USD", symbol: "$" },
-    unlimited: { amount: 9.9, currency: "USD", symbol: "$" }
+    unlimited: { amount: 4.99, currency: "USD", symbol: "$" }
   });
 
   useEffect(() => {
@@ -34,6 +35,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
   const checkLiveConfig = () => {
     const savedClientId = localStorage.getItem('paypal_live_client_id');
     setHasLiveConfig(!!savedClientId);
+    console.log('SubscriptionDialog: Live config check', { hasLiveConfig: !!savedClientId });
   };
 
   const loadPricingInfo = async () => {
@@ -48,6 +50,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
           premium: { amount: 3, currency: "USD", symbol: "$" },
           unlimited: { amount: 4.99, currency: "USD", symbol: "$" }
         });
+        console.log('SubscriptionDialog: Using live PayPal pricing');
       } else {
         // Use location-based pricing for demo mode
         const locationData = await detectUserLocation();
@@ -68,8 +71,8 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
             symbol: locationData.currency.symbol 
           }
         });
+        console.log('SubscriptionDialog: Using location-based pricing', locationData);
       }
-      console.log('SubscriptionDialog: Pricing info loaded', { hasLiveConfig, pricingInfo });
     } catch (error) {
       console.error("SubscriptionDialog: Error loading pricing info:", error);
       // Keep default USD pricing on error
@@ -77,22 +80,23 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
   };
 
   const handleSubscriptionSelect = (tier: string) => {
-    const savedClientId = localStorage.getItem('paypal_live_client_id');
+    console.log('SubscriptionDialog: Subscription selected', { tier, hasLiveConfig });
     
-    if (savedClientId) {
+    setSelectedTier(tier);
+    
+    if (hasLiveConfig) {
       // Use live PayPal payment
-      setSelectedTier(tier);
       setShowLivePaymentModal(true);
       setIsOpen(false);
     } else {
       // Use demo payment
-      setSelectedTier(tier);
       setShowPaymentModal(true);
       setIsOpen(false);
     }
   };
 
   const handleClientIdSaved = (clientId: string) => {
+    console.log('SubscriptionDialog: Client ID saved, updating config');
     setHasLiveConfig(true);
     loadPricingInfo(); // Reload pricing when config changes
   };
