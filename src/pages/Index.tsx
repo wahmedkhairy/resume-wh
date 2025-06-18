@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -8,18 +8,40 @@ import ResumeData from "@/components/ResumeData";
 import PreviewSection from "@/components/PreviewSection";
 import SubscriptionStatus from "@/components/SubscriptionStatus";
 import ExportControls from "@/components/ExportControls";
-import SettingsSection from "@/components/SettingsSection";
-import ATSSection from "@/components/ATSSection";
-import TailoredResumeSection from "@/components/TailoredResumeSection";
+import CallToAction from "@/components/CallToAction";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useResumeData } from "@/hooks/useResumeData";
 import { useSubscription } from "@/hooks/useSubscription";
 import { exportResumeAsText } from "@/utils/resumeExport";
+
+// Lazy load heavy components for better performance
+const SettingsSection = lazy(() => import("@/components/SettingsSection"));
+const ATSSection = lazy(() => import("@/components/ATSSection"));
+const TailoredResumeSection = lazy(() => import("@/components/TailoredResumeSection"));
+
+const LoadingSkeleton = () => (
+  <div className="space-y-6">
+    <Skeleton className="h-8 w-64" />
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+      <div className="space-y-4">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    </div>
+  </div>
+);
 
 const Index = () => {
   const [currentSection, setCurrentSection] = useState("editor");
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [sessionId] = useState(`session_${Date.now()}`);
   const [tailoredResumeData, setTailoredResumeData] = useState<any>(null);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const { toast } = useToast();
 
   const {
@@ -48,7 +70,7 @@ const Index = () => {
     canExport,
   } = useSubscription(currentUserId);
 
-  // Check user authentication and load data
+  // Optimize user authentication check
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -58,11 +80,25 @@ const Index = () => {
         }
       } catch (error) {
         console.error('Error checking user:', error);
+      } finally {
+        setIsPageLoading(false);
       }
     };
     
     checkUser();
   }, []);
+
+  // Memoize current resume data to prevent unnecessary re-renders
+  const getCurrentResumeData = useMemo(() => {
+    return tailoredResumeData || {
+      personalInfo,
+      summary: resumeState.summary,
+      workExperience,
+      education,
+      skills,
+      coursesAndCertifications
+    };
+  }, [tailoredResumeData, personalInfo, resumeState.summary, workExperience, education, skills, coursesAndCertifications]);
 
   const handlePersonalInfoChange = (info: any) => {
     setPersonalInfo(info);
@@ -92,42 +128,15 @@ const Index = () => {
   };
 
   const handleExportResume = async () => {
-    const exportData = tailoredResumeData || {
-      personalInfo,
-      summary: resumeState.summary,
-      workExperience,
-      education,
-      skills,
-      coursesAndCertifications
-    };
-
-    await handleExport(exportData);
+    await handleExport(getCurrentResumeData);
   };
 
   const handleExportResumeAsText = () => {
-    const exportData = tailoredResumeData || {
-      personalInfo,
-      summary: resumeState.summary,
-      workExperience,
-      education,
-      skills,
-      coursesAndCertifications
-    };
-
-    exportResumeAsText(exportData);
+    exportResumeAsText(getCurrentResumeData);
   };
 
   const handleExportResumeAsWord = async () => {
-    const exportData = tailoredResumeData || {
-      personalInfo,
-      summary: resumeState.summary,
-      workExperience,
-      education,
-      skills,
-      coursesAndCertifications
-    };
-
-    await handleWordExport(exportData);
+    await handleWordExport(getCurrentResumeData);
   };
 
   const handleSectionChange = (section: string) => {
@@ -146,27 +155,36 @@ const Index = () => {
     });
   };
 
-  // Get current resume data (either tailored or original)
-  const getCurrentResumeData = () => {
-    return tailoredResumeData || {
-      personalInfo,
-      summary: resumeState.summary,
-      workExperience,
-      education,
-      skills,
-      coursesAndCertifications
-    };
-  };
-
-  const currentResumeData = getCurrentResumeData();
+  // Show loading skeleton while page is initializing
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <Header />
+        <Navigation onSectionChange={() => {}} currentSection="editor" />
+        <main className="flex-1 p-6">
+          <div className="max-w-7xl mx-auto">
+            <LoadingSkeleton />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const renderMainContent = () => {
     switch (currentSection) {
       case "settings":
-        return <SettingsSection />;
+        return (
+          <Suspense fallback={<LoadingSkeleton />}>
+            <SettingsSection />
+          </Suspense>
+        );
       
       case "ats":
-        return <ATSSection resumeData={currentResumeData} />;
+        return (
+          <Suspense fallback={<LoadingSkeleton />}>
+            <ATSSection resumeData={getCurrentResumeData} />
+          </Suspense>
+        );
       
       case "tailor":
         const originalResumeData = {
@@ -178,13 +196,15 @@ const Index = () => {
           coursesAndCertifications,
         };
         return (
-          <TailoredResumeSection
-            resumeData={originalResumeData}
-            currentUserId={currentUserId}
-            isPremiumUser={isPremiumUser}
-            currentSubscription={currentSubscription}
-            onTailoredResumeGenerated={handleTailoredResumeGenerated}
-          />
+          <Suspense fallback={<LoadingSkeleton />}>
+            <TailoredResumeSection
+              resumeData={originalResumeData}
+              currentUserId={currentUserId}
+              isPremiumUser={isPremiumUser}
+              currentSubscription={currentSubscription}
+              onTailoredResumeGenerated={handleTailoredResumeGenerated}
+            />
+          </Suspense>
         );
       
       default:
@@ -228,6 +248,16 @@ const Index = () => {
                 isPremiumUser={isPremiumUser}
                 currentSubscription={currentSubscription}
               />
+
+              {/* Success CTA after resume completion */}
+              {personalInfo.name && workExperience.length > 0 && (
+                <CallToAction 
+                  variant="success"
+                  onPrimaryClick={handleExportResume}
+                  onSecondaryClick={() => setCurrentSection("ats")}
+                  secondaryAction="Run ATS Analysis"
+                />
+              )}
               
               <ResumeData
                 personalInfo={personalInfo}
@@ -248,12 +278,12 @@ const Index = () => {
             {/* Right Column - Preview */}
             <div className="lg:col-span-6">
               <PreviewSection
-                personalInfo={currentResumeData.personalInfo}
-                summary={currentResumeData.summary}
-                workExperience={currentResumeData.workExperience}
-                education={currentResumeData.education}
-                skills={currentResumeData.skills}
-                coursesAndCertifications={currentResumeData.coursesAndCertifications}
+                personalInfo={getCurrentResumeData.personalInfo}
+                summary={getCurrentResumeData.summary}
+                workExperience={getCurrentResumeData.workExperience}
+                education={getCurrentResumeData.education}
+                skills={getCurrentResumeData.skills}
+                coursesAndCertifications={getCurrentResumeData.coursesAndCertifications}
                 onSummaryChange={handleSummaryChange}
                 isPremiumUser={isPremiumUser}
                 currentUserId={currentUserId}
@@ -272,8 +302,9 @@ const Index = () => {
       
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <p className="text-center text-muted-foreground">Create professional resumes with our classic template format</p>
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold mb-2">Professional Resume Builder</h1>
+            <p className="text-muted-foreground">Create ATS-optimized resumes that get you hired faster</p>
           </div>
 
           {renderMainContent()}

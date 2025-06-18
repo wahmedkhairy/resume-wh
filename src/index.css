@@ -94,6 +94,29 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  /* Performance optimizations for mobile */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
+  /* Optimize animations for performance */
+  * {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 @layer components {
@@ -147,6 +170,34 @@
 
   .ats-highlight {
     @apply bg-yellow-100 dark:bg-yellow-900/50 px-1 rounded;
+  }
+
+  /* Performance-optimized loading states */
+  .loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, transparent 37%, #f0f0f0 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Smooth scrolling for better UX */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Optimize touch interactions for mobile */
+  .touch-optimize {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* ULTRA AGGRESSIVE SLIDER SCROLLBAR REMOVAL */
@@ -276,5 +327,63 @@
     width: 0 !important;
     height: 0 !important;
     appearance: none !important;
+  }
+
+  /* Mobile-specific optimizations */
+  @media (max-width: 768px) {
+    .mobile-optimize {
+      /* Reduce margin and padding for mobile */
+      margin: 0.5rem !important;
+      padding: 0.75rem !important;
+    }
+
+    /* Optimize font sizes for mobile readability */
+    h1 { font-size: 1.5rem !important; }
+    h2 { font-size: 1.25rem !important; }
+    h3 { font-size: 1.125rem !important; }
+    
+    /* Improve touch targets */
+    button, a, input, select, textarea {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Reduce animation complexity on mobile */
+    * {
+      animation-duration: 0.2s !important;
+      transition-duration: 0.2s !important;
+    }
+  }
+
+  /* Fast loading optimizations */
+  .preload-optimize {
+    content-visibility: auto;
+    contain-intrinsic-size: 200px;
+  }
+
+  /* Critical path CSS for above-the-fold content */
+  .critical-section {
+    display: block;
+    visibility: visible;
+  }
+
+  /* Lazy loading sections */
+  .lazy-section {
+    content-visibility: auto;
+    contain-intrinsic-size: 500px;
+  }
+}
+
+/* Progressive enhancement - enhanced styles load after critical path */
+@media (min-width: 769px) {
+  .desktop-enhance {
+    /* Enhanced desktop styles */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .desktop-enhance:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
   }
 }
