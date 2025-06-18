@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,51 +10,6 @@ interface EnhancedSubscriptionTiersProps {
 }
 
 const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ onSubscriptionSelect }) => {
-  const [hasLiveConfig, setHasLiveConfig] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    initializeComponent();
-    
-    // Listen for PayPal config updates
-    const handleConfigUpdate = () => {
-      initializeComponent();
-    };
-
-    window.addEventListener('paypal-config-updated', handleConfigUpdate);
-    return () => window.removeEventListener('paypal-config-updated', handleConfigUpdate);
-  }, []);
-
-  const initializeComponent = () => {
-    try {
-      const savedClientId = localStorage.getItem('paypal_live_client_id');
-      setHasLiveConfig(!!savedClientId);
-      console.log('SubscriptionTiers: Config check', { hasLiveConfig: !!savedClientId });
-    } catch (error) {
-      console.error('SubscriptionTiers: Error checking config', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleTierSelect = (tierId: string) => {
-    console.log('SubscriptionTiers: Tier selected', { tierId });
-    onSubscriptionSelect(tierId);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-        <span className="ml-3 text-muted-foreground">Loading pricing...</span>
-      </div>
-    );
-  }
-
-  // Use simple USD pricing for all cases to avoid currency complexity
-  const currencySymbol = "$";
-  const currencyCode = "USD";
-
   const tiers = [
     {
       id: "basic",
@@ -108,23 +63,18 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
     }
   ];
 
+  const handleTierSelect = (tierId: string) => {
+    console.log('EnhancedSubscriptionTiers: Tier selected', { tierId });
+    onSubscriptionSelect(tierId);
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">Choose Your Plan</h2>
         <p className="text-muted-foreground mb-4">
-          {hasLiveConfig 
-            ? `Live PayPal payments in ${currencyCode} - Real transactions will be processed`
-            : `Demo pricing in ${currencyCode} - Test payments only`
-          }
+          One-time payment, no recurring charges. Secure payment via PayPal.
         </p>
-        {hasLiveConfig && (
-          <div className="bg-green-50 border border-green-200 p-3 rounded-lg mb-6">
-            <p className="text-sm text-green-800 font-medium">
-              🔒 Secure live payments via PayPal
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -145,7 +95,7 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
                 <CardTitle className="text-xl">{tier.name}</CardTitle>
                 <div className="space-y-1">
                   <div className="text-3xl font-bold">
-                    {currencySymbol}{tier.price.toFixed(2)}
+                    ${tier.price.toFixed(2)}
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {tier.exports} resume exports
@@ -182,7 +132,7 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
       <div className="text-center text-sm text-muted-foreground">
         <p>• All plans include ATS optimization and AI-powered suggestions</p>
         <p>• One-time payment, no recurring charges</p>
-        <p>• {hasLiveConfig ? "Secure payment processing via PayPal" : "Demo mode - test payments only"}</p>
+        <p>• Secure payment processing via PayPal</p>
       </div>
     </div>
   );
