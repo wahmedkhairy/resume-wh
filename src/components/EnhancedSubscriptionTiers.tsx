@@ -4,71 +4,62 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Zap } from "lucide-react";
-import { detectUserLocation } from "@/utils/currencyUtils";
-import { getPayPalPricing, formatPayPalPrice } from "@/utils/paypalCurrencyUtils";
 
 interface EnhancedSubscriptionTiersProps {
   onSubscriptionSelect: (tier: string) => void;
 }
 
 const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ onSubscriptionSelect }) => {
-  const [locationData, setLocationData] = useState<any>(null);
   const [hasLiveConfig, setHasLiveConfig] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkConfig = () => {
-      const savedClientId = localStorage.getItem('paypal_live_client_id');
-      setHasLiveConfig(!!savedClientId);
+    initializeComponent();
+    
+    // Listen for PayPal config updates
+    const handleConfigUpdate = () => {
+      initializeComponent();
     };
 
-    const loadLocationData = async () => {
-      try {
-        const data = await detectUserLocation();
-        setLocationData(data);
-        console.log('SubscriptionTiers: Location data loaded', data);
-      } catch (error) {
-        console.error('Error loading location data:', error);
-        // Fallback to USD pricing
-        setLocationData({
-          country: "United States",
-          countryCode: "US",
-          currency: {
-            symbol: "$",
-            code: "USD",
-            basicPrice: 2,
-            premiumPrice: 3,
-            unlimitedPrice: 4.99
-          }
-        });
-      }
-    };
-
-    checkConfig();
-    loadLocationData();
+    window.addEventListener('paypal-config-updated', handleConfigUpdate);
+    return () => window.removeEventListener('paypal-config-updated', handleConfigUpdate);
   }, []);
 
-  if (!locationData) {
+  const initializeComponent = () => {
+    try {
+      const savedClientId = localStorage.getItem('paypal_live_client_id');
+      setHasLiveConfig(!!savedClientId);
+      console.log('SubscriptionTiers: Config check', { hasLiveConfig: !!savedClientId });
+    } catch (error) {
+      console.error('SubscriptionTiers: Error checking config', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTierSelect = (tierId: string) => {
+    console.log('SubscriptionTiers: Tier selected', { tierId });
+    onSubscriptionSelect(tierId);
+  };
+
+  if (isLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        <span className="ml-3 text-muted-foreground">Loading pricing...</span>
       </div>
     );
   }
 
-  // Use USD pricing for live PayPal, location-based for demo
-  const pricing = hasLiveConfig ? getPayPalPricing() : locationData.currency;
-  const currencySymbol = hasLiveConfig ? "$" : pricing.symbol;
-  const currencyCode = hasLiveConfig ? "USD" : pricing.code;
-
-  const formatPrice = (price: number) => {
-    return hasLiveConfig ? formatPayPalPrice(price) : price.toString();
-  };
+  // Use simple USD pricing for all cases to avoid currency complexity
+  const currencySymbol = "$";
+  const currencyCode = "USD";
 
   const tiers = [
     {
       id: "basic",
       name: "Basic",
-      price: hasLiveConfig ? pricing.basicPrice : pricing.basicPrice,
+      price: 2.00,
       exports: 2,
       icon: Check,
       description: "Perfect for job seekers who need a few polished resumes",
@@ -84,7 +75,7 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
     {
       id: "premium",
       name: "Premium",
-      price: hasLiveConfig ? pricing.premiumPrice : pricing.premiumPrice,
+      price: 3.00,
       exports: 6,
       icon: Star,
       description: "Best for active job seekers targeting multiple positions",
@@ -101,7 +92,7 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
     {
       id: "unlimited",
       name: "Unlimited",
-      price: hasLiveConfig ? pricing.unlimitedPrice : pricing.unlimitedPrice,
+      price: 4.99,
       exports: "Unlimited",
       icon: Zap,
       description: "For professionals who need maximum flexibility",
@@ -124,7 +115,7 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
         <p className="text-muted-foreground mb-4">
           {hasLiveConfig 
             ? `Live PayPal payments in ${currencyCode} - Real transactions will be processed`
-            : `Pricing shown in ${currencyCode} for ${locationData.country}`
+            : `Demo pricing in ${currencyCode} - Test payments only`
           }
         </p>
         {hasLiveConfig && (
@@ -154,7 +145,7 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
                 <CardTitle className="text-xl">{tier.name}</CardTitle>
                 <div className="space-y-1">
                   <div className="text-3xl font-bold">
-                    {currencySymbol}{formatPrice(tier.price)}
+                    {currencySymbol}{tier.price.toFixed(2)}
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {tier.exports} resume exports
@@ -176,7 +167,7 @@ const EnhancedSubscriptionTiers: React.FC<EnhancedSubscriptionTiersProps> = ({ o
                 </ul>
                 
                 <Button 
-                  onClick={() => onSubscriptionSelect(tier.id)}
+                  onClick={() => handleTierSelect(tier.id)}
                   className="w-full"
                   variant={tier.id === "premium" ? "default" : "outline"}
                 >

@@ -19,76 +19,35 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
   const [showLivePaymentModal, setShowLivePaymentModal] = useState(false);
   const [selectedTier, setSelectedTier] = useState("");
   const [hasLiveConfig, setHasLiveConfig] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [pricingInfo, setPricingInfo] = useState({
-    basic: { amount: 2, currency: "USD", symbol: "$" },
-    premium: { amount: 3, currency: "USD", symbol: "$" },
-    unlimited: { amount: 4.99, currency: "USD", symbol: "$" }
-  });
+  const [isInitialized, setIsInitialized] = useState(false);
 
+  // Initialize on mount, not when dialog opens
   useEffect(() => {
-    if (isOpen) {
-      initializeDialog();
-    }
-  }, [isOpen]);
+    initializeComponent();
+  }, []);
 
-  const initializeDialog = async () => {
-    setIsLoading(true);
-    try {
-      await checkLiveConfig();
-      await loadPricingInfo();
-    } catch (error) {
-      console.error('SubscriptionDialog: Error initializing dialog', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Listen for PayPal config updates
+  useEffect(() => {
+    const handleConfigUpdate = () => {
+      console.log('SubscriptionDialog: PayPal config updated, reinitializing');
+      initializeComponent();
+    };
 
-  const checkLiveConfig = async () => {
-    const savedClientId = localStorage.getItem('paypal_live_client_id');
-    const hasConfig = !!savedClientId;
-    setHasLiveConfig(hasConfig);
-    console.log('SubscriptionDialog: Live config check', { hasLiveConfig: hasConfig });
-    return hasConfig;
-  };
+    window.addEventListener('paypal-config-updated', handleConfigUpdate);
+    return () => window.removeEventListener('paypal-config-updated', handleConfigUpdate);
+  }, []);
 
-  const loadPricingInfo = async () => {
+  const initializeComponent = () => {
+    console.log('SubscriptionDialog: Initializing component');
     try {
       const savedClientId = localStorage.getItem('paypal_live_client_id');
-      
-      if (savedClientId) {
-        // Use USD pricing for live PayPal
-        setPricingInfo({
-          basic: { amount: 2, currency: "USD", symbol: "$" },
-          premium: { amount: 3, currency: "USD", symbol: "$" },
-          unlimited: { amount: 4.99, currency: "USD", symbol: "$" }
-        });
-        console.log('SubscriptionDialog: Using live PayPal pricing');
-      } else {
-        // Use location-based pricing for demo mode
-        const locationData = await detectUserLocation();
-        setPricingInfo({
-          basic: { 
-            amount: locationData.currency.basicPrice, 
-            currency: locationData.currency.code, 
-            symbol: locationData.currency.symbol 
-          },
-          premium: { 
-            amount: locationData.currency.premiumPrice, 
-            currency: locationData.currency.code, 
-            symbol: locationData.currency.symbol 
-          },
-          unlimited: { 
-            amount: locationData.currency.unlimitedPrice, 
-            currency: locationData.currency.code, 
-            symbol: locationData.currency.symbol 
-          }
-        });
-        console.log('SubscriptionDialog: Using location-based pricing', locationData);
-      }
+      const hasConfig = !!savedClientId;
+      setHasLiveConfig(hasConfig);
+      setIsInitialized(true);
+      console.log('SubscriptionDialog: Initialization complete', { hasLiveConfig: hasConfig });
     } catch (error) {
-      console.error("SubscriptionDialog: Error loading pricing info:", error);
-      // Keep default USD pricing on error
+      console.error('SubscriptionDialog: Error during initialization', error);
+      setIsInitialized(true); // Still mark as initialized to prevent loading loop
     }
   };
 
@@ -96,42 +55,68 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
     console.log('SubscriptionDialog: Subscription selected', { tier, hasLiveConfig });
     
     setSelectedTier(tier);
+    setIsOpen(false); // Close dialog first
     
-    if (hasLiveConfig) {
-      // Use live PayPal payment
-      setShowLivePaymentModal(true);
-      setIsOpen(false);
-    } else {
-      // Use demo payment
-      setShowPaymentModal(true);
-      setIsOpen(false);
-    }
+    // Small delay to ensure dialog closes before opening payment modal
+    setTimeout(() => {
+      if (hasLiveConfig) {
+        console.log('SubscriptionDialog: Opening live payment modal');
+        setShowLivePaymentModal(true);
+      } else {
+        console.log('SubscriptionDialog: Opening demo payment modal');
+        setShowPaymentModal(true);
+      }
+    }, 100);
   };
 
   const handleClientIdSaved = (clientId: string) => {
     console.log('SubscriptionDialog: Client ID saved, updating config');
     setHasLiveConfig(true);
-    loadPricingInfo(); // Reload pricing when config changes
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    console.log('SubscriptionDialog: Dialog open state changed', { open });
+    setIsOpen(open);
+    
+    // Reset any error states when dialog closes
+    if (!open) {
+      setSelectedTier("");
+    }
   };
 
   const getCurrentPricing = () => {
+    // Use simple default pricing to avoid async loading issues
+    const defaultPricing = {
+      basic: { amount: 2, currency: "USD", symbol: "$" },
+      premium: { amount: 3, currency: "USD", symbol: "$" },
+      unlimited: { amount: 4.99, currency: "USD", symbol: "$" }
+    };
+
     switch (selectedTier) {
       case "basic":
-        return pricingInfo.basic;
+        return defaultPricing.basic;
       case "premium":
-        return pricingInfo.premium;
+        return defaultPricing.premium;
       case "unlimited":
-        return pricingInfo.unlimited;
+        return defaultPricing.unlimited;
       default:
-        return pricingInfo.basic;
+        return defaultPricing.basic;
     }
   };
 
   const currentPricing = getCurrentPricing();
 
+  if (!isInitialized) {
+    return (
+      <div className="inline-block">
+        {children}
+      </div>
+    );
+  }
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
         <DialogTrigger asChild>
           {children}
         </DialogTrigger>
@@ -148,12 +133,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
             </DialogDescription>
           </DialogHeader>
           
-          {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-              <span className="ml-3 text-muted-foreground">Loading subscription options...</span>
-            </div>
-          ) : hasLiveConfig ? (
+          {hasLiveConfig ? (
             <Tabs defaultValue="plans" className="mt-6">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="plans">Choose Plan</TabsTrigger>
@@ -191,21 +171,25 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
       </Dialog>
 
       {/* Demo Payment Modal */}
-      <PaymentModal 
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        selectedTier={selectedTier}
-        amount={currentPricing.amount}
-        currency={currentPricing.currency}
-        symbol={currentPricing.symbol}
-      />
+      {showPaymentModal && (
+        <PaymentModal 
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          selectedTier={selectedTier}
+          amount={currentPricing.amount}
+          currency={currentPricing.currency}
+          symbol={currentPricing.symbol}
+        />
+      )}
 
       {/* Live Payment Modal */}
-      <LivePaymentModal 
-        isOpen={showLivePaymentModal}
-        onClose={() => setShowLivePaymentModal(false)}
-        selectedTier={selectedTier}
-      />
+      {showLivePaymentModal && (
+        <LivePaymentModal 
+          isOpen={showLivePaymentModal}
+          onClose={() => setShowLivePaymentModal(false)}
+          selectedTier={selectedTier}
+        />
+      )}
     </>
   );
 };

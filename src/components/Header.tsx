@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FileText, CreditCard, LogIn, UserPlus } from "lucide-react";
 import SubscriptionDialog from "./SubscriptionDialog";
+import ErrorBoundary from "./ErrorBoundary";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -47,12 +48,19 @@ const Header = () => {
             Sign Up
           </Button>
           
-          <SubscriptionDialog>
-            <Button variant="default" size="sm" className="flex items-center">
+          <ErrorBoundary fallback={
+            <Button variant="default" size="sm" disabled>
               <CreditCard className="mr-2 h-4 w-4" />
               Upgrade
             </Button>
-          </SubscriptionDialog>
+          }>
+            <SubscriptionDialog>
+              <Button variant="default" size="sm" className="flex items-center">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Upgrade
+              </Button>
+            </SubscriptionDialog>
+          </ErrorBoundary>
         </div>
       </div>
     </header>
