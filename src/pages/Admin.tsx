@@ -6,9 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import UserSettings from "@/components/UserSettings";
 import SitemapUploader from "@/components/SitemapUploader";
+import PayPalLiveSettings from "@/components/PayPalLiveSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, FileText } from "lucide-react";
+import { Shield, Settings, FileText, CreditCard } from "lucide-react";
 
 const Admin = () => {
   const [user, setUser] = useState<any>(null);
@@ -67,10 +68,14 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="settings" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
                 User Settings
+              </TabsTrigger>
+              <TabsTrigger value="paypal" className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                PayPal Setup
               </TabsTrigger>
               <TabsTrigger value="sitemap" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
@@ -84,6 +89,10 @@ const Admin = () => {
 
             <TabsContent value="settings">
               <UserSettings />
+            </TabsContent>
+
+            <TabsContent value="paypal">
+              <PayPalLiveSettings />
             </TabsContent>
 
             <TabsContent value="sitemap">

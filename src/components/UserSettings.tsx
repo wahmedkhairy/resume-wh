@@ -5,17 +5,27 @@ import { supabase } from "@/integrations/supabase/client";
 import UserInfoCard from "./UserInfoCard";
 import SubscriptionCard from "./SubscriptionCard";
 import GeneralSettingsCard from "./GeneralSettingsCard";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CreditCard, ExternalLink } from "lucide-react";
 
 const UserSettings: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const [hasLivePayPal, setHasLivePayPal] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     loadUserData();
+    checkPayPalConfig();
   }, []);
+
+  const checkPayPalConfig = () => {
+    const savedClientId = localStorage.getItem('paypal_live_client_id');
+    setHasLivePayPal(!!savedClientId);
+  };
 
   const loadUserData = async () => {
     try {
@@ -52,6 +62,7 @@ const UserSettings: React.FC = () => {
     try {
       setIsLoading(true);
       await loadUserData();
+      checkPayPalConfig();
       toast({
         title: "Refreshed",
         description: "User data has been refreshed.",
@@ -62,6 +73,14 @@ const UserSettings: React.FC = () => {
         description: "Failed to refresh data.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handlePayPalSetup = () => {
+    // Navigate to PayPal tab
+    const paypalTab = document.querySelector('[value="paypal"]') as HTMLButtonElement;
+    if (paypalTab) {
+      paypalTab.click();
     }
   };
 
@@ -84,6 +103,37 @@ const UserSettings: React.FC = () => {
         subscription={subscription}
         onRefreshSubscription={refreshSubscription}
       />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Payment Configuration
+          </CardTitle>
+          <CardDescription>Configure your payment processing settings</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Live PayPal Configuration</p>
+              <p className="text-sm text-muted-foreground">
+                {hasLivePayPal 
+                  ? "✅ Live PayPal credentials configured" 
+                  : "⚠️ Live PayPal not configured - using demo mode"
+                }
+              </p>
+            </div>
+            <Button 
+              variant={hasLivePayPal ? "outline" : "default"}
+              onClick={handlePayPalSetup}
+              className="flex items-center gap-2"
+            >
+              {hasLivePayPal ? "Update" : "Setup"}
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <GeneralSettingsCard 
         emailNotifications={emailNotifications}
