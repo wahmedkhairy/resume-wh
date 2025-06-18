@@ -1,4 +1,3 @@
-
 import { loadScript } from "@paypal/paypal-js";
 
 export interface LivePayPalOrderData {
@@ -33,12 +32,11 @@ export class LivePayPalService {
       
       console.log('Initializing Live PayPal with Client ID:', liveClientId.substring(0, 10) + '...');
 
-      // Load PayPal SDK with live environment
+      // Load PayPal SDK with live environment (production is default when using live client ID)
       this.paypal = await loadScript({
         clientId: liveClientId,
         currency: "USD",
-        intent: "capture",
-        "data-environment": "production" // Use production environment
+        intent: "capture"
       });
 
       this.isInitialized = true;
