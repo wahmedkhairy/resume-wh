@@ -8,7 +8,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import SubscriptionDialog from "./SubscriptionDialog";
 
 interface ExportControlsProps {
@@ -110,30 +109,6 @@ const ExportControls: React.FC<ExportControlsProps> = ({
           )}
         </div>
       </div>
-
-      {!canExportResume && (
-        <Alert>
-          <Crown className="h-4 w-4" />
-          <AlertDescription>
-            <div className="flex items-center justify-between">
-              <span>
-                {isTailoredResume 
-                  ? "Upgrade to a plan to export your targeted resumes as PDF or Word document."
-                  : !isPremiumUser 
-                    ? "Upgrade to a plan to export your resume as PDF or Word document."
-                    : `You have ${currentSubscription?.scan_count || 0} exports remaining. Upgrade to unlimited for unlimited exports.`
-                }
-              </span>
-              <SubscriptionDialog>
-                <Button variant="outline" size="sm" className="ml-4">
-                  <Crown className="mr-2 h-4 w-4" />
-                  {!isPremiumUser ? "Upgrade Now" : "Get Unlimited"}
-                </Button>
-              </SubscriptionDialog>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
     </div>
   );
 };
