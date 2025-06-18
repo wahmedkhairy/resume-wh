@@ -2,7 +2,10 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Star, Quote, TrendingUp, Users, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import SubscriptionDialog from "./SubscriptionDialog";
 
 interface SuccessStory {
   id: string;
@@ -18,6 +21,8 @@ interface SuccessStory {
 }
 
 const UserSuccessStories: React.FC = () => {
+  const { toast } = useToast();
+  
   const successStories: SuccessStory[] = [
     {
       id: "1",
@@ -63,6 +68,25 @@ const UserSuccessStories: React.FC = () => {
     { icon: CheckCircle, label: "Interview Success Rate", value: "78%" },
   ];
 
+  const handleStartBuilding = () => {
+    console.log('User clicked Start Building Resume');
+    // Scroll to top and switch to editor
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    toast({
+      title: "Let's Build Your Resume!",
+      description: "Start creating your professional resume in the editor above.",
+    });
+  };
+
+  const handleViewMoreStories = () => {
+    console.log('User clicked View More Stories');
+    toast({
+      title: "More Success Stories Coming Soon!",
+      description: "We're adding more inspiring stories from our users. Stay tuned!",
+    });
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -76,7 +100,7 @@ const UserSuccessStories: React.FC = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {stats.map((stat, index) => (
-          <Card key={index} className="text-center">
+          <Card key={index} className="text-center hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <stat.icon className="h-8 w-8 mx-auto mb-3 text-primary" />
               <div className="text-3xl font-bold text-primary mb-1">{stat.value}</div>
@@ -97,6 +121,10 @@ const UserSuccessStories: React.FC = () => {
                   src={`https://images.unsplash.com/${story.image}?w=64&h=64&fit=crop&crop=face`}
                   alt={story.name}
                   className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => {
+                    // Fallback for broken images
+                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(story.name)}&background=6366f1&color=fff&size=64`;
+                  }}
                 />
                 <div>
                   <h4 className="font-semibold">{story.name}</h4>
@@ -143,12 +171,21 @@ const UserSuccessStories: React.FC = () => {
           Join thousands of professionals who transformed their careers with our platform
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors">
+          <Button
+            onClick={handleStartBuilding}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            size="lg"
+          >
             Start Building Your Resume
-          </button>
-          <button className="border border-input bg-background hover:bg-accent hover:text-accent-foreground px-6 py-3 rounded-lg font-medium transition-colors">
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleViewMoreStories}
+            size="lg"
+            className="hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
             View More Stories
-          </button>
+          </Button>
         </div>
       </div>
     </div>

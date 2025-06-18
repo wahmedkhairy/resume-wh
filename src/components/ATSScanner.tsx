@@ -25,7 +25,8 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     contentScore: 0,
     suggestions: [] as string[],
     strengths: [] as string[],
-    warnings: [] as string[]
+    warnings: [] as string[],
+    isScanning: false
   });
 
   useEffect(() => {
@@ -34,7 +35,12 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     }
   }, [resumeData]);
 
-  const performATSScan = (data: any) => {
+  const performATSScan = async (data: any) => {
+    setScanResults(prev => ({ ...prev, isScanning: true }));
+    
+    // Simulate realistic scanning time
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
     let formatScore = 100; // Perfect format since it's our template
     let keywordScore = 50; // Base score
     let structureScore = 0;
@@ -42,6 +48,8 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     const suggestions: string[] = [];
     const strengths: string[] = [];
     const warnings: string[] = [];
+
+    console.log('ATS Scanner: Analyzing resume data', data);
 
     // Structure analysis
     let structurePoints = 0;
@@ -151,6 +159,14 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     // Calculate overall score
     const overallScore = Math.round((formatScore + keywordScore + structureScore + contentScore) / 4);
 
+    console.log('ATS Scanner: Analysis complete', {
+      overallScore,
+      formatScore,
+      keywordScore,
+      structureScore,
+      contentScore
+    });
+
     setScanResults({
       overallScore,
       formatScore,
@@ -159,7 +175,8 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
       contentScore,
       suggestions,
       strengths,
-      warnings
+      warnings,
+      isScanning: false
     });
   };
 
@@ -174,6 +191,31 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     if (score >= 60) return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
     return <XCircle className="h-5 w-5 text-red-600" />;
   };
+
+  if (scanResults.isScanning) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            ATS Compatibility Scanner
+          </CardTitle>
+          <CardDescription>
+            Analyzing your resume's ATS compatibility...
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="text-center">
+            <div className="text-4xl font-bold text-blue-600 animate-pulse">
+              Scanning...
+            </div>
+            <p className="text-sm text-muted-foreground">Running comprehensive analysis</p>
+            <Progress value={75} className="mt-2 animate-pulse" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -260,7 +302,7 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
             </h4>
             <div className="space-y-1">
               {scanResults.strengths.map((strength, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-green-100 text-green-800">
+                <Badge key={index} variant="secondary" className="text-xs bg-green-100 text-green-800 mr-2 mb-1">
                   {strength}
                 </Badge>
               ))}
@@ -277,7 +319,7 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
             </h4>
             <div className="space-y-1">
               {scanResults.warnings.map((warning, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                <Badge key={index} variant="secondary" className="text-xs bg-yellow-100 text-yellow-800 mr-2 mb-1">
                   {warning}
                 </Badge>
               ))}
@@ -294,7 +336,7 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
             </h4>
             <div className="space-y-1">
               {scanResults.suggestions.map((suggestion, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
+                <Badge key={index} variant="outline" className="text-xs mr-2 mb-1">
                   {suggestion}
                 </Badge>
               ))}

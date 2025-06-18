@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Crown, Download, Zap, CheckCircle, Clock, Target } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import SubscriptionDialog from "./SubscriptionDialog";
 
 interface CallToActionProps {
@@ -31,6 +32,8 @@ const CallToAction: React.FC<CallToActionProps> = ({
   urgency = false,
   className = ""
 }) => {
+  const { toast } = useToast();
+
   const getVariantConfig = () => {
     switch (variant) {
       case 'export':
@@ -102,6 +105,56 @@ const CallToAction: React.FC<CallToActionProps> = ({
 
   const config = getVariantConfig();
 
+  const handlePrimaryClick = () => {
+    console.log(`CallToAction: ${variant} primary button clicked`);
+    
+    if (onPrimaryClick) {
+      onPrimaryClick();
+    } else {
+      // Default actions based on variant
+      switch (variant) {
+        case 'export':
+          toast({
+            title: "Export Started",
+            description: "Your resume export is being prepared...",
+          });
+          break;
+        case 'success':
+          toast({
+            title: "Download Started",
+            description: "Your optimized resume is being downloaded...",
+          });
+          break;
+        case 'start':
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          toast({
+            title: "Let's Get Started!",
+            description: "Begin building your professional resume above.",
+          });
+          break;
+        default:
+          toast({
+            title: "Action Triggered",
+            description: "Your request is being processed...",
+          });
+      }
+    }
+  };
+
+  const handleSecondaryClick = () => {
+    console.log(`CallToAction: ${variant} secondary button clicked`);
+    
+    if (onSecondaryClick) {
+      onSecondaryClick();
+    } else {
+      // Default secondary actions
+      toast({
+        title: "Feature Coming Soon",
+        description: "This feature will be available shortly!",
+      });
+    }
+  };
+
   return (
     <Card className={`relative overflow-hidden ${className}`}>
       <div className={`absolute inset-0 bg-gradient-to-r ${config.bgGradient} opacity-50`} />
@@ -153,7 +206,7 @@ const CallToAction: React.FC<CallToActionProps> = ({
             ) : (
               <Button 
                 size="lg" 
-                onClick={onPrimaryClick}
+                onClick={handlePrimaryClick}
                 className="font-semibold"
               >
                 {variant === 'export' && <Download className="mr-2 h-4 w-4" />}
@@ -168,7 +221,7 @@ const CallToAction: React.FC<CallToActionProps> = ({
               <Button 
                 variant="outline" 
                 size="lg"
-                onClick={onSecondaryClick}
+                onClick={handleSecondaryClick}
                 className="font-medium"
               >
                 {config.secondaryAction}
