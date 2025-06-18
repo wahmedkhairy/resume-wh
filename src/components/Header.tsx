@@ -1,10 +1,21 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { FileText, CreditCard } from "lucide-react";
+import { FileText, CreditCard, LogIn, UserPlus } from "lucide-react";
 import SubscriptionDialog from "./SubscriptionDialog";
 
 const Header = () => {
+  const navigate = useNavigate();
+
+  const handleSignIn = () => {
+    navigate("/auth");
+  };
+
+  const handleSignUp = () => {
+    navigate("/auth");
+  };
+
   return (
     <header className="bg-white dark:bg-gray-900 border-b py-4 px-6">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -16,6 +27,26 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center"
+            onClick={handleSignIn}
+          >
+            <LogIn className="mr-2 h-4 w-4" />
+            Sign In
+          </Button>
+          
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="flex items-center"
+            onClick={handleSignUp}
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Sign Up
+          </Button>
+          
           <SubscriptionDialog>
             <Button variant="default" size="sm" className="flex items-center">
               <CreditCard className="mr-2 h-4 w-4" />
