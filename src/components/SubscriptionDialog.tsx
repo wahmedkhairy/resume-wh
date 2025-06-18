@@ -19,6 +19,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
   const [showLivePaymentModal, setShowLivePaymentModal] = useState(false);
   const [selectedTier, setSelectedTier] = useState("");
   const [hasLiveConfig, setHasLiveConfig] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [pricingInfo, setPricingInfo] = useState({
     basic: { amount: 2, currency: "USD", symbol: "$" },
     premium: { amount: 3, currency: "USD", symbol: "$" },
@@ -27,20 +28,32 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
 
   useEffect(() => {
     if (isOpen) {
-      checkLiveConfig();
-      loadPricingInfo();
+      initializeDialog();
     }
   }, [isOpen]);
 
-  const checkLiveConfig = () => {
+  const initializeDialog = async () => {
+    setIsLoading(true);
+    try {
+      await checkLiveConfig();
+      await loadPricingInfo();
+    } catch (error) {
+      console.error('SubscriptionDialog: Error initializing dialog', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkLiveConfig = async () => {
     const savedClientId = localStorage.getItem('paypal_live_client_id');
-    setHasLiveConfig(!!savedClientId);
-    console.log('SubscriptionDialog: Live config check', { hasLiveConfig: !!savedClientId });
+    const hasConfig = !!savedClientId;
+    setHasLiveConfig(hasConfig);
+    console.log('SubscriptionDialog: Live config check', { hasLiveConfig: hasConfig });
+    return hasConfig;
   };
 
   const loadPricingInfo = async () => {
     try {
-      // Check if live PayPal is configured
       const savedClientId = localStorage.getItem('paypal_live_client_id');
       
       if (savedClientId) {
@@ -135,7 +148,12 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({ children }) => 
             </DialogDescription>
           </DialogHeader>
           
-          {hasLiveConfig ? (
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              <span className="ml-3 text-muted-foreground">Loading subscription options...</span>
+            </div>
+          ) : hasLiveConfig ? (
             <Tabs defaultValue="plans" className="mt-6">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="plans">Choose Plan</TabsTrigger>
