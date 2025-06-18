@@ -3,7 +3,6 @@ import React from "react";
 import ATSScanner from "@/components/ATSScanner";
 import ATSPerformanceTracker from "@/components/ATSPerformanceTracker";
 import LiveATSSimulator from "@/components/LiveATSSimulator";
-import UserSuccessStories from "@/components/UserSuccessStories";
 import CallToAction from "@/components/CallToAction";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -30,11 +29,10 @@ const ATSSection: React.FC<ATSSectionProps> = ({ resumeData }) => {
       </div>
 
       <Tabs defaultValue="simulator" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="simulator">Live Simulator</TabsTrigger>
           <TabsTrigger value="analysis">ATS Analysis</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="success">Success Stories</TabsTrigger>
         </TabsList>
         
         <TabsContent value="simulator" className="space-y-6">
@@ -83,15 +81,6 @@ const ATSSection: React.FC<ATSSectionProps> = ({ resumeData }) => {
             variant="success" 
             title="Optimize Your Performance"
             description="Your resume performance analysis is complete. Download your optimized resume and start applying with confidence."
-          />
-        </TabsContent>
-        
-        <TabsContent value="success" className="space-y-6">
-          <UserSuccessStories />
-          <CallToAction 
-            variant="start" 
-            title="Join Our Success Stories"
-            description="Ready to transform your career like thousands of others? Start building your professional resume today."
           />
         </TabsContent>
       </Tabs>

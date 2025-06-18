@@ -9,6 +9,7 @@ import PreviewSection from "@/components/PreviewSection";
 import SubscriptionStatus from "@/components/SubscriptionStatus";
 import ExportControls from "@/components/ExportControls";
 import CallToAction from "@/components/CallToAction";
+import UserSuccessStories from "@/components/UserSuccessStories";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useResumeData } from "@/hooks/useResumeData";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -178,6 +179,9 @@ const Index = () => {
             <SettingsSection />
           </Suspense>
         );
+      
+      case "success-stories":
+        return <UserSuccessStories />;
       
       case "ats":
         return (
