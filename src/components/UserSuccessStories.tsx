@@ -1,11 +1,10 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, Quote, TrendingUp, Users, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import SubscriptionDialog from "./SubscriptionDialog";
+import LiveSubscriptionDialog from "./LiveSubscriptionDialog";
 
 interface SuccessStory {
   id: string;

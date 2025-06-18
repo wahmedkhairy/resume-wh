@@ -7,7 +7,7 @@ import { Loader2, Sparkles, FileText, AlertCircle, Info, Crown } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import SubscriptionDialog from "./SubscriptionDialog";
+import LiveSubscriptionDialog from "./LiveSubscriptionDialog";
 
 interface TailoredResumeGeneratorProps {
   resumeData: any;
@@ -241,12 +241,12 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
             <AlertDescription>
               <div className="flex items-center justify-between">
                 <span>Upgrade to a plan to export your targeted resumes as PDF or Word document.</span>
-                <SubscriptionDialog>
+                <LiveSubscriptionDialog>
                   <Button variant="outline" size="sm" className="ml-4">
                     <Crown className="mr-2 h-4 w-4" />
                     Upgrade Now
                   </Button>
-                </SubscriptionDialog>
+                </LiveSubscriptionDialog>
               </div>
             </AlertDescription>
           </Alert>
@@ -288,12 +288,12 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
             )}
           </Button>
         ) : (
-          <SubscriptionDialog>
+          <LiveSubscriptionDialog>
             <Button className="w-full opacity-75">
               <Crown className="mr-2 h-4 w-4" />
               🔒 Upgrade to Generate More Resumes
             </Button>
-          </SubscriptionDialog>
+          </LiveSubscriptionDialog>
         )}
 
         {!canGenerate && usageConfig.limit !== 999 && (
