@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import SubscriptionDialog from "./SubscriptionDialog";
+import LiveSubscriptionDialog from "./LiveSubscriptionDialog";
 
 interface ExportControlsProps {
   onSave: () => void;
@@ -100,12 +100,12 @@ const ExportControls: React.FC<ExportControlsProps> = ({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <SubscriptionDialog>
+            <LiveSubscriptionDialog>
               <Button className="opacity-75">
                 <Crown className="mr-2 h-4 w-4" />
                 Export Resume
               </Button>
-            </SubscriptionDialog>
+            </LiveSubscriptionDialog>
           )}
         </div>
       </div>

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Crown, Download, Zap, CheckCircle, Clock, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import SubscriptionDialog from "./SubscriptionDialog";
+import LiveSubscriptionDialog from "./LiveSubscriptionDialog";
 
 interface CallToActionProps {
   variant?: 'export' | 'upgrade' | 'start' | 'success';
@@ -196,13 +196,13 @@ const CallToAction: React.FC<CallToActionProps> = ({
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
             {variant === 'upgrade' ? (
-              <SubscriptionDialog>
+              <LiveSubscriptionDialog>
                 <Button size="lg" className="font-semibold">
                   <Crown className="mr-2 h-4 w-4" />
                   {config.primaryAction}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              </SubscriptionDialog>
+              </LiveSubscriptionDialog>
             ) : (
               <Button 
                 size="lg" 

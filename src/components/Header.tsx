@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FileText, CreditCard, LogIn, UserPlus } from "lucide-react";
-import SubscriptionDialog from "./SubscriptionDialog";
+import LiveSubscriptionDialog from "./LiveSubscriptionDialog";
 import ErrorBoundary from "./ErrorBoundary";
 
 const Header = () => {
@@ -54,12 +54,12 @@ const Header = () => {
               Upgrade
             </Button>
           }>
-            <SubscriptionDialog>
+            <LiveSubscriptionDialog>
               <Button variant="default" size="sm" className="flex items-center">
                 <CreditCard className="mr-2 h-4 w-4" />
                 Upgrade
               </Button>
-            </SubscriptionDialog>
+            </LiveSubscriptionDialog>
           </ErrorBoundary>
         </div>
       </div>
