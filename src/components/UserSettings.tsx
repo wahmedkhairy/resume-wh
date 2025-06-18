@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,10 +19,22 @@ const UserSettings: React.FC = () => {
   useEffect(() => {
     loadUserData();
     checkPayPalConfig();
+
+    // Listen for PayPal config updates
+    const handlePayPalUpdate = () => {
+      checkPayPalConfig();
+    };
+
+    window.addEventListener('paypal-config-updated', handlePayPalUpdate);
+    
+    return () => {
+      window.removeEventListener('paypal-config-updated', handlePayPalUpdate);
+    };
   }, []);
 
   const checkPayPalConfig = () => {
     const savedClientId = localStorage.getItem('paypal_live_client_id');
+    console.log('Checking PayPal config:', { savedClientId });
     setHasLivePayPal(!!savedClientId);
   };
 

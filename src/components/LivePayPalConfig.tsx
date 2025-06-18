@@ -28,6 +28,8 @@ const LivePayPalConfig: React.FC<LivePayPalConfigProps> = ({ onClientIdSaved }) 
   }, []);
 
   const handleSave = async () => {
+    console.log("Save button clicked", { liveClientId });
+    
     if (!liveClientId.trim()) {
       toast({
         title: "Client ID Required",
@@ -37,31 +39,38 @@ const LivePayPalConfig: React.FC<LivePayPalConfigProps> = ({ onClientIdSaved }) 
       return;
     }
 
-    // Validate Client ID format (basic validation)
-    if (!liveClientId.includes('AZaL') && !liveClientId.includes('sb')) {
+    // Basic validation - PayPal live client IDs typically start with specific patterns
+    if (liveClientId.length < 20) {
       toast({
         title: "Invalid Client ID",
-        description: "Please check your PayPal Client ID format.",
+        description: "Please check your PayPal Client ID format. It should be longer than 20 characters.",
         variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
+    console.log("Saving PayPal Live Client ID to localStorage");
 
     try {
-      // Save to localStorage for now
-      localStorage.setItem('paypal_live_client_id', liveClientId);
+      // Save to localStorage
+      localStorage.setItem('paypal_live_client_id', liveClientId.trim());
       setIsSaved(true);
       
+      console.log("PayPal Live Client ID saved successfully");
+      
       if (onClientIdSaved) {
-        onClientIdSaved(liveClientId);
+        onClientIdSaved(liveClientId.trim());
       }
 
       toast({
         title: "Configuration Saved",
         description: "Your live PayPal Client ID has been saved successfully.",
       });
+
+      // Dispatch a custom event to notify other components
+      window.dispatchEvent(new CustomEvent('paypal-config-updated'));
+      
     } catch (error) {
       console.error('Error saving PayPal config:', error);
       toast({
@@ -71,6 +80,16 @@ const LivePayPalConfig: React.FC<LivePayPalConfigProps> = ({ onClientIdSaved }) 
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLiveClientId(value);
+    
+    // Reset saved state when user modifies the input
+    if (isSaved && value !== localStorage.getItem('paypal_live_client_id')) {
+      setIsSaved(false);
     }
   };
 
@@ -100,8 +119,8 @@ const LivePayPalConfig: React.FC<LivePayPalConfigProps> = ({ onClientIdSaved }) 
             id="live-client-id"
             type="text"
             value={liveClientId}
-            onChange={(e) => setLiveClientId(e.target.value)}
-            placeholder="Enter your Live Client ID (starts with AZaL...)"
+            onChange={handleInputChange}
+            placeholder="Enter your Live Client ID (e.g., AZaL...)"
             className={isSaved ? "border-green-500 bg-green-50" : ""}
           />
           <p className="text-xs text-muted-foreground">
@@ -124,6 +143,7 @@ const LivePayPalConfig: React.FC<LivePayPalConfigProps> = ({ onClientIdSaved }) 
           onClick={handleSave} 
           disabled={isLoading || !liveClientId.trim()}
           className="w-full"
+          type="button"
         >
           <Save className="mr-2 h-4 w-4" />
           {isLoading ? "Saving..." : isSaved ? "Update Configuration" : "Save Live Configuration"}
