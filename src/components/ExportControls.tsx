@@ -1,6 +1,5 @@
 
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Download, Save, FileText, Crown } from "lucide-react";
 import { 
@@ -9,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import LiveSubscriptionDialog from "@/components/LiveSubscriptionDialog";
 
 interface ExportControlsProps {
   onSave: () => void;
@@ -36,7 +36,6 @@ const ExportControls: React.FC<ExportControlsProps> = ({
   currentSubscription,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const navigate = useNavigate();
 
   // For targeted resumes, check if user can export them
   const canExportTailoredResume = () => {
@@ -56,11 +55,6 @@ const ExportControls: React.FC<ExportControlsProps> = ({
       onExportWord();
     }
     setDropdownOpen(false);
-  };
-
-  const handleUpgradeClick = () => {
-    console.log('ExportControls: Upgrade button clicked - navigating to subscription page');
-    navigate("/subscription");
   };
 
   const canExportResume = canExportTailoredResume();
@@ -106,13 +100,12 @@ const ExportControls: React.FC<ExportControlsProps> = ({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button 
-              className="opacity-75 bg-blue-600 hover:bg-blue-700"
-              onClick={handleUpgradeClick}
-            >
-              <Crown className="mr-2 h-4 w-4" />
-              Export Resume
-            </Button>
+            <LiveSubscriptionDialog>
+              <Button className="opacity-75 bg-blue-600 hover:bg-blue-700">
+                <Crown className="mr-2 h-4 w-4" />
+                Export Resume
+              </Button>
+            </LiveSubscriptionDialog>
           )}
         </div>
       </div>

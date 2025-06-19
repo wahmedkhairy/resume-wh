@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FileText, CreditCard, LogIn, UserPlus } from "lucide-react";
+import LiveSubscriptionDialog from "@/components/LiveSubscriptionDialog";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -13,11 +14,6 @@ const Header = () => {
 
   const handleSignUp = () => {
     navigate("/auth");
-  };
-
-  const handleUpgradeClick = () => {
-    console.log('Header: Upgrade button clicked - navigating to subscription page');
-    navigate("/subscription");
   };
 
   return (
@@ -51,15 +47,16 @@ const Header = () => {
             Sign Up
           </Button>
           
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="flex items-center bg-blue-600 hover:bg-blue-700"
-            onClick={handleUpgradeClick}
-          >
-            <CreditCard className="mr-2 h-4 w-4" />
-            Upgrade
-          </Button>
+          <LiveSubscriptionDialog>
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="flex items-center bg-blue-600 hover:bg-blue-700"
+            >
+              <CreditCard className="mr-2 h-4 w-4" />
+              Upgrade
+            </Button>
+          </LiveSubscriptionDialog>
         </div>
       </div>
     </header>
