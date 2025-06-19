@@ -109,68 +109,70 @@ const ATSPerformanceTracker: React.FC<ATSPerformanceTrackerProps> = ({ resumeDat
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Overall Performance */}
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
+        <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <div className={`text-3xl font-bold ${getScoreColor(averageScore)}`}>
             {averageScore}%
           </div>
           <p className="text-sm text-muted-foreground">Average ATS Compatibility</p>
-          <Progress value={averageScore} className="mt-2" />
+          <Progress value={averageScore} className="mt-2 w-full" />
         </div>
 
         {/* Individual ATS Performance */}
         <div className="space-y-4">
-          <h4 className="font-medium text-gray-900 flex items-center gap-2">
+          <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Performance by ATS System
           </h4>
           
-          {atsSystemsPerformance.map((system) => (
-            <div key={system.name} className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h5 className="font-semibold text-gray-900">{system.name}</h5>
-                  <p className="text-xs text-gray-500">Market Share: {system.marketShare}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {atsSystemsPerformance.map((system) => (
+              <div key={system.name} className="border rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <h5 className="font-semibold text-gray-900 dark:text-white truncate">{system.name}</h5>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Market Share: {system.marketShare}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {getScoreIcon(system.score)}
+                    <span className={`font-semibold ${getScoreColor(system.score)}`}>
+                      {system.score}%
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {getScoreIcon(system.score)}
-                  <span className={`font-semibold ${getScoreColor(system.score)}`}>
-                    {system.score}%
-                  </span>
-                </div>
+                
+                <Progress value={system.score} className="h-2 w-full" />
+                
+                {system.strengths.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-green-700 dark:text-green-400">Strengths:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {system.strengths.map((strength, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          {strength}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {system.issues.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-red-700 dark:text-red-400">Potential Issues:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {system.issues.map((issue, index) => (
+                        <Badge key={index} variant="outline" className="text-xs border-red-200 text-red-700 dark:border-red-800 dark:text-red-400">
+                          {issue}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              
-              <Progress value={system.score} className="h-2" />
-              
-              {system.strengths.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-green-700 mb-1">Strengths:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {system.strengths.map((strength, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs bg-green-100 text-green-800">
-                        {strength}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {system.issues.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-red-700 mb-1">Potential Issues:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {system.issues.map((issue, index) => (
-                      <Badge key={index} variant="outline" className="text-xs border-red-200 text-red-700">
-                        {issue}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg">
+        <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
           <p className="font-medium mb-1">💡 Pro Tip:</p>
           <p>Different ATS systems have varying parsing capabilities. A score above 85% indicates excellent compatibility with that specific system.</p>
         </div>

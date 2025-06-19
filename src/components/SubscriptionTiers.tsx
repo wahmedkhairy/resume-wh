@@ -111,7 +111,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
                     <p>{tier.exports} resume exports</p>
                     <div className="flex items-center justify-center gap-1">
                       <Target className="h-3 w-3" />
-                      <span>{tier.targetedResumes} targeted resumes</span>
+                      <span>{tier.targetedResumes} targeted job resumes</span>
                     </div>
                   </div>
                 </div>

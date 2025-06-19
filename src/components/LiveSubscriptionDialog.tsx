@@ -37,7 +37,7 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
           {children}
         </DialogTrigger>
         
-        <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
+        <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
           <DialogHeader className="space-y-3">
             <DialogTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
               Choose Your Plan
