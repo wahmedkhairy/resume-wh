@@ -1,12 +1,11 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SubscriptionTiers from "./SubscriptionTiers";
 import LivePaymentModal from "./LivePaymentModal";
 import LivePayPalConfig from "./LivePayPalConfig";
-import { getPayPalPricing } from "@/utils/paypalCurrencyUtils";
 
 interface LiveSubscriptionDialogProps {
   children: React.ReactNode;
@@ -16,32 +15,22 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
   const [isOpen, setIsOpen] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedTier, setSelectedTier] = useState("");
-  const [hasLiveConfig, setHasLiveConfig] = useState(false);
-
-  useEffect(() => {
-    // Check if live PayPal config exists
-    const savedClientId = localStorage.getItem('paypal_live_client_id');
-    setHasLiveConfig(!!savedClientId);
-  }, [isOpen]);
 
   const handleSubscriptionSelect = (tier: string) => {
+    console.log('LiveSubscriptionDialog: Plan selected', { tier });
+    
+    // Check if PayPal is configured
     const savedClientId = localStorage.getItem('paypal_live_client_id');
     if (!savedClientId) {
-      // If no PayPal config, show alert and switch to config tab
-      alert('Please configure your PayPal credentials first to proceed with payment.');
+      alert('Please configure your PayPal credentials in the PayPal Setup tab before proceeding with payment.');
       return;
     }
     
+    // Proceed with payment
     setSelectedTier(tier);
     setShowPaymentModal(true);
     setIsOpen(false);
   };
-
-  const handleClientIdSaved = (clientId: string) => {
-    setHasLiveConfig(true);
-  };
-
-  const paypalPricing = getPayPalPricing();
 
   return (
     <>
@@ -57,39 +46,32 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
             </DialogDescription>
           </DialogHeader>
           
-          <Tabs defaultValue="plans" className="mt-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="plans">Choose Plan</TabsTrigger>
-              <TabsTrigger value="config">PayPal Setup</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="plans" className="mt-6">
-              <div className="space-y-4">
-                {!hasLiveConfig && (
-                  <div className="text-center bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                    <h3 className="font-semibold text-yellow-800 mb-2">⚠️ PayPal Setup Required</h3>
-                    <p className="text-sm text-yellow-700">
-                      You'll need to configure your PayPal credentials before making a payment. 
-                      You can set this up in the PayPal Setup tab.
-                    </p>
-                  </div>
-                )}
+          <div className="mt-6">
+            <Tabs defaultValue="plans" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="plans">Choose Plan</TabsTrigger>
+                <TabsTrigger value="setup">PayPal Setup</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="plans" className="mt-6">
                 <SubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="config" className="mt-6">
-              <LivePayPalConfig onClientIdSaved={handleClientIdSaved} />
-            </TabsContent>
-          </Tabs>
+              </TabsContent>
+              
+              <TabsContent value="setup" className="mt-6">
+                <LivePayPalConfig />
+              </TabsContent>
+            </Tabs>
+          </div>
         </DialogContent>
       </Dialog>
 
-      <LivePaymentModal 
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        selectedTier={selectedTier}
-      />
+      {showPaymentModal && (
+        <LivePaymentModal 
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          selectedTier={selectedTier}
+        />
+      )}
     </>
   );
 };
