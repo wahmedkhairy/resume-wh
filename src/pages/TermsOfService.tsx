@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,9 +115,7 @@ const TermsOfService = () => {
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 If you have any questions about these Terms of Service, please contact us at:
                 <br />
-                Email: [Your Email Address]
-                <br />
-                Address: [Your Business Address]
+                Email: resumebuilder.wh@gmail.com
               </p>
             </section>
 
