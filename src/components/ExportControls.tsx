@@ -101,7 +101,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
             </DropdownMenu>
           ) : (
             <LiveSubscriptionDialog>
-              <Button className="opacity-75">
+              <Button className="opacity-75 bg-blue-600 hover:bg-blue-700">
                 <Crown className="mr-2 h-4 w-4" />
                 Export Resume
               </Button>

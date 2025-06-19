@@ -197,7 +197,7 @@ const CallToAction: React.FC<CallToActionProps> = ({
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
             {variant === 'upgrade' ? (
               <LiveSubscriptionDialog>
-                <Button size="lg" className="font-semibold">
+                <Button size="lg" className="font-semibold bg-blue-600 hover:bg-blue-700">
                   <Crown className="mr-2 h-4 w-4" />
                   {config.primaryAction}
                   <ArrowRight className="ml-2 h-4 w-4" />

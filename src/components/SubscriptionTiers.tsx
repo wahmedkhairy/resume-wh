@@ -69,50 +69,52 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
   };
 
   return (
-    <div className="w-full bg-white dark:bg-gray-900">
+    <div className="w-full">
       <div className="text-center mb-6">
-        <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Choose Your Plan</h2>
+        <h3 className="text-xl font-bold mb-2">Choose Your Plan</h3>
         <p className="text-gray-600 dark:text-gray-400 text-sm">
           One-time payment, no recurring charges. Secure payment via PayPal.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
         {tiers.map((tier) => {
           const Icon = tier.icon;
           return (
-            <Card key={tier.id} className="relative hover:shadow-lg transition-shadow bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 h-full">
+            <Card key={tier.id} className="relative hover:shadow-lg transition-shadow h-full flex flex-col">
               {tier.badgeText && (
-                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
-                  <Badge variant={tier.badgeVariant} className="text-xs px-2 py-1">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                  <Badge variant={tier.badgeVariant} className="text-xs px-3 py-1">
                     {tier.badgeText}
                   </Badge>
                 </div>
               )}
               
-              <CardHeader className="text-center pb-3 pt-4">
-                <div className="flex justify-center mb-2">
-                  <Icon className="h-6 w-6 text-blue-600" />
+              <CardHeader className="text-center pb-4 pt-6">
+                <div className="flex justify-center mb-3">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full">
+                    <Icon className="h-6 w-6 text-blue-600" />
+                  </div>
                 </div>
-                <CardTitle className="text-lg text-gray-900 dark:text-white">{tier.name}</CardTitle>
-                <div className="space-y-1">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                <CardTitle className="text-xl">{tier.name}</CardTitle>
+                <div className="space-y-2">
+                  <div className="text-3xl font-bold">
                     ${tier.price.toFixed(2)}
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     {tier.exports} resume exports
                   </p>
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-2">
                   {tier.description}
                 </p>
               </CardHeader>
               
-              <CardContent className="space-y-3 px-4 pb-4 flex-1 flex flex-col">
-                <ul className="space-y-1 flex-1">
+              <CardContent className="px-6 pb-6 flex-1 flex flex-col">
+                <ul className="space-y-3 flex-1 mb-6">
                   {tier.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2 text-xs text-gray-700 dark:text-gray-300">
-                      <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                    <li key={index} className="flex items-start gap-3 text-sm">
+                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -120,8 +122,8 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
                 
                 <Button 
                   onClick={() => handleTierSelect(tier.id)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-sm"
-                  size="sm"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors"
+                  size="lg"
                 >
                   Choose {tier.name}
                 </Button>
@@ -131,7 +133,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
         })}
       </div>
 
-      <div className="text-center text-xs text-gray-500 dark:text-gray-400 mt-6 space-y-1">
+      <div className="text-center text-sm text-muted-foreground mt-8 space-y-1">
         <p>• All plans include ATS optimization and AI-powered suggestions</p>
         <p>• One-time payment, no recurring charges</p>
         <p>• Secure payment processing via PayPal</p>
