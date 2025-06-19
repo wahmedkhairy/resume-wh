@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +9,6 @@ import { Loader2, Sparkles, FileText, AlertCircle, Info, Crown } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import LiveSubscriptionDialog from "./LiveSubscriptionDialog";
 
 interface TailoredResumeGeneratorProps {
   resumeData: any;
@@ -28,9 +28,8 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const [jobDescription, setJobDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [monthlyUsage, setMonthlyUsage] = useState<number | null>(null);
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [showExportUpgradeDialog, setShowExportUpgradeDialog] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Get usage limits based on subscription tier
   const getUsageLimit = () => {
@@ -191,13 +190,13 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   };
 
   const handleUpgradeClick = () => {
-    console.log('TailoredResumeGenerator: Upgrade button clicked');
-    setShowUpgradeDialog(true);
+    console.log('TailoredResumeGenerator: Upgrade button clicked - navigating to subscription page');
+    navigate("/subscription");
   };
 
   const handleExportUpgradeClick = () => {
-    console.log('TailoredResumeGenerator: Export upgrade button clicked');
-    setShowExportUpgradeDialog(true);
+    console.log('TailoredResumeGenerator: Export upgrade button clicked - navigating to subscription page');
+    navigate("/subscription");
   };
 
   const usageConfig = getUsageLimit();
@@ -206,137 +205,123 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const canGenerate = remainingUses > 0 || usageConfig.limit === 999;
 
   return (
-    <>
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-blue-500" />
-            Targeted Job Resume Generator
-            {isPremiumUser && currentSubscription && (
-              <Badge variant="secondary" className="ml-auto">
-                {currentSubscription.tier} Plan
-              </Badge>
-            )}
-          </CardTitle>
-          <CardDescription>
-            Generate a customized version of your resume targeted to a specific job description.
-            Our AI will analyze the job requirements and emphasize your most relevant experience.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {!isPremiumUser && (
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                Free users can generate 1 targeted resume. To export your targeted resume as PDF 
-                and get more generations, please upgrade to a plan.
-              </AlertDescription>
-            </Alert>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-blue-500" />
+          Targeted Job Resume Generator
+          {isPremiumUser && currentSubscription && (
+            <Badge variant="secondary" className="ml-auto">
+              {currentSubscription.tier} Plan
+            </Badge>
           )}
+        </CardTitle>
+        <CardDescription>
+          Generate a customized version of your resume targeted to a specific job description.
+          Our AI will analyze the job requirements and emphasize your most relevant experience.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!isPremiumUser && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Free users can generate 1 targeted resume. To export your targeted resume as PDF 
+              and get more generations, please upgrade to a plan.
+            </AlertDescription>
+          </Alert>
+        )}
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="text-sm font-medium">
-                Monthly Usage:
-              </span>
-              <Badge variant={canGenerate ? "default" : "destructive"}>
-                {currentUsageCount} / {usageConfig.limit === 999 ? "∞" : usageConfig.limit}
-              </Badge>
-            </div>
-            <Badge variant="outline">
-              {usageConfig.limit === 999 ? "Unlimited" : `${remainingUses} remaining`}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              Monthly Usage:
+            </span>
+            <Badge variant={canGenerate ? "default" : "destructive"}>
+              {currentUsageCount} / {usageConfig.limit === 999 ? "∞" : usageConfig.limit}
             </Badge>
           </div>
+          <Badge variant="outline">
+            {usageConfig.limit === 999 ? "Unlimited" : `${remainingUses} remaining`}
+          </Badge>
+        </div>
 
-          {!canExportResume() && (
-            <Alert>
-              <Crown className="h-4 w-4" />
-              <AlertDescription>
-                <div className="flex items-center justify-between">
-                  <span>Upgrade to a plan to export your targeted resumes as PDF or Word document.</span>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="ml-4"
-                    onClick={handleExportUpgradeClick}
-                  >
-                    <Crown className="mr-2 h-4 w-4" />
-                    Upgrade Now
-                  </Button>
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
+        {!canExportResume() && (
+          <Alert>
+            <Crown className="h-4 w-4" />
+            <AlertDescription>
+              <div className="flex items-center justify-between">
+                <span>Upgrade to a plan to export your targeted resumes as PDF or Word document.</span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-4"
+                  onClick={handleExportUpgradeClick}
+                >
+                  <Crown className="mr-2 h-4 w-4" />
+                  Upgrade Now
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
-          <div className="space-y-2">
-            <label htmlFor="job-description" className="text-sm font-medium">
-              Job Description *
-            </label>
-            <Textarea
-              id="job-description"
-              placeholder="Paste the full job description here. Include requirements, responsibilities, and desired qualifications for best results..."
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              rows={8}
-              className="resize-none"
-            />
-            <p className="text-xs text-muted-foreground">
-              Tip: Include the complete job posting for better targeting results.
-            </p>
-          </div>
+        <div className="space-y-2">
+          <label htmlFor="job-description" className="text-sm font-medium">
+            Job Description *
+          </label>
+          <Textarea
+            id="job-description"
+            placeholder="Paste the full job description here. Include requirements, responsibilities, and desired qualifications for best results..."
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            rows={8}
+            className="resize-none"
+          />
+          <p className="text-xs text-muted-foreground">
+            Tip: Include the complete job posting for better targeting results.
+          </p>
+        </div>
 
-          {canGenerate ? (
-            <Button
-              onClick={handleGenerateTargetedResume}
-              disabled={isGenerating || !jobDescription.trim()}
-              className="w-full"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Targeted Resume...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Generate Custom Resume for This Job
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button 
-              className="w-full opacity-75"
-              onClick={handleUpgradeClick}
-            >
-              <Crown className="mr-2 h-4 w-4" />
-              🔒 Upgrade to Generate More Resumes
-            </Button>
-          )}
+        {canGenerate ? (
+          <Button
+            onClick={handleGenerateTargetedResume}
+            disabled={isGenerating || !jobDescription.trim()}
+            className="w-full"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Targeted Resume...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate Custom Resume for This Job
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button 
+            className="w-full opacity-75"
+            onClick={handleUpgradeClick}
+          >
+            <Crown className="mr-2 h-4 w-4" />
+            🔒 Upgrade to Generate More Resumes
+          </Button>
+        )}
 
-          {!canGenerate && usageConfig.limit !== 999 && (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                You've reached your monthly limit. Your limit will reset next month or upgrade for more targeted resumes.
-              </AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-
-      {showUpgradeDialog && (
-        <LiveSubscriptionDialog>
-          <div />
-        </LiveSubscriptionDialog>
-      )}
-
-      {showExportUpgradeDialog && (
-        <LiveSubscriptionDialog>
-          <div />
-        </LiveSubscriptionDialog>
-      )}
-    </>
+        {!canGenerate && usageConfig.limit !== 999 && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              You've reached your monthly limit. Your limit will reset next month or upgrade for more targeted resumes.
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

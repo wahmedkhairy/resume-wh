@@ -1,5 +1,5 @@
-
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +32,7 @@ const CallToAction: React.FC<CallToActionProps> = ({
   className = ""
 }) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const getVariantConfig = () => {
     switch (variant) {
@@ -112,6 +113,9 @@ const CallToAction: React.FC<CallToActionProps> = ({
     } else {
       // Default actions based on variant
       switch (variant) {
+        case 'upgrade':
+          navigate("/subscription");
+          break;
         case 'export':
           toast({
             title: "Export Started",
@@ -147,10 +151,14 @@ const CallToAction: React.FC<CallToActionProps> = ({
       onSecondaryClick();
     } else {
       // Default secondary actions
-      toast({
-        title: "Feature Coming Soon",
-        description: "This feature will be available shortly!",
-      });
+      if (variant === 'upgrade') {
+        navigate("/subscription");
+      } else {
+        toast({
+          title: "Feature Coming Soon",
+          description: "This feature will be available shortly!",
+        });
+      }
     }
   };
 
