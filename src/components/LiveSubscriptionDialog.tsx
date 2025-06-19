@@ -12,7 +12,6 @@ interface LiveSubscriptionDialogProps {
 }
 
 const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ children }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedTier, setSelectedTier] = useState("");
 
@@ -29,21 +28,16 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
     // Proceed with payment
     setSelectedTier(tier);
     setShowPaymentModal(true);
-    setIsDialogOpen(false);
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    setIsDialogOpen(open);
   };
 
   return (
     <>
-      <div onClick={() => setIsDialogOpen(true)}>
-        {children}
-      </div>
-
-      <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto">
+      <Dialog>
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+        
+        <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
           <DialogHeader className="space-y-3">
             <DialogTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
               Choose Your Plan
