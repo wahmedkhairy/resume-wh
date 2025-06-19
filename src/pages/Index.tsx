@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useResumeData } from "@/hooks/useResumeData";
 import { useSubscription } from "@/hooks/useSubscription";
 import { exportResumeAsText } from "@/utils/resumeExport";
+import Footer from "@/components/Footer";
 
 // Lazy load heavy components for better performance
 const SettingsSection = lazy(() => import("@/components/SettingsSection"));
@@ -314,6 +314,8 @@ const Index = () => {
           {renderMainContent()}
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 };
