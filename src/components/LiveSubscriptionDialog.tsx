@@ -32,34 +32,52 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
     setIsOpen(false);
   };
 
+  const handleOpenChange = (open: boolean) => {
+    console.log('LiveSubscriptionDialog: Dialog open state changed', { open });
+    setIsOpen(open);
+  };
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           {children}
         </DialogTrigger>
-        <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
-          <DialogHeader className="space-y-2 pb-4">
-            <DialogTitle className="text-xl sm:text-2xl text-center">Choose Your Plan</DialogTitle>
-            <DialogDescription className="text-center text-sm sm:text-base">
+        <DialogContent 
+          className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-4xl translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-y-auto"
+          style={{ 
+            position: 'fixed',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 9999,
+            maxWidth: 'min(90vw, 1024px)',
+            maxHeight: '90vh'
+          }}
+        >
+          <DialogHeader className="space-y-3 text-center">
+            <DialogTitle className="text-2xl font-bold">Choose Your Plan</DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground">
               Select a subscription plan to unlock premium features. All prices are in USD.
             </DialogDescription>
           </DialogHeader>
           
-          <Tabs defaultValue="plans" className="w-full space-y-4">
-            <TabsList className="grid w-full grid-cols-2 h-10">
-              <TabsTrigger value="plans" className="text-sm">Choose Plan</TabsTrigger>
-              <TabsTrigger value="setup" className="text-sm">PayPal Setup</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="plans" className="space-y-0 mt-4">
-              <SubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
-            </TabsContent>
-            
-            <TabsContent value="setup" className="space-y-0 mt-4">
-              <LivePayPalConfig />
-            </TabsContent>
-          </Tabs>
+          <div className="mt-4">
+            <Tabs defaultValue="plans" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="plans">Choose Plan</TabsTrigger>
+                <TabsTrigger value="setup">PayPal Setup</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="plans" className="mt-0">
+                <SubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
+              </TabsContent>
+              
+              <TabsContent value="setup" className="mt-0">
+                <LivePayPalConfig />
+              </TabsContent>
+            </Tabs>
+          </div>
         </DialogContent>
       </Dialog>
 
