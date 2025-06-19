@@ -17,12 +17,6 @@ const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection
       description: "Build your resume"
     },
     {
-      id: "success-stories",
-      label: "Success Stories",
-      icon: Star,
-      description: "See user success stories"
-    },
-    {
       id: "ats",
       label: "ATS Analysis",
       icon: BarChart3,
@@ -30,7 +24,7 @@ const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection
     },
     {
       id: "tailor",
-      label: "Tailor Resume",
+      label: "Targeted Job Resume",
       icon: Target,
       description: "Customize for jobs"
     },
@@ -66,6 +60,20 @@ const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection
               </Button>
             );
           })}
+          
+          {/* Success Stories button moved here */}
+          <Button
+            variant={currentSection === "success-stories" ? "default" : "ghost"}
+            onClick={() => onSectionChange("success-stories")}
+            className={`flex items-center gap-2 whitespace-nowrap ml-auto ${
+              currentSection === "success-stories"
+                ? "bg-primary text-primary-foreground" 
+                : "hover:bg-accent hover:text-accent-foreground"
+            }`}
+          >
+            <Star className="h-4 w-4" />
+            <span className="hidden sm:inline">Success Stories</span>
+          </Button>
         </div>
       </div>
     </nav>

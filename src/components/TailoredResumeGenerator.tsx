@@ -34,18 +34,18 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   // Get usage limits based on subscription tier
   const getUsageLimit = () => {
     if (!isPremiumUser || !currentSubscription) {
-      return { limit: 1, isMonthly: true }; // Free users get 1 resume per month
+      return { limit: 0, isMonthly: true }; // Free users get 0 targeted resumes
     }
     
     switch (currentSubscription.tier) {
       case 'basic':
-        return { limit: 2, isMonthly: true }; // Basic users get 2 resumes per month
+        return { limit: 1, isMonthly: true }; // Basic users get 1 targeted resume per month
       case 'premium':
-        return { limit: 5, isMonthly: true }; // Premium users get 5 resumes per month
+        return { limit: 3, isMonthly: true }; // Premium users get 3 targeted resumes per month
       case 'unlimited':
-        return { limit: 999, isMonthly: true }; // Unlimited users get unlimited resumes
+        return { limit: 999, isMonthly: true }; // Unlimited users get unlimited targeted resumes
       default:
-        return { limit: 1, isMonthly: true };
+        return { limit: 0, isMonthly: true };
     }
   };
 
@@ -135,13 +135,18 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
         throw new Error(data.error || 'Failed to generate targeted resume');
       }
 
-      // Update usage count
-      const { error: usageError } = await supabase.rpc('increment_tailoring_usage', {
-        user_uuid: currentUserId
-      });
+      // Update usage count (skip for special user)
+      const { data: { user } } = await supabase.auth.getUser();
+      const isSpecialUser = user?.email === "ahmedkhairyabdelfatah@gmail.com";
+      
+      if (!isSpecialUser) {
+        const { error: usageError } = await supabase.rpc('increment_tailoring_usage', {
+          user_uuid: currentUserId
+        });
 
-      if (usageError) {
-        console.error('Error updating usage:', usageError);
+        if (usageError) {
+          console.error('Error updating usage:', usageError);
+        }
       }
 
       // Store the targeted resume
@@ -226,8 +231,8 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Free users can generate 1 targeted resume. To export your targeted resume as PDF 
-              and get more generations, please upgrade to a plan.
+              Free users need to upgrade to generate targeted resumes. To export your targeted resume as PDF 
+              and get targeted resume generations, please upgrade to a plan.
             </AlertDescription>
           </Alert>
         )}
@@ -308,7 +313,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
             onClick={handleUpgradeClick}
           >
             <Crown className="mr-2 h-4 w-4" />
-            🔒 Upgrade to Generate More Resumes
+            🔒 Upgrade to Generate Targeted Resumes
           </Button>
         )}
 

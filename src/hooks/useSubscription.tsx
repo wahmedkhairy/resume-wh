@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,23 @@ export const useSubscription = (currentUserId: string) => {
       if (!currentUserId) return;
 
       try {
+        // Check if this is the special free user
+        const { data: { user } } = await supabase.auth.getUser();
+        const isSpecialUser = user?.email === "ahmedkhairyabdelfatah@gmail.com";
+        
+        if (isSpecialUser) {
+          // Give unlimited access to the special user
+          const freeUnlimitedSubscription = {
+            tier: 'unlimited',
+            scan_count: 999,
+            status: 'active',
+            user_id: currentUserId
+          };
+          setIsPremiumUser(true);
+          setCurrentSubscription(freeUnlimitedSubscription);
+          return;
+        }
+
         const { data: subscription } = await supabase
           .from('subscriptions')
           .select('*')
@@ -43,6 +61,21 @@ export const useSubscription = (currentUserId: string) => {
     return currentSubscription.scan_count > 0;
   };
 
+  const getTargetedResumeLimit = () => {
+    if (!isPremiumUser || !currentSubscription) return 0;
+    
+    switch (currentSubscription.tier) {
+      case 'basic':
+        return 1;
+      case 'premium':
+        return 3;
+      case 'unlimited':
+        return 999;
+      default:
+        return 0;
+    }
+  };
+
   const handleExport = async (exportData: any) => {
     if (!canExport()) {
       toast({
@@ -59,8 +92,11 @@ export const useSubscription = (currentUserId: string) => {
       console.log('Starting PDF export with data:', exportData);
       await exportResumeToPDF(exportData);
       
-      // Only decrement scan count for non-unlimited users
-      if (currentSubscription.tier !== 'unlimited') {
+      // Only decrement scan count for non-unlimited users and non-special users
+      const { data: { user } } = await supabase.auth.getUser();
+      const isSpecialUser = user?.email === "ahmedkhairyabdelfatah@gmail.com";
+      
+      if (currentSubscription.tier !== 'unlimited' && !isSpecialUser) {
         const { error: updateError } = await supabase
           .from('subscriptions')
           .update({ scan_count: currentSubscription.scan_count - 1 })
@@ -115,8 +151,11 @@ export const useSubscription = (currentUserId: string) => {
       console.log('Starting Word export with data:', exportData);
       await exportResumeAsWord(exportData);
       
-      // Only decrement scan count for non-unlimited users
-      if (currentSubscription.tier !== 'unlimited') {
+      // Only decrement scan count for non-unlimited users and non-special users
+      const { data: { user } } = await supabase.auth.getUser();
+      const isSpecialUser = user?.email === "ahmedkhairyabdelfatah@gmail.com";
+      
+      if (currentSubscription.tier !== 'unlimited' && !isSpecialUser) {
         const { error: updateError } = await supabase
           .from('subscriptions')
           .update({ scan_count: currentSubscription.scan_count - 1 })
@@ -162,5 +201,6 @@ export const useSubscription = (currentUserId: string) => {
     handleExport,
     handleWordExport,
     canExport,
+    getTargetedResumeLimit,
   };
 };

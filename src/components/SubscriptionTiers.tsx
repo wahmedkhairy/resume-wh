@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Star, Zap } from "lucide-react";
+import { Check, Star, Zap, Target } from "lucide-react";
 
 interface SubscriptionTiersProps {
   onSubscriptionSelect: (tier: string) => void;
@@ -16,10 +16,12 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Basic",
       price: 2.00,
       exports: 2,
+      targetedResumes: 1,
       icon: Check,
       description: "Perfect for job seekers who need a few polished resumes",
       features: [
         "2 ATS-optimized resume exports",
+        "1 targeted job resume",
         "AI-powered content suggestions",
         "Basic templates",
         "Email support"
@@ -32,10 +34,12 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Premium",
       price: 3.00,
       exports: 6,
+      targetedResumes: 3,
       icon: Star,
       description: "Best for active job seekers targeting multiple positions",
       features: [
         "6 ATS-optimized resume exports",
+        "3 targeted job resumes",
         "Advanced AI optimization",
         "Premium templates",
         "Priority support",
@@ -49,10 +53,12 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       name: "Unlimited",
       price: 4.99,
       exports: "Unlimited",
+      targetedResumes: "Unlimited",
       icon: Zap,
       description: "For professionals who need maximum flexibility",
       features: [
         "Unlimited ATS-optimized exports",
+        "Unlimited targeted job resumes",
         "All premium features",
         "Custom branding options",
         "24/7 priority support",
@@ -101,9 +107,13 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
                   <div className="text-3xl font-bold">
                     ${tier.price.toFixed(2)}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {tier.exports} resume exports
-                  </p>
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    <p>{tier.exports} resume exports</p>
+                    <div className="flex items-center justify-center gap-1">
+                      <Target className="h-3 w-3" />
+                      <span>{tier.targetedResumes} targeted resumes</span>
+                    </div>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
                   {tier.description}
