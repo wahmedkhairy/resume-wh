@@ -36,6 +36,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
   currentSubscription,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
 
   // For targeted resumes, check if user can export them
   const canExportTailoredResume = () => {
@@ -57,59 +58,73 @@ const ExportControls: React.FC<ExportControlsProps> = ({
     setDropdownOpen(false);
   };
 
+  const handleUpgradeClick = () => {
+    console.log('ExportControls: Upgrade button clicked');
+    setShowSubscriptionDialog(true);
+  };
+
   const canExportResume = canExportTailoredResume();
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-bold">
-            {isTailoredResume ? "Targeted Resume Preview" : "ATS Resume Editor"}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {isTailoredResume ? "Your customized resume for the job" : "Professional resume template"}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            onClick={onSave}
-            disabled={isSaving}
-            variant="outline"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            {isSaving ? "Saving..." : "Save"}
-          </Button>
-          
-          {canExportResume ? (
-            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-              <DropdownMenuTrigger asChild>
-                <Button disabled={isExporting}>
-                  <Download className="mr-2 h-4 w-4" />
-                  {isExporting ? "Exporting..." : "Export Resume"}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handlePDFExport}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Export as PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleWordExport}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Export as Word (.DOCX)
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <LiveSubscriptionDialog>
-              <Button className="opacity-75 bg-blue-600 hover:bg-blue-700">
+    <>
+      <div className="space-y-4">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-bold">
+              {isTailoredResume ? "Targeted Resume Preview" : "ATS Resume Editor"}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {isTailoredResume ? "Your customized resume for the job" : "Professional resume template"}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={onSave}
+              disabled={isSaving}
+              variant="outline"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+            
+            {canExportResume ? (
+              <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button disabled={isExporting}>
+                    <Download className="mr-2 h-4 w-4" />
+                    {isExporting ? "Exporting..." : "Export Resume"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handlePDFExport}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export as PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleWordExport}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Export as Word (.DOCX)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                className="opacity-75 bg-blue-600 hover:bg-blue-700"
+                onClick={handleUpgradeClick}
+              >
                 <Crown className="mr-2 h-4 w-4" />
                 Export Resume
               </Button>
-            </LiveSubscriptionDialog>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      {showSubscriptionDialog && (
+        <LiveSubscriptionDialog>
+          <div />
+        </LiveSubscriptionDialog>
+      )}
+    </>
   );
 };
 

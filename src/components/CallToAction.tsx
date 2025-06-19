@@ -1,10 +1,10 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Crown, Download, Zap, CheckCircle, Clock, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import LiveSubscriptionDialog from "./LiveSubscriptionDialog";
 
 interface CallToActionProps {
   variant?: 'export' | 'upgrade' | 'start' | 'success';
@@ -194,27 +194,18 @@ const CallToAction: React.FC<CallToActionProps> = ({
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-            {variant === 'upgrade' ? (
-              <LiveSubscriptionDialog>
-                <Button size="lg" className="font-semibold bg-blue-600 hover:bg-blue-700">
-                  <Crown className="mr-2 h-4 w-4" />
-                  {config.primaryAction}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </LiveSubscriptionDialog>
-            ) : (
-              <Button 
-                size="lg" 
-                onClick={handlePrimaryClick}
-                className="font-semibold"
-              >
-                {variant === 'export' && <Download className="mr-2 h-4 w-4" />}
-                {variant === 'success' && <CheckCircle className="mr-2 h-4 w-4" />}
-                {variant === 'start' && <Zap className="mr-2 h-4 w-4" />}
-                {config.primaryAction}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            )}
+            <Button 
+              size="lg" 
+              onClick={handlePrimaryClick}
+              className="font-semibold"
+            >
+              {variant === 'export' && <Download className="mr-2 h-4 w-4" />}
+              {variant === 'success' && <CheckCircle className="mr-2 h-4 w-4" />}
+              {variant === 'start' && <Zap className="mr-2 h-4 w-4" />}
+              {variant === 'upgrade' && <Crown className="mr-2 h-4 w-4" />}
+              {config.primaryAction}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
             
             {config.secondaryAction && (
               <Button 
