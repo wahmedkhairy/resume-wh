@@ -32,12 +32,17 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
     setIsDialogOpen(false);
   };
 
+  const handleOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+  };
+
   return (
     <>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          {children}
-        </DialogTrigger>
+      <div onClick={() => setIsDialogOpen(true)}>
+        {children}
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader className="space-y-3">
             <DialogTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
