@@ -118,12 +118,6 @@ const TermsOfService = () => {
                 Email: resumebuilder.wh@gmail.com
               </p>
             </section>
-
-            <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Note:</strong> This is a template terms of service. Please customize it according to your specific business practices and consult with a legal professional to ensure compliance with applicable laws.
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>
