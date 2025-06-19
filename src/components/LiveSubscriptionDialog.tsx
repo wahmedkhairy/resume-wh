@@ -38,30 +38,28 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
         <DialogTrigger asChild>
           {children}
         </DialogTrigger>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl text-center">Choose Your Plan</DialogTitle>
-            <DialogDescription className="text-center">
+        <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
+          <DialogHeader className="space-y-2 pb-4">
+            <DialogTitle className="text-xl sm:text-2xl text-center">Choose Your Plan</DialogTitle>
+            <DialogDescription className="text-center text-sm sm:text-base">
               Select a subscription plan to unlock premium features. All prices are in USD.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="mt-6">
-            <Tabs defaultValue="plans" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="plans">Choose Plan</TabsTrigger>
-                <TabsTrigger value="setup">PayPal Setup</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="plans" className="mt-6">
-                <SubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
-              </TabsContent>
-              
-              <TabsContent value="setup" className="mt-6">
-                <LivePayPalConfig />
-              </TabsContent>
-            </Tabs>
-          </div>
+          <Tabs defaultValue="plans" className="w-full space-y-4">
+            <TabsList className="grid w-full grid-cols-2 h-10">
+              <TabsTrigger value="plans" className="text-sm">Choose Plan</TabsTrigger>
+              <TabsTrigger value="setup" className="text-sm">PayPal Setup</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="plans" className="space-y-0 mt-4">
+              <SubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
+            </TabsContent>
+            
+            <TabsContent value="setup" className="space-y-0 mt-4">
+              <LivePayPalConfig />
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 
