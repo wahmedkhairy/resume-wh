@@ -27,7 +27,8 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
   const handleSubscriptionSelect = (tier: string) => {
     const savedClientId = localStorage.getItem('paypal_live_client_id');
     if (!savedClientId) {
-      // Stay in dialog and show config tab
+      // If no PayPal config, show alert and switch to config tab
+      alert('Please configure your PayPal credentials first to proceed with payment.');
       return;
     }
     
@@ -50,42 +51,35 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
         </DialogTrigger>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl text-center">Live PayPal Payments</DialogTitle>
+            <DialogTitle className="text-2xl text-center">Choose Your Plan</DialogTitle>
             <DialogDescription className="text-center">
-              Configure your live PayPal credentials and choose your plan. All prices are in USD.
+              Select a subscription plan to unlock premium features. All prices are in USD.
             </DialogDescription>
           </DialogHeader>
           
-          <Tabs defaultValue={hasLiveConfig ? "plans" : "config"} className="mt-6">
+          <Tabs defaultValue="plans" className="mt-6">
             <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="plans">Choose Plan</TabsTrigger>
               <TabsTrigger value="config">PayPal Setup</TabsTrigger>
-              <TabsTrigger value="plans" disabled={!hasLiveConfig}>
-                Choose Plan {!hasLiveConfig && "(Setup Required)"}
-              </TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="plans" className="mt-6">
+              <div className="space-y-4">
+                {!hasLiveConfig && (
+                  <div className="text-center bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                    <h3 className="font-semibold text-yellow-800 mb-2">⚠️ PayPal Setup Required</h3>
+                    <p className="text-sm text-yellow-700">
+                      You'll need to configure your PayPal credentials before making a payment. 
+                      You can set this up in the PayPal Setup tab.
+                    </p>
+                  </div>
+                )}
+                <SubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
+              </div>
+            </TabsContent>
             
             <TabsContent value="config" className="mt-6">
               <LivePayPalConfig onClientIdSaved={handleClientIdSaved} />
-            </TabsContent>
-            
-            <TabsContent value="plans" className="mt-6">
-              {hasLiveConfig ? (
-                <div className="space-y-4">
-                  <div className="text-center bg-green-50 border border-green-200 p-4 rounded-lg">
-                    <h3 className="font-semibold text-green-800 mb-2">✅ Live PayPal Ready</h3>
-                    <p className="text-sm text-green-700">
-                      Your live PayPal configuration is active. All payments will be processed in USD.
-                    </p>
-                  </div>
-                  <SubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
-                </div>
-              ) : (
-                <div className="text-center p-8">
-                  <p className="text-muted-foreground">
-                    Please configure your live PayPal Client ID first.
-                  </p>
-                </div>
-              )}
             </TabsContent>
           </Tabs>
         </DialogContent>
