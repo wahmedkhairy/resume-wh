@@ -107,7 +107,7 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `https://resumewh.com/`
         }
       });
 
@@ -207,7 +207,7 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: 'https://resumewh.com/',
         }
       });
 
@@ -215,6 +215,7 @@ const Auth = () => {
         throw error;
       } else {
         console.log('Google sign in initiated:', data);
+        // The page will redirect to Google, so we don't need to handle success here
       }
     } catch (error: any) {
       console.error('Google sign in error:', error);
