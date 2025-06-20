@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, CreditCard, Eye, TrendingUp, Calendar } from "lucide-react";
+import { Users, UserPlus, CreditCard, Eye, TrendingUp, Calendar, FileText, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 interface AdminAnalyticsProps {}
 
@@ -11,19 +13,20 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = () => {
   const [analytics, setAnalytics] = useState({
     totalUsers: 0,
     subscribedUsers: 0,
-    totalVisitors: 0,
+    totalResumes: 0,
     newUsersToday: 0,
-    activeSubscriptions: 0,
-    revenueThisMonth: 0
+    totalTailoredResumes: 0,
+    revenueThisMonth: 0,
+    subscriptionBreakdown: [] as any[]
   });
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchAnalytics();
+    fetchRealAnalytics();
   }, []);
 
-  const fetchAnalytics = async () => {
+  const fetchRealAnalytics = async () => {
     try {
       setIsLoading(true);
 
@@ -32,43 +35,63 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = () => {
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      // Get subscribed users count
+      // Get subscribed users count (excluding demo tier)
       const { count: subscribedUsers } = await supabase
         .from('subscriptions')
         .select('*', { count: 'exact', head: true })
         .neq('tier', 'demo')
         .eq('status', 'active');
 
+      // Get total resumes count
+      const { count: totalResumes } = await supabase
+        .from('resumes')
+        .select('*', { count: 'exact', head: true });
+
       // Get new users today
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const { count: newUsersToday } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', today);
+        .gte('created_at', today.toISOString());
 
-      // Get active subscriptions breakdown
+      // Get total tailored resumes count
+      const { count: totalTailoredResumes } = await supabase
+        .from('tailored_resumes')
+        .select('*', { count: 'exact', head: true });
+
+      // Get subscription breakdown
       const { data: subscriptions } = await supabase
         .from('subscriptions')
-        .select('tier, scan_count')
-        .eq('status', 'active')
-        .neq('tier', 'demo');
+        .select('tier, scan_count, status')
+        .eq('status', 'active');
 
-      // Calculate estimated revenue (simplified calculation)
+      // Calculate subscription breakdown
+      const subscriptionBreakdown = subscriptions?.reduce((acc, sub) => {
+        const tier = sub.tier === 'demo' ? 'Free' : sub.tier;
+        const existing = acc.find(item => item.name === tier);
+        if (existing) {
+          existing.value += 1;
+        } else {
+          acc.push({ name: tier, value: 1 });
+        }
+        return acc;
+      }, [] as any[]) || [];
+
+      // Calculate estimated revenue
       const revenueEstimate = subscriptions?.reduce((total, sub) => {
         const tierPrices = { basic: 2, premium: 6, unlimited: 9.9 };
         return total + (tierPrices[sub.tier as keyof typeof tierPrices] || 0);
       }, 0) || 0;
 
-      // Simulate visitors count (in real app, you'd track this properly)
-      const totalVisitors = Math.floor(Math.random() * 5000) + 1000;
-
       setAnalytics({
         totalUsers: totalUsers || 0,
         subscribedUsers: subscribedUsers || 0,
-        totalVisitors,
+        totalResumes: totalResumes || 0,
         newUsersToday: newUsersToday || 0,
-        activeSubscriptions: subscriptions?.length || 0,
-        revenueThisMonth: revenueEstimate
+        totalTailoredResumes: totalTailoredResumes || 0,
+        revenueThisMonth: revenueEstimate,
+        subscriptionBreakdown
       });
 
     } catch (error) {
@@ -88,14 +111,12 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = () => {
     value, 
     icon: Icon, 
     description, 
-    trend, 
     color = "text-blue-600" 
   }: {
     title: string;
     value: string | number;
     icon: any;
     description: string;
-    trend?: string;
     color?: string;
   }) => (
     <Card>
@@ -106,15 +127,11 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = () => {
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
         <p className="text-xs text-muted-foreground">{description}</p>
-        {trend && (
-          <div className="flex items-center pt-1">
-            <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-            <span className="text-xs text-green-500">{trend}</span>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
+
+  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
   if (isLoading) {
     return (
@@ -128,7 +145,7 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-        <p className="text-muted-foreground">Overview of your platform's performance</p>
+        <p className="text-muted-foreground">Real-time platform performance metrics</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -137,25 +154,22 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = () => {
           value={analytics.totalUsers}
           icon={Users}
           description="All registered users"
-          trend="+12% from last month"
           color="text-blue-600"
         />
         
         <StatCard
-          title="Subscribed Users"
+          title="Paid Subscribers"
           value={analytics.subscribedUsers}
           icon={CreditCard}
-          description="Users with active subscriptions"
-          trend="+8% from last month"
+          description="Users with active paid subscriptions"
           color="text-green-600"
         />
         
         <StatCard
-          title="Website Visitors"
-          value={analytics.totalVisitors.toLocaleString()}
-          icon={Eye}
-          description="Total unique visitors"
-          trend="+15% from last month"
+          title="Total Resumes"
+          value={analytics.totalResumes}
+          icon={FileText}
+          description="Resumes created on platform"
           color="text-purple-600"
         />
         
@@ -168,10 +182,10 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = () => {
         />
         
         <StatCard
-          title="Active Subscriptions"
-          value={analytics.activeSubscriptions}
-          icon={TrendingUp}
-          description="Currently active paid plans"
+          title="Tailored Resumes"
+          value={analytics.totalTailoredResumes}
+          icon={Zap}
+          description="AI-tailored resumes generated"
           color="text-indigo-600"
         />
         
@@ -180,7 +194,6 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = () => {
           value={`$${analytics.revenueThisMonth.toFixed(2)}`}
           icon={Calendar}
           description="Estimated monthly recurring revenue"
-          trend="+23% from last month"
           color="text-emerald-600"
         />
       </div>
@@ -188,36 +201,77 @@ const AdminAnalytics: React.FC<AdminAnalyticsProps> = () => {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>User Growth</CardTitle>
-            <CardDescription>User registration trends over time</CardDescription>
+            <CardTitle>Subscription Distribution</CardTitle>
+            <CardDescription>Breakdown of user subscription tiers</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center p-8 text-muted-foreground">
-              <TrendingUp className="h-12 w-12 mx-auto mb-2" />
-              <p>User growth chart would be displayed here</p>
-              <p className="text-sm">Integrate with analytics service for detailed charts</p>
-            </div>
+            {analytics.subscriptionBreakdown.length > 0 ? (
+              <ChartContainer
+                config={{
+                  value: {
+                    label: "Users",
+                  },
+                }}
+                className="h-[200px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={analytics.subscriptionBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={60}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}`}
+                    >
+                      {analytics.subscriptionBreakdown.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="text-center p-8 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-2" />
+                <p>No subscription data available</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Subscription Breakdown</CardTitle>
-            <CardDescription>Distribution of subscription tiers</CardDescription>
+            <CardTitle>Platform Activity</CardTitle>
+            <CardDescription>Key metrics overview</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm">Basic Plan</span>
-                <span className="font-medium">35%</span>
+                <span className="text-sm">User Registration Rate</span>
+                <span className="font-medium">
+                  {analytics.totalUsers > 0 ? `${((analytics.newUsersToday / analytics.totalUsers) * 100).toFixed(1)}%` : '0%'}
+                </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm">Premium Plan</span>
-                <span className="font-medium">45%</span>
+                <span className="text-sm">Subscription Conversion</span>
+                <span className="font-medium">
+                  {analytics.totalUsers > 0 ? `${((analytics.subscribedUsers / analytics.totalUsers) * 100).toFixed(1)}%` : '0%'}
+                </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm">Unlimited Plan</span>
-                <span className="font-medium">20%</span>
+                <span className="text-sm">Avg Resumes per User</span>
+                <span className="font-medium">
+                  {analytics.totalUsers > 0 ? (analytics.totalResumes / analytics.totalUsers).toFixed(1) : '0'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">AI Usage Rate</span>
+                <span className="font-medium">
+                  {analytics.totalResumes > 0 ? `${((analytics.totalTailoredResumes / analytics.totalResumes) * 100).toFixed(1)}%` : '0%'}
+                </span>
               </div>
             </div>
           </CardContent>
