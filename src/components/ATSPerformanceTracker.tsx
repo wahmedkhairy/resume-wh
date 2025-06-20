@@ -107,7 +107,7 @@ const ATSPerformanceTracker: React.FC<ATSPerformanceTrackerProps> = ({ resumeDat
   ];
 
   return (
-    <div className="w-full max-w-full overflow-hidden space-y-6">
+    <div className="w-full max-w-full space-y-6 overflow-hidden">
       {/* Overall Performance */}
       <Card className="w-full">
         <CardHeader>
@@ -119,12 +119,14 @@ const ATSPerformanceTracker: React.FC<ATSPerformanceTrackerProps> = ({ resumeDat
             Overall performance across major ATS systems
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="text-center space-y-4">
             <div className={`text-4xl font-bold ${getScoreColor(overallScore)}`}>
               {overallScore}%
             </div>
-            <Progress value={overallScore} className="w-full" />
+            <div className="w-full max-w-full">
+              <Progress value={overallScore} className="w-full" />
+            </div>
             <p className="text-sm text-muted-foreground">
               Your resume scores {overallScore}% on ATS compatibility
             </p>
@@ -143,24 +145,24 @@ const ATSPerformanceTracker: React.FC<ATSPerformanceTrackerProps> = ({ resumeDat
             Detailed breakdown of your resume's ATS performance
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {performanceMetrics.map((metric, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-sm">{metric.title}</span>
-                  <div className="flex items-center gap-2">
-                    {getScoreIcon(metric.score)}
-                    <span className={`font-semibold ${getScoreColor(metric.score)}`}>
-                      {metric.score}%
-                    </span>
-                  </div>
+        <CardContent className="space-y-4">
+          {performanceMetrics.map((metric, index) => (
+            <div key={index} className="space-y-2 w-full">
+              <div className="flex justify-between items-center gap-4">
+                <span className="font-medium text-sm flex-shrink-0">{metric.title}</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {getScoreIcon(metric.score)}
+                  <span className={`font-semibold text-sm ${getScoreColor(metric.score)}`}>
+                    {metric.score}%
+                  </span>
                 </div>
-                <Progress value={metric.score} className="h-2" />
-                <p className="text-xs text-muted-foreground">{metric.description}</p>
               </div>
-            ))}
-          </div>
+              <div className="w-full max-w-full">
+                <Progress value={metric.score} className="h-2 w-full" />
+              </div>
+              <p className="text-xs text-muted-foreground">{metric.description}</p>
+            </div>
+          ))}
         </CardContent>
       </Card>
 
@@ -175,31 +177,31 @@ const ATSPerformanceTracker: React.FC<ATSPerformanceTrackerProps> = ({ resumeDat
             How your resume performs across different ATS platforms
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {atsSystemsData.map((system, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${system.color}`}></div>
-                    <div className="min-w-0 flex-1">
-                      <span className="font-medium text-sm block truncate">{system.name}</span>
-                      <span className="text-xs text-muted-foreground block">
-                        ({system.marketShare} market share)
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {getScoreIcon(system.score)}
-                    <span className={`font-semibold text-sm ${getScoreColor(system.score)}`}>
-                      {system.score}%
+        <CardContent className="space-y-4">
+          {atsSystemsData.map((system, index) => (
+            <div key={index} className="space-y-2 w-full">
+              <div className="flex justify-between items-center gap-4">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className={`w-3 h-3 rounded-full flex-shrink-0 ${system.color}`}></div>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-medium text-sm block truncate">{system.name}</span>
+                    <span className="text-xs text-muted-foreground block">
+                      ({system.marketShare} market share)
                     </span>
                   </div>
                 </div>
-                <Progress value={system.score} className="h-2" />
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {getScoreIcon(system.score)}
+                  <span className={`font-semibold text-sm ${getScoreColor(system.score)}`}>
+                    {system.score}%
+                  </span>
+                </div>
               </div>
-            ))}
-          </div>
+              <div className="w-full max-w-full">
+                <Progress value={system.score} className="h-2 w-full" />
+              </div>
+            </div>
+          ))}
           
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-200">

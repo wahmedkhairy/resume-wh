@@ -1,7 +1,6 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 
 interface LiveSubscriptionDialogProps {
   children: React.ReactNode;
@@ -10,12 +9,14 @@ interface LiveSubscriptionDialogProps {
 const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ children }) => {
   const navigate = useNavigate();
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     navigate("/subscription");
   };
 
   return (
-    <div onClick={handleClick} className="cursor-pointer">
+    <div onClick={handleClick} className="cursor-pointer w-full">
       {children}
     </div>
   );
