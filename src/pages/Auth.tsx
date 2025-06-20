@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from '@supabase/supabase-js';
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import EmailVerification from "@/components/EmailVerification";
 
 const Auth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -21,7 +22,8 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [emailSent, setEmailSent] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -125,13 +127,19 @@ const Auth = () => {
         } else {
           throw error;
         }
+      } else if (data.user && !data.session) {
+        // User created but needs email verification
+        setPendingEmail(email);
+        setShowEmailVerification(true);
+        toast({
+          title: "Account Created",
+          description: "Please check your email for a verification code.",
+        });
       } else {
-        setEmailSent(true);
         toast({
           title: "Account Created",
           description: "Your account has been created successfully. You can now sign in.",
         });
-        console.log('Sign up successful, user:', data.user);
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -162,6 +170,14 @@ const Auth = () => {
             description: "Please check your email and password and try again.",
             variant: "destructive",
           });
+        } else if (error.message.includes('Email not confirmed')) {
+          toast({
+            title: "Email Not Verified",
+            description: "Please verify your email before signing in.",
+            variant: "destructive",
+          });
+          setPendingEmail(email);
+          setShowEmailVerification(true);
         } else {
           throw error;
         }
@@ -199,7 +215,6 @@ const Auth = () => {
         throw error;
       } else {
         console.log('Google sign in initiated:', data);
-        // Don't show a toast here as the user will be redirected
       }
     } catch (error: any) {
       console.error('Google sign in error:', error);
@@ -212,48 +227,36 @@ const Auth = () => {
     }
   };
 
-  const handleResendConfirmation = async () => {
-    if (!email) {
-      toast({
-        title: "Email Required",
-        description: "Please enter your email address first.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleVerificationComplete = () => {
+    setShowEmailVerification(false);
+    setPendingEmail("");
+    toast({
+      title: "Email Verified!",
+      description: "You can now sign in with your credentials.",
+    });
+  };
 
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Confirmation Email Sent",
-        description: "We've sent another confirmation email to your address.",
-      });
-    } catch (error: any) {
-      console.error('Resend confirmation error:', error);
-      toast({
-        title: "Failed to Resend",
-        description: error.message || "Failed to resend confirmation email.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleBackToSignup = () => {
+    setShowEmailVerification(false);
+    setPendingEmail("");
   };
 
   if (isInitialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (showEmailVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <EmailVerification
+          email={pendingEmail}
+          onVerificationComplete={handleVerificationComplete}
+          onBackToSignup={handleBackToSignup}
+        />
       </div>
     );
   }
@@ -268,23 +271,6 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {emailSent && (
-            <Alert className="mb-6">
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                Your account has been created successfully. You can now sign in.
-                <Button 
-                  variant="link" 
-                  className="p-0 h-auto ml-2 text-sm"
-                  onClick={handleResendConfirmation}
-                  disabled={isLoading}
-                >
-                  Resend email
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
-
           {/* Google Sign In Button */}
           <div className="mb-6">
             <Button 
