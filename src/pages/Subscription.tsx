@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -61,14 +60,20 @@ const Subscription = () => {
 
   const getOrderData = (): PayPalOrderData => {
     if (!selectedTier) {
-      return { amount: "2.00", currency: "USD", description: "Basic Plan" };
+      return { 
+        amount: "2.00", 
+        currency: "USD", 
+        description: "Basic Plan",
+        tier: "basic"
+      };
     }
     
     const tierDetails = getTierDetails(selectedTier);
     return {
       amount: tierDetails.price.toFixed(2),
       currency: "USD",
-      description: `${tierDetails.name} Plan - ${tierDetails.exports} resume exports`
+      description: `${tierDetails.name} Plan - ${tierDetails.exports} resume exports`,
+      tier: selectedTier
     };
   };
 
