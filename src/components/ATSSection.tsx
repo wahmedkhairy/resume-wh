@@ -92,7 +92,7 @@ const ATSSection: React.FC<ATSSectionProps> = ({ resumeData }) => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="w-full max-w-7xl mx-auto space-y-6 px-4">
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-4">ATS Optimization Suite</h2>
         <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
@@ -101,166 +101,178 @@ const ATSSection: React.FC<ATSSectionProps> = ({ resumeData }) => {
         </p>
       </div>
 
-      <Tabs defaultValue="simulator" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="simulator">Live Simulator</TabsTrigger>
-          <TabsTrigger value="analysis">ATS Analysis</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="simulator" className="space-y-6">
-          <LiveATSSimulator resumeData={resumeData} />
-          <CallToAction 
-            variant="export" 
-            urgency={true}
-            className="mt-8"
-          />
-        </TabsContent>
-        
-        <TabsContent value="analysis" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {getScoreIcon(atsScore)}
-                  ATS Compatibility Score
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-4xl font-bold mb-2 ${getScoreColor(atsScore)}`}>
-                  {atsScore}%
-                </div>
-                <Progress value={atsScore} className="mb-4" />
-                <p className="text-sm text-muted-foreground">
-                  {atsScore >= 80 ? "Excellent! Your resume is highly ATS-friendly." :
-                   atsScore >= 60 ? "Good! Some improvements can boost your score." :
-                   "Needs improvement. Consider optimizing your resume format and content."}
-                </p>
-              </CardContent>
-            </Card>
+      <div className="w-full">
+        <Tabs defaultValue="simulator" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="simulator">Live Simulator</TabsTrigger>
+            <TabsTrigger value="analysis">ATS Analysis</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="simulator" className="w-full space-y-6">
+            <div className="w-full">
+              <LiveATSSimulator resumeData={resumeData} />
+            </div>
+            <CallToAction 
+              variant="export" 
+              urgency={true}
+              className="mt-8"
+            />
+          </TabsContent>
+          
+          <TabsContent value="analysis" className="w-full space-y-6">
+            <div className="w-full space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+                <Card className="w-full">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      {getScoreIcon(atsScore)}
+                      ATS Compatibility Score
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-4xl font-bold mb-2 ${getScoreColor(atsScore)}`}>
+                      {atsScore}%
+                    </div>
+                    <Progress value={atsScore} className="mb-4" />
+                    <p className="text-sm text-muted-foreground">
+                      {atsScore >= 80 ? "Excellent! Your resume is highly ATS-friendly." :
+                       atsScore >= 60 ? "Good! Some improvements can boost your score." :
+                       "Needs improvement. Consider optimizing your resume format and content."}
+                    </p>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Keyword Optimization
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-4xl font-bold mb-2 ${getScoreColor(keywordScore)}`}>
-                  {Math.round(keywordScore)}%
-                </div>
-                <Progress value={keywordScore} className="mb-4" />
-                <p className="text-sm text-muted-foreground">
-                  {keywordScore >= 70 ? "Great keyword coverage!" :
-                   keywordScore >= 50 ? "Consider adding more relevant keywords." :
-                   "Add industry-specific keywords to improve visibility."}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <ATSScanner resumeData={resumeData} />
-          
-          <CallToAction 
-            variant="upgrade" 
-            title="Get Advanced ATS Insights"
-            description="Unlock detailed keyword analysis, industry-specific optimization, and real-time ATS simulation for unlimited job postings."
-          />
-        </TabsContent>
-        
-        <TabsContent value="performance" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-blue-600 mb-2">
-                  {resumeData?.workExperience?.length || 0}
-                </div>
-                <p className="text-sm text-muted-foreground">Work Experiences</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-green-600 mb-2">
-                  {resumeData?.skills?.length || 0}
-                </div>
-                <p className="text-sm text-muted-foreground">Skills Listed</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-purple-600 mb-2">
-                  {resumeData?.education?.length || 0}
-                </div>
-                <p className="text-sm text-muted-foreground">Education Entries</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-orange-600 mb-2">
-                  {Math.round((resumeData?.summary?.length || 0) / 10)}
-                </div>
-                <p className="text-sm text-muted-foreground">Summary Words</p>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Performance Metrics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Resume Completeness</span>
-                  <div className="flex items-center gap-2">
-                    <Progress value={atsScore} className="w-24" />
-                    <span className="text-sm">{atsScore}%</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Keyword Density</span>
-                  <div className="flex items-center gap-2">
-                    <Progress value={keywordScore} className="w-24" />
-                    <span className="text-sm">{Math.round(keywordScore)}%</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Format Score</span>
-                  <div className="flex items-center gap-2">
-                    <Progress value={85} className="w-24" />
-                    <span className="text-sm">85%</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Readability</span>
-                  <div className="flex items-center gap-2">
-                    <Progress value={92} className="w-24" />
-                    <span className="text-sm">92%</span>
-                  </div>
-                </div>
+                <Card className="w-full">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Keyword Optimization
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-4xl font-bold mb-2 ${getScoreColor(keywordScore)}`}>
+                      {Math.round(keywordScore)}%
+                    </div>
+                    <Progress value={keywordScore} className="mb-4" />
+                    <p className="text-sm text-muted-foreground">
+                      {keywordScore >= 70 ? "Great keyword coverage!" :
+                       keywordScore >= 50 ? "Consider adding more relevant keywords." :
+                       "Add industry-specific keywords to improve visibility."}
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
+              
+              <div className="w-full">
+                <ATSScanner resumeData={resumeData} />
+              </div>
+              
+              <CallToAction 
+                variant="upgrade" 
+                title="Get Advanced ATS Insights"
+                description="Unlock detailed keyword analysis, industry-specific optimization, and real-time ATS simulation for unlimited job postings."
+              />
+            </div>
+          </TabsContent>
           
-          <ATSPerformanceTracker resumeData={resumeData} />
-          
-          <CallToAction 
-            variant="success" 
-            title="Optimize Your Performance"
-            description="Your resume performance analysis is complete. Download your optimized resume and start applying with confidence."
-          />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="performance" className="w-full space-y-6">
+            <div className="w-full space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                <Card className="w-full">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-blue-600 mb-2">
+                      {resumeData?.workExperience?.length || 0}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Work Experiences</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="w-full">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-green-600 mb-2">
+                      {resumeData?.skills?.length || 0}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Skills Listed</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="w-full">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-purple-600 mb-2">
+                      {resumeData?.education?.length || 0}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Education Entries</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="w-full">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-orange-600 mb-2">
+                      {Math.round((resumeData?.summary?.length || 0) / 10)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Summary Words</p>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <Card className="w-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Performance Metrics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Resume Completeness</span>
+                      <div className="flex items-center gap-2">
+                        <Progress value={atsScore} className="w-24" />
+                        <span className="text-sm">{atsScore}%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Keyword Density</span>
+                      <div className="flex items-center gap-2">
+                        <Progress value={keywordScore} className="w-24" />
+                        <span className="text-sm">{Math.round(keywordScore)}%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Format Score</span>
+                      <div className="flex items-center gap-2">
+                        <Progress value={85} className="w-24" />
+                        <span className="text-sm">85%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Readability</span>
+                      <div className="flex items-center gap-2">
+                        <Progress value={92} className="w-24" />
+                        <span className="text-sm">92%</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <div className="w-full">
+                <ATSPerformanceTracker resumeData={resumeData} />
+              </div>
+              
+              <CallToAction 
+                variant="success" 
+                title="Optimize Your Performance"
+                description="Your resume performance analysis is complete. Download your optimized resume and start applying with confidence."
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
