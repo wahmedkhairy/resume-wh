@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from '@supabase/supabase-js';
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, CheckCircle, Clock, AlertTriangle, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import EmailVerification from "@/components/EmailVerification";
 
@@ -36,6 +36,7 @@ const Auth = () => {
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [lastResetAttempt, setLastResetAttempt] = useState<number | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -193,6 +194,20 @@ const Auth = () => {
     }
   };
 
+  const canAttemptReset = () => {
+    if (!lastResetAttempt) return true;
+    const timeSinceLastAttempt = Date.now() - lastResetAttempt;
+    const minimumWaitTime = 60000; // 60 seconds
+    return timeSinceLastAttempt >= minimumWaitTime;
+  };
+
+  const getRemainingWaitTime = () => {
+    if (!lastResetAttempt) return 0;
+    const timeSinceLastAttempt = Date.now() - lastResetAttempt;
+    const minimumWaitTime = 60000; // 60 seconds
+    return Math.max(0, Math.ceil((minimumWaitTime - timeSinceLastAttempt) / 1000));
+  };
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -205,7 +220,18 @@ const Auth = () => {
       return;
     }
 
+    if (!canAttemptReset()) {
+      const remainingTime = getRemainingWaitTime();
+      toast({
+        title: "Please Wait",
+        description: `You can try again in ${remainingTime} seconds to avoid rate limits.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsResettingPassword(true);
+    setLastResetAttempt(Date.now());
     console.log('Attempting password reset for:', forgotPasswordEmail);
 
     try {
@@ -225,8 +251,8 @@ const Auth = () => {
         // Handle specific error cases
         if (error.message.includes('429') || error.message.includes('rate limit') || error.message.includes('over_email_send_rate_limit')) {
           toast({
-            title: "Too Many Requests",
-            description: "You've requested too many password resets recently. Please wait at least 60 seconds before trying again.",
+            title: "Rate Limit Exceeded",
+            description: "Too many password reset requests. Please wait at least 60 seconds before trying again. This helps prevent spam.",
             variant: "destructive",
           });
         } else if (error.message.includes('User not found') || error.message.includes('user_not_found')) {
@@ -248,11 +274,10 @@ const Auth = () => {
         console.log('Password reset email sent successfully');
         setResetEmailSent(true);
         toast({
-          title: "Password Reset Email Sent",
-          description: `Please check your email (${forgotPasswordEmail}) for a password reset link. The link will expire in 1 hour. If you don't see it, check your spam folder.`,
+          title: "Reset Email Sent",
+          description: `Check your email (${forgotPasswordEmail}) for a password reset link. If you don't see it within 5 minutes, check your spam folder.`,
         });
         
-        // Don't immediately hide the form, show success state instead
         setForgotPasswordEmail("");
       }
     } catch (error: any) {
@@ -560,6 +585,8 @@ const Auth = () => {
   }
 
   if (showForgotPassword) {
+    const remainingWaitTime = getRemainingWaitTime();
+    
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <Card className="w-full max-w-md">
@@ -576,12 +603,26 @@ const Auth = () => {
             {resetEmailSent ? (
               <div className="space-y-4">
                 <Alert>
-                  <AlertCircle className="h-4 w-4" />
+                  <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription>
                     We've sent a password reset link to your email. The link will expire in 1 hour.
-                    If you don't see the email, please check your spam folder.
+                    If you don't see the email within 5 minutes, please check your spam folder.
                   </AlertDescription>
                 </Alert>
+                
+                <Alert>
+                  <AlertTriangle className="h-4 w-4 text-orange-600" />
+                  <AlertDescription className="text-sm">
+                    <strong>Important:</strong> If you still don't receive the email:
+                    <ul className="mt-2 space-y-1 list-disc list-inside text-xs">
+                      <li>Check spam/junk folder thoroughly</li>
+                      <li>Wait at least 60 seconds before requesting another reset</li>
+                      <li>Make sure the email address is correct</li>
+                      <li>Some email providers have delays - be patient</li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+
                 <div className="space-y-2">
                   <Button 
                     variant="outline"
@@ -590,8 +631,16 @@ const Auth = () => {
                       setResetEmailSent(false);
                       setForgotPasswordEmail("");
                     }}
+                    disabled={!canAttemptReset()}
                   >
-                    Send Another Reset Email
+                    {remainingWaitTime > 0 ? (
+                      <>
+                        <Clock className="mr-2 h-4 w-4" />
+                        Wait {remainingWaitTime}s before retry
+                      </>
+                    ) : (
+                      "Send Another Reset Email"
+                    )}
                   </Button>
                   <Button 
                     type="button" 
@@ -608,35 +657,64 @@ const Auth = () => {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="forgot-email">Email</Label>
-                  <Input
-                    id="forgot-email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={forgotPasswordEmail}
-                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                    required
-                    disabled={isResettingPassword}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={isResettingPassword}>
-                  {isResettingPassword ? "Sending..." : "Send Reset Link"}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  className="w-full"
-                  onClick={() => {
-                    setShowForgotPassword(false);
-                    setResetEmailSent(false);
-                    setForgotPasswordEmail("");
-                  }}
-                >
-                  Back to Sign In
-                </Button>
-              </form>
+              <div className="space-y-4">
+                {!canAttemptReset() && (
+                  <Alert>
+                    <Clock className="h-4 w-4 text-orange-600" />
+                    <AlertDescription>
+                      Please wait {remainingWaitTime} seconds before trying again to avoid rate limits.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">Email</Label>
+                    <Input
+                      id="forgot-email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      required
+                      disabled={isResettingPassword}
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={isResettingPassword || !canAttemptReset()}
+                  >
+                    {isResettingPassword ? "Sending..." : 
+                     !canAttemptReset() ? `Wait ${remainingWaitTime}s...` : 
+                     "Send Reset Link"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    className="w-full"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setResetEmailSent(false);
+                      setForgotPasswordEmail("");
+                    }}
+                  >
+                    Back to Sign In
+                  </Button>
+                </form>
+                
+                <Alert>
+                  <AlertTriangle className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-sm">
+                    <strong>Email Delivery Tips:</strong>
+                    <ul className="mt-1 space-y-1 list-disc list-inside text-xs">
+                      <li>Check spam/junk folder if email doesn't arrive</li>
+                      <li>Wait 60 seconds between requests to avoid rate limits</li>
+                      <li>Some email providers may have delays</li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              </div>
             )}
           </CardContent>
         </Card>
