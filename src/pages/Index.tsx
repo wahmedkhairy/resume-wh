@@ -129,6 +129,7 @@ const Index = () => {
   };
 
   const handleExportResume = async () => {
+    console.log('handleExportResume called with data:', getCurrentResumeData);
     await handleExport(getCurrentResumeData);
   };
 
@@ -137,6 +138,7 @@ const Index = () => {
   };
 
   const handleExportResumeAsWord = async () => {
+    console.log('handleExportResumeAsWord called with data:', getCurrentResumeData);
     await handleWordExport(getCurrentResumeData);
   };
 

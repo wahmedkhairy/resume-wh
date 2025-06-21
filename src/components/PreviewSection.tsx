@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import LiveSubscriptionDialog from "@/components/LiveSubscriptionDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface Skill {
   id: string;
@@ -81,7 +82,9 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
   isExporting = false,
   canExport = false,
 }) => {
-  // Prepare resume data for ATS Scanner
+  const { toast } = useToast();
+
+  // Prepare resume data for ATS Scanner and export
   const resumeData = {
     personalInfo,
     summary,
@@ -91,15 +94,71 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
     coursesAndCertifications,
   };
 
-  const handleExportClick = () => {
-    if (canExport && onExport) {
-      onExport();
+  const handleExportClick = async () => {
+    console.log('Export PDF clicked, canExport:', canExport, 'onExport:', !!onExport);
+    
+    if (!canExport) {
+      toast({
+        title: "Export Not Available",
+        description: "Please upgrade to export your resume.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!onExport) {
+      toast({
+        title: "Export Error",
+        description: "Export function not available. Please try refreshing the page.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log('Calling onExport function...');
+      await onExport();
+    } catch (error) {
+      console.error('Export error in PreviewSection:', error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting your resume. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleWordExportClick = () => {
-    if (canExport && onExportWord) {
-      onExportWord();
+  const handleWordExportClick = async () => {
+    console.log('Export Word clicked, canExport:', canExport, 'onExportWord:', !!onExportWord);
+    
+    if (!canExport) {
+      toast({
+        title: "Export Not Available",
+        description: "Please upgrade to export your resume.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!onExportWord) {
+      toast({
+        title: "Export Error",
+        description: "Word export function not available. Please try refreshing the page.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log('Calling onExportWord function...');
+      await onExportWord();
+    } catch (error) {
+      console.error('Word export error in PreviewSection:', error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting your resume as Word. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -141,7 +200,7 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
           </div>
         </div>
         
-        <div className="border rounded-lg bg-white relative">
+        <div className="border rounded-lg bg-white relative" data-resume-preview>
           <ResumePreview 
             watermark={!isPremiumUser}
             personalInfo={personalInfo}

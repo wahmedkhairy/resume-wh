@@ -1,3 +1,4 @@
+
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { exportResumeAsPlainText } from './textExport';
@@ -13,21 +14,25 @@ export interface ExportData {
 
 export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
   try {
-    // Get the resume preview element
-    const resumeElement = document.querySelector('[data-resume-preview]') as HTMLElement;
+    console.log('Starting PDF export with data:', data);
+    
+    // Get the resume preview element - try multiple selectors
+    let resumeElement = document.querySelector('[data-resume-preview]') as HTMLElement;
     
     if (!resumeElement) {
-      const fallbackElement = document.querySelector('.resume-container') || 
-                             document.querySelector('[class*="resume"]');
-      
-      if (!fallbackElement) {
-        throw new Error('Resume preview not found. Please ensure the resume is visible and try again.');
-      }
+      // Try alternative selectors
+      resumeElement = document.querySelector('.resume-container') as HTMLElement || 
+                    document.querySelector('[class*="resume"]') as HTMLElement ||
+                    document.querySelector('.ClassicResumePreview') as HTMLElement;
+    }
+    
+    if (!resumeElement) {
+      console.error('Resume preview element not found. Available elements:', 
+        Array.from(document.querySelectorAll('*')).map(el => el.className).filter(cn => cn.includes('resume')));
+      throw new Error('Resume preview not found. Please ensure the resume is visible and try again.');
     }
 
-    const targetElement = resumeElement || document.querySelector('.resume-container') as HTMLElement;
-
-    console.log('Starting PDF export...');
+    console.log('Found resume element:', resumeElement);
 
     // Temporarily hide watermark for export
     const watermark = document.querySelector('.watermark') as HTMLElement;
@@ -36,21 +41,28 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     const originalWatermarkDisplay = watermark?.style.display;
     const originalAntiTheftDisplay = antiTheft?.style.display;
     
-    if (watermark) watermark.style.display = 'none';
-    if (antiTheft) antiTheft.style.display = 'none';
+    if (watermark) {
+      console.log('Hiding watermark for export');
+      watermark.style.display = 'none';
+    }
+    if (antiTheft) {
+      console.log('Hiding anti-theft for export');
+      antiTheft.style.display = 'none';
+    }
 
     // Wait for DOM updates
     await new Promise(resolve => setTimeout(resolve, 300));
 
     // Create high-quality canvas
-    const canvas = await html2canvas(targetElement, {
+    console.log('Creating canvas...');
+    const canvas = await html2canvas(resumeElement, {
       scale: 2.5,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
-      width: targetElement.scrollWidth || targetElement.offsetWidth,
-      height: targetElement.scrollHeight || targetElement.offsetHeight,
-      logging: false,
+      width: resumeElement.scrollWidth || resumeElement.offsetWidth,
+      height: resumeElement.scrollHeight || resumeElement.offsetHeight,
+      logging: true,
       onclone: (clonedDoc) => {
         // Remove watermarks and anti-theft elements in clone
         const clonedWatermark = clonedDoc.querySelector('.watermark');
@@ -68,7 +80,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
       antiTheft.style.display = originalAntiTheftDisplay;
     }
 
-    console.log('Canvas created, generating PDF...');
+    console.log('Canvas created successfully, dimensions:', canvas.width, 'x', canvas.height);
 
     // Create PDF
     const imgData = canvas.toDataURL('image/png', 1.0);
@@ -112,6 +124,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
 
 // Export as Word
 export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
+  console.log('Starting Word export with data:', data);
   const { exportResumeAsWord: exportWordFunction } = await import('./wordExport');
   return exportWordFunction(data);
 };
