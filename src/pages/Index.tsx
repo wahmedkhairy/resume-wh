@@ -80,9 +80,9 @@ const Index = () => {
     checkUser();
   }, []);
 
-  // Memoize current resume data to prevent unnecessary re-renders
-  const getCurrentResumeData = useMemo(() => {
-    const currentData = tailoredResumeData || {
+  // Fix: Create properly structured resume data object (not function)
+  const currentResumeData = useMemo(() => {
+    const resumeData = tailoredResumeData || {
       personalInfo,
       summary: resumeState.summary,
       workExperience,
@@ -91,8 +91,8 @@ const Index = () => {
       coursesAndCertifications
     };
     
-    console.log('getCurrentResumeData memoized result:', currentData);
-    return currentData;
+    console.log('Index.tsx - currentResumeData created:', resumeData);
+    return resumeData;
   }, [tailoredResumeData, personalInfo, resumeState.summary, workExperience, education, skills, coursesAndCertifications]);
 
   const handlePersonalInfoChange = (info: any) => {
@@ -123,11 +123,12 @@ const Index = () => {
   };
 
   const handleExportResume = async () => {
-    const exportData = getCurrentResumeData;
-    console.log('handleExportResume called with data:', exportData);
+    console.log('=== handleExportResume called ===');
+    console.log('Current resume data:', currentResumeData);
     
-    if (!exportData || typeof exportData !== 'object') {
-      console.error('Invalid export data structure:', exportData);
+    // Validate data structure before export
+    if (!currentResumeData || typeof currentResumeData !== 'object') {
+      console.error('Invalid export data structure:', currentResumeData);
       toast({
         title: "Export Error",
         description: "Invalid resume data. Please refresh the page and try again.",
@@ -135,16 +136,37 @@ const Index = () => {
       });
       return;
     }
+
+    // Check if required data exists
+    if (!currentResumeData.personalInfo) {
+      console.error('Missing personal info in export data');
+      toast({
+        title: "Export Error",
+        description: "Personal information is required for export.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    await handleExport(exportData);
+    try {
+      await handleExport(currentResumeData);
+    } catch (error) {
+      console.error('Export failed in Index.tsx:', error);
+      toast({
+        title: "Export Failed",
+        description: error instanceof Error ? error.message : "Export failed. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleExportResumeAsWord = async () => {
-    const exportData = getCurrentResumeData;
-    console.log('handleExportResumeAsWord called with data:', exportData);
+    console.log('=== handleExportResumeAsWord called ===');
+    console.log('Current resume data:', currentResumeData);
     
-    if (!exportData || typeof exportData !== 'object') {
-      console.error('Invalid export data structure:', exportData);
+    // Validate data structure before export
+    if (!currentResumeData || typeof currentResumeData !== 'object') {
+      console.error('Invalid export data structure:', currentResumeData);
       toast({
         title: "Export Error",
         description: "Invalid resume data. Please refresh the page and try again.",
@@ -152,14 +174,44 @@ const Index = () => {
       });
       return;
     }
+
+    // Check if required data exists
+    if (!currentResumeData.personalInfo) {
+      console.error('Missing personal info in export data');
+      toast({
+        title: "Export Error",
+        description: "Personal information is required for export.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    await handleWordExport(exportData);
+    try {
+      await handleWordExport(currentResumeData);
+    } catch (error) {
+      console.error('Word export failed in Index.tsx:', error);
+      toast({
+        title: "Export Failed",
+        description: error instanceof Error ? error.message : "Word export failed. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleExportResumeAsText = () => {
-    const exportData = getCurrentResumeData;
-    console.log('handleExportResumeAsText called with data:', exportData);
-    exportResumeAsText(exportData);
+    console.log('=== handleExportResumeAsText called ===');
+    console.log('Current resume data:', currentResumeData);
+    
+    try {
+      exportResumeAsText(currentResumeData);
+    } catch (error) {
+      console.error('Text export failed:', error);
+      toast({
+        title: "Export Failed",
+        description: "Text export failed. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSectionChange = (section: string) => {
@@ -237,7 +289,7 @@ const Index = () => {
             onExport={handleExportResume}
             onExportWord={handleExportResumeAsWord}
             canExport={canExport}
-            getCurrentResumeData={getCurrentResumeData}
+            getCurrentResumeData={currentResumeData}
           />
         </div>
       </main>

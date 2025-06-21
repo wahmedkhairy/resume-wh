@@ -95,11 +95,17 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
   };
 
   const handleExportClick = async () => {
-    console.log('=== Export PDF Button Clicked ===');
+    console.log('=== PreviewSection Export PDF Button Clicked ===');
     console.log('canExport:', canExport);
     console.log('onExport function available:', !!onExport);
-    console.log('Current resume data:', resumeData);
+    console.log('isExporting:', isExporting);
     
+    // Prevent multiple export attempts
+    if (isExporting) {
+      console.log('Export already in progress, ignoring click');
+      return;
+    }
+
     if (!canExport) {
       console.log('Export not allowed - showing upgrade message');
       toast({
@@ -122,17 +128,7 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
 
     try {
       console.log('Starting export process...');
-      
-      // Show loading state
-      toast({
-        title: "Preparing Export",
-        description: "Generating your PDF, please wait...",
-      });
-      
-      // Call the export function
       await onExport();
-      
-      console.log('Export completed successfully');
     } catch (error) {
       console.error('Export failed in PreviewSection:', error);
       toast({
@@ -144,13 +140,19 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
   };
 
   const handleWordExportClick = async () => {
-    console.log('=== Export Word Button Clicked ===');
+    console.log('=== PreviewSection Export Word Button Clicked ===');
     console.log('canExport:', canExport);
     console.log('onExportWord function available:', !!onExportWord);
-    console.log('Current resume data:', resumeData);
+    console.log('isExporting:', isExporting);
     
+    // Prevent multiple export attempts
+    if (isExporting) {
+      console.log('Word export already in progress, ignoring click');
+      return;
+    }
+
     if (!canExport) {
-      console.log('Export not allowed - showing upgrade message');
+      console.log('Word export not allowed - showing upgrade message');
       toast({
         title: "Export Not Available",
         description: "Please upgrade to export your resume.",
@@ -171,17 +173,7 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
 
     try {
       console.log('Starting Word export process...');
-      
-      // Show loading state
-      toast({
-        title: "Preparing Export",
-        description: "Generating your Word document, please wait...",
-      });
-      
-      // Call the Word export function
       await onExportWord();
-      
-      console.log('Word export completed successfully');
     } catch (error) {
       console.error('Word export failed in PreviewSection:', error);
       toast({
