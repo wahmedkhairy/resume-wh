@@ -8,9 +8,10 @@ import UserSettings from "@/components/UserSettings";
 import SitemapUploader from "@/components/SitemapUploader";
 import PayPalLiveSettings from "@/components/PayPalLiveSettings";
 import AdminAnalytics from "@/components/AdminAnalytics";
+import UserManagement from "@/components/UserManagement";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, FileText, CreditCard, BarChart } from "lucide-react";
+import { Shield, Settings, FileText, CreditCard, BarChart, Users } from "lucide-react";
 
 const Admin = () => {
   const [user, setUser] = useState<any>(null);
@@ -69,18 +70,22 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart className="h-4 w-4" />
                 Analytics
               </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Users
+              </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
-                User Settings
+                Settings
               </TabsTrigger>
               <TabsTrigger value="paypal" className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
-                PayPal Setup
+                PayPal
               </TabsTrigger>
               <TabsTrigger value="sitemap" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
@@ -94,6 +99,10 @@ const Admin = () => {
 
             <TabsContent value="analytics">
               <AdminAnalytics />
+            </TabsContent>
+
+            <TabsContent value="users">
+              <UserManagement />
             </TabsContent>
 
             <TabsContent value="settings">

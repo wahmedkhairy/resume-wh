@@ -132,7 +132,7 @@ const ATSPerformanceTracker: React.FC<ATSPerformanceTrackerProps> = ({ resumeDat
         </CardContent>
       </Card>
 
-      {/* Performance Metrics */}
+      {/* Performance Metrics - Compact Grid Layout */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -144,19 +144,19 @@ const ATSPerformanceTracker: React.FC<ATSPerformanceTrackerProps> = ({ resumeDat
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {performanceMetrics.map((metric, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm">{metric.title}</span>
-                  <div className="flex items-center gap-2">
+              <div key={index} className="p-3 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-xs">{metric.title}</span>
+                  <div className="flex items-center gap-1">
                     {getScoreIcon(metric.score)}
-                    <span className={`font-semibold text-sm ${getScoreColor(metric.score)}`}>
+                    <span className={`font-semibold text-xs ${getScoreColor(metric.score)}`}>
                       {metric.score}%
                     </span>
                   </div>
                 </div>
-                <Progress value={metric.score} className="h-2" />
+                <Progress value={metric.score} className="h-1.5 mb-1" />
                 <p className="text-xs text-muted-foreground">{metric.description}</p>
               </div>
             ))}
@@ -164,7 +164,7 @@ const ATSPerformanceTracker: React.FC<ATSPerformanceTrackerProps> = ({ resumeDat
         </CardContent>
       </Card>
 
-      {/* ATS System Performance */}
+      {/* ATS System Performance - Compact Grid */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -176,33 +176,31 @@ const ATSPerformanceTracker: React.FC<ATSPerformanceTrackerProps> = ({ resumeDat
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {atsSystemsData.map((system, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${system.color}`}></div>
-                    <div>
-                      <span className="font-medium text-sm">{system.name}</span>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        ({system.marketShare} market share)
-                      </span>
+              <div key={index} className="p-3 border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-2 h-2 rounded-full ${system.color}`}></div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{system.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {system.marketShare} market share
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     {getScoreIcon(system.score)}
-                    <span className={`font-semibold text-sm ${getScoreColor(system.score)}`}>
+                    <span className={`font-semibold text-xs ${getScoreColor(system.score)}`}>
                       {system.score}%
                     </span>
                   </div>
                 </div>
-                <Progress value={system.score} className="h-2" />
+                <Progress value={system.score} className="h-1.5" />
               </div>
             ))}
           </div>
           
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <p className="text-xs text-blue-800 dark:text-blue-200">
               <strong>💡 Tip:</strong> Scores above 85% indicate excellent ATS compatibility. 
               Consider adding more relevant keywords and work experience to improve lower scores.
             </p>

@@ -1,25 +1,72 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import SubscriptionTiers from "@/components/SubscriptionTiers";
-import PaymentSection from "@/components/PaymentSection";
+import CreditCardForm from "@/components/CreditCardForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { PayPalOrderData } from "@/services/paypalService";
+import { detectUserLocation, formatCurrency } from "@/utils/currencyUtils";
 
 const Subscription = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [locationData, setLocationData] = useState<{
+    country: string;
+    currency: {
+      symbol: string;
+      code: string;
+      basicPrice: number;
+      premiumPrice: number;
+      unlimitedPrice: number;
+    };
+  } | null>(null);
+
+  React.useEffect(() => {
+    const loadLocationData = async () => {
+      try {
+        const data = await detectUserLocation();
+        setLocationData({
+          country: data.country,
+          currency: {
+            symbol: data.currency.symbol,
+            code: data.currency.code,
+            basicPrice: data.currency.basicPrice,
+            premiumPrice: data.currency.premiumPrice,
+            unlimitedPrice: data.currency.unlimitedPrice
+          }
+        });
+      } catch (error) {
+        console.error("Error loading location data:", error);
+        // Set default values on error
+        setLocationData({
+          country: "United States",
+          currency: {
+            symbol: "$",
+            code: "USD",
+            basicPrice: 2,
+            premiumPrice: 3,
+            unlimitedPrice: 4.99
+          }
+        });
+      }
+    };
+    
+    loadLocationData();
+  }, []);
 
   const getTierDetails = (tier: string) => {
+    if (!locationData) return { name: "Basic", price: 2.00, exports: 2, targetedResumes: 1 };
+    
     const tiers = {
-      basic: { name: "Basic", price: 2.00, exports: 2, targetedResumes: 1 },
-      premium: { name: "Premium", price: 3.00, exports: 6, targetedResumes: 3 },
-      unlimited: { name: "Unlimited", price: 4.99, exports: "Unlimited", targetedResumes: "Unlimited" }
+      basic: { name: "Basic", price: locationData.currency.basicPrice, exports: 2, targetedResumes: 1 },
+      premium: { name: "Premium", price: locationData.currency.premiumPrice, exports: 6, targetedResumes: 3 },
+      unlimited: { name: "Unlimited", price: locationData.currency.unlimitedPrice, exports: "Unlimited", targetedResumes: "Unlimited" }
     };
     return tiers[tier as keyof typeof tiers];
   };
@@ -50,32 +97,17 @@ const Subscription = () => {
 
   const handlePaymentCancel = () => {
     console.log('Payment cancelled');
-    toast({
-      title: "Payment Cancelled",
-      description: "You can try again anytime.",
-    });
     setShowPayment(false);
     setSelectedTier(null);
   };
 
-  const getOrderData = (): PayPalOrderData => {
-    if (!selectedTier) {
-      return { 
-        amount: "2.00", 
-        currency: "USD", 
-        description: "Basic Plan",
-        tier: "basic"
-      };
-    }
-    
-    const tierDetails = getTierDetails(selectedTier);
-    return {
-      amount: tierDetails.price.toFixed(2),
-      currency: "USD",
-      description: `${tierDetails.name} Plan - ${tierDetails.exports} resume exports`,
-      tier: selectedTier
-    };
-  };
+  if (!locationData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -108,7 +140,7 @@ const Subscription = () => {
                   Complete Your Purchase
                 </h1>
                 <p className="text-muted-foreground">
-                  You're purchasing the {getTierDetails(selectedTier!)?.name} plan for ${getTierDetails(selectedTier!)?.price.toFixed(2)}
+                  You're purchasing the {getTierDetails(selectedTier!)?.name} plan for {formatCurrency(getTierDetails(selectedTier!)?.price, locationData.currency)}
                 </p>
                 <Button
                   variant="outline"
@@ -171,11 +203,16 @@ const Subscription = () => {
             </>
           ) : (
             <div className="max-w-md mx-auto">
-              <PaymentSection
-                orderData={getOrderData()}
+              <CreditCardForm
                 onSuccess={handlePaymentSuccess}
                 onError={handlePaymentError}
                 onCancel={handlePaymentCancel}
+                amount={getTierDetails(selectedTier!)?.price}
+                currency={locationData.currency.code}
+                symbol={locationData.currency.symbol}
+                selectedTier={selectedTier!}
+                isProcessing={isProcessing}
+                setIsProcessing={setIsProcessing}
               />
             </div>
           )}
