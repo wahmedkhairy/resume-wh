@@ -1,9 +1,12 @@
+
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, Lock, Calendar, ShieldCheck } from "lucide-react";
 
 interface CreditCardFormProps {
@@ -37,6 +40,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
     email: ""
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const formatCardNumber = (value: string) => {
     const cleaned = value.replace(/\s/g, '');
@@ -125,6 +129,62 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
     return true;
   };
 
+  const createSubscription = async (paymentDetails: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Calculate export credits based on tier
+      let exportCredits = 0;
+      switch (selectedTier) {
+        case 'basic':
+          exportCredits = 2;
+          break;
+        case 'premium':
+          exportCredits = 6;
+          break;
+        case 'unlimited':
+          exportCredits = 999;
+          break;
+        default:
+          exportCredits = 2;
+      }
+
+      // Create subscription record
+      const { data: subscription, error } = await supabase
+        .from('subscriptions')
+        .upsert({
+          user_id: user.id,
+          tier: selectedTier,
+          scan_count: exportCredits,
+          status: 'active',
+          payment_method: 'credit_card',
+          amount: amount,
+          currency: currency,
+          payment_id: paymentDetails.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Subscription creation error:', error);
+        throw error;
+      }
+
+      console.log('Subscription created successfully:', subscription);
+      return subscription;
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -135,30 +195,48 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
     setIsProcessing(true);
 
     try {
-      // Simulate payment processing
+      console.log('Processing payment...');
+      
+      // Simulate payment processing delay
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // Simulate successful payment
+      // Create payment details
       const paymentDetails = {
         id: `payment_${Date.now()}`,
         amount: amount,
         currency: currency,
         status: 'completed',
         cardLast4: cardDetails.cardNumber.slice(-4),
-        tier: selectedTier
+        tier: selectedTier,
+        timestamp: new Date().toISOString()
       };
+
+      console.log('Payment simulated successfully:', paymentDetails);
+
+      // Create subscription in Supabase
+      const subscription = await createSubscription(paymentDetails);
+      
+      console.log('Subscription created, preparing success response');
 
       toast({
         title: "Payment Successful!",
         description: `Your ${selectedTier} plan has been activated.`,
       });
 
-      onSuccess(paymentDetails);
+      // Call the success handler
+      onSuccess({
+        ...paymentDetails,
+        subscription: subscription
+      });
+
+      // Navigate to payment success page instead of resume editor
+      navigate('/payment-success');
+
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error('Payment processing error:', error);
       toast({
         title: "Payment Failed",
-        description: "There was an error processing your payment. Please try again.",
+        description: error.message || "There was an error processing your payment. Please try again.",
         variant: "destructive",
       });
       onError(error);

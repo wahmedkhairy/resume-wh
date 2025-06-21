@@ -78,27 +78,36 @@ const Subscription = () => {
   };
 
   const handlePaymentSuccess = (details: any) => {
-    console.log('Payment successful:', details);
+    console.log('Payment successful on subscription page:', details);
+    
     toast({
       title: "Payment Successful!",
       description: `Welcome to ${getTierDetails(selectedTier!)?.name} plan!`,
     });
-    navigate("/?payment=success");
+
+    // Don't navigate immediately, let the CreditCardForm handle navigation
+    // The form will navigate to /payment-success
   };
 
   const handlePaymentError = (error: any) => {
-    console.error('Payment error:', error);
+    console.error('Payment error on subscription page:', error);
     toast({
       title: "Payment Failed",
       description: "There was an issue processing your payment. Please try again.",
       variant: "destructive",
     });
+    
+    // Reset to plan selection
+    setShowPayment(false);
+    setSelectedTier(null);
+    setIsProcessing(false);
   };
 
   const handlePaymentCancel = () => {
-    console.log('Payment cancelled');
+    console.log('Payment cancelled on subscription page');
     setShowPayment(false);
     setSelectedTier(null);
+    setIsProcessing(false);
   };
 
   if (!locationData) {
@@ -149,6 +158,7 @@ const Subscription = () => {
                     setSelectedTier(null);
                   }}
                   className="mt-4"
+                  disabled={isProcessing}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Plans
