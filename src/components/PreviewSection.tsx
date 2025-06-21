@@ -109,34 +109,36 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Resume Preview</h2>
           
-          {/* Export Controls - Always visible with consistent text */}
-          {canExport ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button disabled={isExporting} size="sm">
-                  <Download className="mr-2 h-4 w-4" />
-                  {isExporting ? "Exporting..." : "Export Resume"}
+          {/* Export Controls - Moved to right side as requested */}
+          <div className="flex justify-end">
+            {canExport ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button disabled={isExporting} size="sm">
+                    <Download className="mr-2 h-4 w-4" />
+                    {isExporting ? "Exporting..." : "Export Resume"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleExportClick}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export as PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleWordExportClick}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Export as Word (.DOCX)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <LiveSubscriptionDialog>
+                <Button size="sm">
+                  <Crown className="mr-2 h-4 w-4" />
+                  Export Resume
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleExportClick}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Export as PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleWordExportClick}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Export as Word (.DOCX)
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <LiveSubscriptionDialog>
-              <Button size="sm">
-                <Crown className="mr-2 h-4 w-4" />
-                Export Resume
-              </Button>
-            </LiveSubscriptionDialog>
-          )}
+              </LiveSubscriptionDialog>
+            )}
+          </div>
         </div>
         
         <div className="border rounded-lg bg-white relative">
