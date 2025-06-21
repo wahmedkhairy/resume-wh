@@ -1,16 +1,31 @@
 
 import React from "react";
-import UserSettings from "@/components/UserSettings";
+import UserSettings from "./UserSettings";
+import AIIntegrationTester from "./AIIntegrationTester";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const SettingsSection: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <div className="lg:col-span-12">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-          <h2 className="text-2xl font-bold mb-6">Settings</h2>
-          <UserSettings />
-        </div>
+    <div className="space-y-6">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-2">Settings & Tools</h1>
+        <p className="text-muted-foreground">Manage your account settings and test AI features</p>
       </div>
+
+      <Tabs defaultValue="user-settings" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="user-settings">User Settings</TabsTrigger>
+          <TabsTrigger value="ai-testing">AI Testing</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="user-settings" className="space-y-6">
+          <UserSettings />
+        </TabsContent>
+        
+        <TabsContent value="ai-testing" className="space-y-6">
+          <AIIntegrationTester />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

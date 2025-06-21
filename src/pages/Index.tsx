@@ -292,6 +292,10 @@ const Index = () => {
                 isPremiumUser={isPremiumUser}
                 currentUserId={currentUserId}
                 sessionId={sessionId}
+                onExport={handleExportResume}
+                onExportWord={handleExportResumeAsWord}
+                isExporting={isExporting}
+                canExport={canExport()}
               />
             </div>
           </div>

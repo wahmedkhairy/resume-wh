@@ -6,6 +6,8 @@ import UserInfoCard from "./UserInfoCard";
 import SubscriptionCard from "./SubscriptionCard";
 import GeneralSettingsCard from "./GeneralSettingsCard";
 import PasswordChangeCard from "./PasswordChangeCard";
+import PasswordResetCard from "./PasswordResetCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const UserSettings: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -81,7 +83,18 @@ const UserSettings: React.FC = () => {
         onUserInfoUpdate={loadUserData}
       />
       
-      <PasswordChangeCard />
+      <Tabs defaultValue="change-password" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="change-password">Change Password</TabsTrigger>
+          <TabsTrigger value="reset-password">Reset Password</TabsTrigger>
+        </TabsList>
+        <TabsContent value="change-password" className="space-y-4">
+          <PasswordChangeCard />
+        </TabsContent>
+        <TabsContent value="reset-password" className="space-y-4">
+          <PasswordResetCard />
+        </TabsContent>
+      </Tabs>
       
       <SubscriptionCard 
         subscription={subscription}
