@@ -77,7 +77,13 @@ export const useSubscription = (currentUserId: string) => {
   };
 
   const handleExport = async (exportData: any) => {
+    console.log('=== useSubscription.handleExport called ===');
+    console.log('Can export:', canExport());
+    console.log('Export data received:', exportData);
+    console.log('Export data type:', typeof exportData);
+    
     if (!canExport()) {
+      console.log('Export not allowed - insufficient permissions');
       toast({
         title: "Upgrade Required",
         description: "Please purchase export credits to download your resume.",
@@ -86,10 +92,21 @@ export const useSubscription = (currentUserId: string) => {
       return;
     }
 
+    // Validate export data
+    if (!exportData || typeof exportData !== 'object') {
+      console.error('Invalid export data provided to handleExport:', exportData);
+      toast({
+        title: "Export Error",
+        description: "Invalid resume data. Please refresh and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsExporting(true);
     
     try {
-      console.log('Starting PDF export with data:', exportData);
+      console.log('Calling exportResumeToPDF with validated data...');
       await exportResumeToPDF(exportData);
       
       // Only decrement scan count for non-unlimited users and non-special users
@@ -124,10 +141,10 @@ export const useSubscription = (currentUserId: string) => {
         });
       }
     } catch (error) {
-      console.error('Export error:', error);
+      console.error('Export error in useSubscription:', error);
       toast({
         title: "Export Failed",
-        description: error.message || "There was an error exporting your resume. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error exporting your resume. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -136,7 +153,13 @@ export const useSubscription = (currentUserId: string) => {
   };
 
   const handleWordExport = async (exportData: any) => {
+    console.log('=== useSubscription.handleWordExport called ===');
+    console.log('Can export:', canExport());
+    console.log('Export data received:', exportData);
+    console.log('Export data type:', typeof exportData);
+    
     if (!canExport()) {
+      console.log('Word export not allowed - insufficient permissions');
       toast({
         title: "Upgrade Required",
         description: "Please purchase export credits to download your resume.",
@@ -145,10 +168,21 @@ export const useSubscription = (currentUserId: string) => {
       return;
     }
 
+    // Validate export data
+    if (!exportData || typeof exportData !== 'object') {
+      console.error('Invalid export data provided to handleWordExport:', exportData);
+      toast({
+        title: "Export Error",
+        description: "Invalid resume data. Please refresh and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsExporting(true);
     
     try {
-      console.log('Starting Word export with data:', exportData);
+      console.log('Calling exportResumeAsWord with validated data...');
       await exportResumeAsWord(exportData);
       
       // Only decrement scan count for non-unlimited users and non-special users
@@ -183,10 +217,10 @@ export const useSubscription = (currentUserId: string) => {
         });
       }
     } catch (error) {
-      console.error('Word export error:', error);
+      console.error('Word export error in useSubscription:', error);
       toast({
         title: "Export Failed",
-        description: error.message || "There was an error exporting your resume as Word. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error exporting your resume as Word. Please try again.",
         variant: "destructive",
       });
     } finally {

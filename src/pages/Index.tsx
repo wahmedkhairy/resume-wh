@@ -91,7 +91,7 @@ const Index = () => {
 
   // Memoize current resume data to prevent unnecessary re-renders
   const getCurrentResumeData = useMemo(() => {
-    return tailoredResumeData || {
+    const currentData = tailoredResumeData || {
       personalInfo,
       summary: resumeState.summary,
       workExperience,
@@ -99,6 +99,9 @@ const Index = () => {
       skills,
       coursesAndCertifications
     };
+    
+    console.log('getCurrentResumeData memoized result:', currentData);
+    return currentData;
   }, [tailoredResumeData, personalInfo, resumeState.summary, workExperience, education, skills, coursesAndCertifications]);
 
   const handlePersonalInfoChange = (info: any) => {
@@ -129,17 +132,47 @@ const Index = () => {
   };
 
   const handleExportResume = async () => {
-    console.log('handleExportResume called with data:', getCurrentResumeData);
-    await handleExport(getCurrentResumeData);
-  };
-
-  const handleExportResumeAsText = () => {
-    exportResumeAsText(getCurrentResumeData);
+    const exportData = getCurrentResumeData;
+    console.log('handleExportResume called with data:', exportData);
+    console.log('Data type check:', typeof exportData, Array.isArray(exportData));
+    
+    // Validate data structure
+    if (!exportData || typeof exportData !== 'object') {
+      console.error('Invalid export data structure:', exportData);
+      toast({
+        title: "Export Error",
+        description: "Invalid resume data. Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    await handleExport(exportData);
   };
 
   const handleExportResumeAsWord = async () => {
-    console.log('handleExportResumeAsWord called with data:', getCurrentResumeData);
-    await handleWordExport(getCurrentResumeData);
+    const exportData = getCurrentResumeData;
+    console.log('handleExportResumeAsWord called with data:', exportData);
+    console.log('Data type check:', typeof exportData, Array.isArray(exportData));
+    
+    // Validate data structure
+    if (!exportData || typeof exportData !== 'object') {
+      console.error('Invalid export data structure:', exportData);
+      toast({
+        title: "Export Error",
+        description: "Invalid resume data. Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    await handleWordExport(exportData);
+  };
+
+  const handleExportResumeAsText = () => {
+    const exportData = getCurrentResumeData;
+    console.log('handleExportResumeAsText called with data:', exportData);
+    exportResumeAsText(exportData);
   };
 
   const handleSectionChange = (section: string) => {
