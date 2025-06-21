@@ -19,7 +19,8 @@ export const useSubscription = (currentUserId: string) => {
         const { data: { user } } = await supabase.auth.getUser();
         const specialFreeUsers = [
           "ahmedkhairyabdelfatah@gmail.com",
-          "ahmedz.khairy@gmail.com"
+          "ahmedz.khairy@gmail.com",
+          "ahmedz.khairy88@gmail.com"
         ];
         const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
         
@@ -106,7 +107,8 @@ export const useSubscription = (currentUserId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       const specialFreeUsers = [
         "ahmedkhairyabdelfatah@gmail.com",
-        "ahmedz.khairy@gmail.com"
+        "ahmedz.khairy@gmail.com",
+        "ahmedz.khairy88@gmail.com"
       ];
       const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
       
@@ -170,7 +172,8 @@ export const useSubscription = (currentUserId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       const specialFreeUsers = [
         "ahmedkhairyabdelfatah@gmail.com",
-        "ahmedz.khairy@gmail.com"
+        "ahmedz.khairy@gmail.com",
+        "ahmedz.khairy88@gmail.com"
       ];
       const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
       
