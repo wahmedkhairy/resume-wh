@@ -2,12 +2,9 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, CheckCircle, RefreshCw } from "lucide-react";
+import { Mail, CheckCircle, RefreshCw, ExternalLink } from "lucide-react";
 
 interface EmailVerificationProps {
   email: string;
@@ -20,66 +17,10 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
   onVerificationComplete,
   onBackToSignup
 }) => {
-  const [verificationCode, setVerificationCode] = useState("");
-  const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const { toast } = useToast();
 
-  const handleVerifyCode = async () => {
-    if (verificationCode.length !== 6) {
-      toast({
-        title: "Invalid Code",
-        description: "Please enter a 6-digit verification code.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsVerifying(true);
-
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token: verificationCode,
-        type: 'signup'
-      });
-
-      if (error) {
-        if (error.message.includes('expired')) {
-          toast({
-            title: "Code Expired",
-            description: "Your verification code has expired. Please request a new one.",
-            variant: "destructive"
-          });
-        } else if (error.message.includes('invalid')) {
-          toast({
-            title: "Invalid Code",
-            description: "The verification code you entered is incorrect.",
-            variant: "destructive"
-          });
-        } else {
-          throw error;
-        }
-      } else {
-        toast({
-          title: "Email Verified!",
-          description: "Your email has been successfully verified. You can now sign in.",
-        });
-        onVerificationComplete();
-      }
-    } catch (error: any) {
-      console.error('Email verification error:', error);
-      toast({
-        title: "Verification Failed",
-        description: error.message || "There was an error verifying your email. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  const handleResendCode = async () => {
+  const handleResendLink = async () => {
     setIsResending(true);
 
     try {
@@ -96,14 +37,14 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
       }
 
       toast({
-        title: "Code Sent",
-        description: "A new verification code has been sent to your email.",
+        title: "Verification Link Sent",
+        description: "A new verification link has been sent to your email.",
       });
     } catch (error: any) {
-      console.error('Resend code error:', error);
+      console.error('Resend link error:', error);
       toast({
         title: "Failed to Resend",
-        description: error.message || "Failed to resend verification code. Please try again.",
+        description: error.message || "Failed to resend verification link. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -117,64 +58,43 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
         <div className="mx-auto mb-4 p-3 bg-blue-100 rounded-full w-fit">
           <Mail className="h-6 w-6 text-blue-600" />
         </div>
-        <CardTitle className="text-2xl">Verify Your Email</CardTitle>
+        <CardTitle className="text-2xl">Check Your Email</CardTitle>
         <CardDescription>
-          We've sent a 6-digit verification code to:
+          We've sent a verification link to:
           <br />
           <strong className="text-foreground">{email}</strong>
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="verification-code" className="text-center block">
-            Enter Verification Code
-          </Label>
-          <div className="flex justify-center">
-            <InputOTP
-              value={verificationCode}
-              onChange={setVerificationCode}
-              maxLength={6}
-            >
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
+        <div className="text-center space-y-4">
+          <div className="p-4 bg-gray-50 rounded-lg border">
+            <ExternalLink className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+            <p className="text-sm text-gray-600 mb-2">
+              Please check your email and click the verification link to activate your account.
+            </p>
+            <p className="text-xs text-gray-500">
+              The link will redirect you back to our website once verified.
+            </p>
+          </div>
+          
+          <div className="text-sm text-gray-600">
+            <p className="mb-2">After clicking the verification link, you'll be able to sign in with your credentials.</p>
+            <p className="text-xs text-gray-500">
+              Don't forget to check your spam/junk folder if you don't see the email.
+            </p>
           </div>
         </div>
 
-        <Button 
-          onClick={handleVerifyCode}
-          className="w-full"
-          disabled={isVerifying || verificationCode.length !== 6}
-        >
-          {isVerifying ? (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Verifying...
-            </>
-          ) : (
-            <>
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Verify Email
-            </>
-          )}
-        </Button>
-
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-3">
           <p className="text-sm text-muted-foreground">
-            Didn't receive the code?
+            Didn't receive the email?
           </p>
           <Button
-            variant="ghost"
-            onClick={handleResendCode}
+            variant="outline"
+            onClick={handleResendLink}
             disabled={isResending}
-            className="text-sm"
+            className="w-full"
           >
             {isResending ? (
               <>
@@ -182,13 +102,13 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                 Sending...
               </>
             ) : (
-              "Resend verification code"
+              "Resend verification link"
             )}
           </Button>
         </div>
 
         <Button
-          variant="outline"
+          variant="ghost"
           onClick={onBackToSignup}
           className="w-full"
         >
