@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Edit, Save, X } from "lucide-react";
+import { User, Edit, Save, X, LogOut } from "lucide-react";
 
 interface UserInfoCardProps {
   userInfo: any;
@@ -16,6 +16,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({ userInfo, onUserInfoUpdate 
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState(userInfo?.email || "");
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { toast } = useToast();
 
   const handleEmailUpdate = async () => {
@@ -48,6 +49,29 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({ userInfo, onUserInfoUpdate 
       });
     } finally {
       setIsUpdatingSettings(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      const { error } = await supabase.auth.signOut();
+
+      if (error) throw error;
+
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -110,11 +134,17 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({ userInfo, onUserInfoUpdate 
             </p>
           </div>
         </div>
-        <div>
-          <label className="text-sm font-medium text-muted-foreground">User ID</label>
-          <p className="text-xs font-mono text-muted-foreground mt-1 break-all">
-            {userInfo?.id}
-          </p>
+
+        <div className="pt-4 border-t">
+          <Button
+            variant="destructive"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            {isLoggingOut ? "Logging out..." : "Log Out"}
+          </Button>
         </div>
       </CardContent>
     </Card>

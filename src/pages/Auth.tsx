@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +25,9 @@ const Auth = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -83,6 +85,48 @@ const Auth = () => {
       return "Password must be at least 6 characters long";
     }
     return null;
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateEmail(forgotPasswordEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResettingPassword(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Please check your email for a password reset link.",
+      });
+      
+      setShowForgotPassword(false);
+      setForgotPasswordEmail("");
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      toast({
+        title: "Password Reset Failed",
+        description: error.message || "Failed to send password reset email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -297,6 +341,48 @@ const Auth = () => {
     );
   }
 
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Reset Password</CardTitle>
+            <CardDescription className="text-center">
+              Enter your email address and we'll send you a password reset link
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgot-email">Email</Label>
+                <Input
+                  id="forgot-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  required
+                  disabled={isResettingPassword}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isResettingPassword}>
+                {isResettingPassword ? "Sending..." : "Send Reset Link"}
+              </Button>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="w-full"
+                onClick={() => setShowForgotPassword(false)}
+              >
+                Back to Sign In
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
@@ -388,6 +474,14 @@ const Auth = () => {
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Signing In..." : "Sign In"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  className="w-full text-sm"
+                  onClick={() => setShowForgotPassword(true)}
+                >
+                  Forgot your password?
                 </Button>
               </form>
             </TabsContent>
