@@ -109,11 +109,11 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Resume Preview</h2>
           
-          {/* Export Controls - Always visible */}
+          {/* Export Controls - Always visible with consistent text */}
           {canExport ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button disabled={isExporting}>
+                <Button disabled={isExporting} size="sm">
                   <Download className="mr-2 h-4 w-4" />
                   {isExporting ? "Exporting..." : "Export Resume"}
                 </Button>
@@ -131,9 +131,9 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
             </DropdownMenu>
           ) : (
             <LiveSubscriptionDialog>
-              <Button>
+              <Button size="sm">
                 <Crown className="mr-2 h-4 w-4" />
-                Upgrade to Export
+                Export Resume
               </Button>
             </LiveSubscriptionDialog>
           )}
