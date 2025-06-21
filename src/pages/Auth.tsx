@@ -35,6 +35,7 @@ const Auth = () => {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -43,6 +44,8 @@ const Auth = () => {
     const type = searchParams.get('type');
     const accessToken = searchParams.get('access_token');
     const refreshToken = searchParams.get('refresh_token');
+    
+    console.log('URL params:', { type, accessToken: !!accessToken, refreshToken: !!refreshToken });
     
     if (type === 'recovery' && accessToken && refreshToken) {
       console.log('Password reset callback detected');
@@ -72,7 +75,7 @@ const Auth = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth state changed:', event, session);
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -105,7 +108,7 @@ const Auth = () => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session);
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setIsInitialLoading(false);
@@ -203,36 +206,53 @@ const Auth = () => {
     }
 
     setIsResettingPassword(true);
+    console.log('Attempting password reset for:', forgotPasswordEmail);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+      // Use the current domain for the redirect URL
+      const redirectUrl = `${window.location.origin}/auth`;
+      console.log('Reset redirect URL:', redirectUrl);
+
+      const { data, error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        redirectTo: redirectUrl,
       });
 
+      console.log('Reset password response:', { data, error });
+
       if (error) {
+        console.error('Reset password error:', error);
+        
         // Handle specific error cases
-        if (error.message.includes('429') || error.message.includes('rate limit')) {
+        if (error.message.includes('429') || error.message.includes('rate limit') || error.message.includes('over_email_send_rate_limit')) {
           toast({
             title: "Too Many Requests",
-            description: "You've requested too many password resets. Please wait a few minutes before trying again.",
+            description: "You've requested too many password resets recently. Please wait at least 60 seconds before trying again.",
             variant: "destructive",
           });
-        } else if (error.message.includes('User not found')) {
+        } else if (error.message.includes('User not found') || error.message.includes('user_not_found')) {
           toast({
             title: "Email Not Found",
             description: "No account found with this email address. Please check the email or sign up for a new account.",
+            variant: "destructive",
+          });
+        } else if (error.message.includes('signup_disabled')) {
+          toast({
+            title: "Service Unavailable",
+            description: "Password reset is temporarily unavailable. Please try again later.",
             variant: "destructive",
           });
         } else {
           throw error;
         }
       } else {
+        console.log('Password reset email sent successfully');
+        setResetEmailSent(true);
         toast({
           title: "Password Reset Email Sent",
-          description: "Please check your email for a password reset link. If you don't see it, check your spam folder.",
+          description: `Please check your email (${forgotPasswordEmail}) for a password reset link. The link will expire in 1 hour. If you don't see it, check your spam folder.`,
         });
         
-        setShowForgotPassword(false);
+        // Don't immediately hide the form, show success state instead
         setForgotPasswordEmail("");
       }
     } catch (error: any) {
@@ -546,35 +566,78 @@ const Auth = () => {
           <CardHeader>
             <CardTitle className="text-2xl text-center">Reset Password</CardTitle>
             <CardDescription className="text-center">
-              Enter your email address and we'll send you a password reset link
+              {resetEmailSent 
+                ? "Reset email sent! Check your inbox and spam folder."
+                : "Enter your email address and we'll send you a password reset link"
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleForgotPassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="forgot-email">Email</Label>
-                <Input
-                  id="forgot-email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={forgotPasswordEmail}
-                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                  required
-                  disabled={isResettingPassword}
-                />
+            {resetEmailSent ? (
+              <div className="space-y-4">
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    We've sent a password reset link to your email. The link will expire in 1 hour.
+                    If you don't see the email, please check your spam folder.
+                  </AlertDescription>
+                </Alert>
+                <div className="space-y-2">
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setResetEmailSent(false);
+                      setForgotPasswordEmail("");
+                    }}
+                  >
+                    Send Another Reset Email
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    className="w-full"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setResetEmailSent(false);
+                      setForgotPasswordEmail("");
+                    }}
+                  >
+                    Back to Sign In
+                  </Button>
+                </div>
               </div>
-              <Button type="submit" className="w-full" disabled={isResettingPassword}>
-                {isResettingPassword ? "Sending..." : "Send Reset Link"}
-              </Button>
-              <Button 
-                type="button" 
-                variant="ghost" 
-                className="w-full"
-                onClick={() => setShowForgotPassword(false)}
-              >
-                Back to Sign In
-              </Button>
-            </form>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="forgot-email">Email</Label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={forgotPasswordEmail}
+                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                    required
+                    disabled={isResettingPassword}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={isResettingPassword}>
+                  {isResettingPassword ? "Sending..." : "Send Reset Link"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  className="w-full"
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setResetEmailSent(false);
+                    setForgotPasswordEmail("");
+                  }}
+                >
+                  Back to Sign In
+                </Button>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>
