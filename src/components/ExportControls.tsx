@@ -1,19 +1,83 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
+import { Save, Download, FileText, Crown } from "lucide-react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import LiveSubscriptionDialog from "@/components/LiveSubscriptionDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface ExportControlsProps {
   onSave: () => void;
   isSaving: boolean;
   isTailoredResume?: boolean;
+  onExport?: () => void;
+  onExportWord?: () => void;
+  isExporting?: boolean;
+  canExport?: boolean;
 }
 
 const ExportControls: React.FC<ExportControlsProps> = ({
   onSave,
   isSaving,
   isTailoredResume = false,
+  onExport,
+  onExportWord,
+  isExporting = false,
+  canExport = false,
 }) => {
+  const { toast } = useToast();
+
+  const handleExportClick = async () => {
+    if (isExporting || !canExport || !onExport) {
+      if (!canExport) {
+        toast({
+          title: "Export Not Available",
+          description: "Please upgrade to export your resume.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    try {
+      await onExport();
+    } catch (error) {
+      toast({
+        title: "Export Failed", 
+        description: "There was an error exporting your resume.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleWordExportClick = async () => {
+    if (isExporting || !canExport || !onExportWord) {
+      if (!canExport) {
+        toast({
+          title: "Export Not Available",
+          description: "Please upgrade to export your resume.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    try {
+      await onExportWord();
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting your resume as Word.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex justify-between items-center">
@@ -34,6 +98,35 @@ const ExportControls: React.FC<ExportControlsProps> = ({
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? "Saving..." : "Save"}
           </Button>
+          
+          {/* Export Controls - Back to original location */}
+          {canExport ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button disabled={isExporting}>
+                  <Download className="mr-2 h-4 w-4" />
+                  {isExporting ? "Exporting..." : "Export Resume"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportClick} disabled={isExporting}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleWordExportClick} disabled={isExporting}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Export as Word (.DOCX)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <LiveSubscriptionDialog>
+              <Button>
+                <Crown className="mr-2 h-4 w-4" />
+                Export Resume
+              </Button>
+            </LiveSubscriptionDialog>
+          )}
         </div>
       </div>
     </div>
