@@ -27,12 +27,12 @@ const UserSettings = () => {
       if (user) {
         setUserInfo(user);
         
-        // Load user settings
+        // Load user settings - use maybeSingle() to handle cases where no settings exist yet
         const { data: settings } = await supabase
           .from('user_settings')
           .select('email_notifications')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
           
         if (settings) {
           setEmailNotifications(settings.email_notifications || false);

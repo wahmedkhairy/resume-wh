@@ -168,6 +168,7 @@ export type Database = {
       user_settings: {
         Row: {
           created_at: string
+          email_notifications: boolean | null
           id: string
           paypal_client_id: string | null
           paypal_client_secret: string | null
@@ -178,6 +179,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          email_notifications?: boolean | null
           id?: string
           paypal_client_id?: string | null
           paypal_client_secret?: string | null
@@ -188,6 +190,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          email_notifications?: boolean | null
           id?: string
           paypal_client_id?: string | null
           paypal_client_secret?: string | null
