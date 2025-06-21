@@ -9,9 +9,10 @@ import SitemapUploader from "@/components/SitemapUploader";
 import PayPalLiveSettings from "@/components/PayPalLiveSettings";
 import AdminAnalytics from "@/components/AdminAnalytics";
 import UserManagement from "@/components/UserManagement";
+import AIIntegrationTester from "@/components/AIIntegrationTester";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, FileText, CreditCard, BarChart, Users } from "lucide-react";
+import { Shield, Settings, FileText, CreditCard, BarChart, Users, TestTube } from "lucide-react";
 
 const Admin = () => {
   const [user, setUser] = useState<any>(null);
@@ -70,7 +71,7 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart className="h-4 w-4" />
                 Analytics
@@ -78,6 +79,10 @@ const Admin = () => {
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 Users
+              </TabsTrigger>
+              <TabsTrigger value="ai-testing" className="flex items-center gap-2">
+                <TestTube className="h-4 w-4" />
+                AI Testing
               </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
@@ -103,6 +108,23 @@ const Admin = () => {
 
             <TabsContent value="users">
               <UserManagement />
+            </TabsContent>
+
+            <TabsContent value="ai-testing">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TestTube className="h-5 w-5" />
+                    AI Integration Status
+                  </CardTitle>
+                  <CardDescription>
+                    Monitor and test AI-powered features to ensure they are working correctly
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AIIntegrationTester />
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="settings">

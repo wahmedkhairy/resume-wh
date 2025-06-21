@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { exportToPDF, exportToWord, ResumeData } from "@/utils/simpleExport";
+import { exportToHighQualityPDF, exportToEnhancedWord, ResumeData } from "@/utils/enhancedExport";
 
 export const useSubscription = (currentUserId: string) => {
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
@@ -14,14 +15,18 @@ export const useSubscription = (currentUserId: string) => {
       if (!currentUserId) return;
 
       try {
-        // Check if this is the special free user
+        // Check if this is one of the special free users
         const { data: { user } } = await supabase.auth.getUser();
-        const isSpecialUser = user?.email === "ahmedkhairyabdelfatah@gmail.com";
+        const specialFreeUsers = [
+          "ahmedkhairyabdelfatah@gmail.com",
+          "ahmedz.khairy@gmail.com"
+        ];
+        const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
         
         if (isSpecialUser) {
-          // Give unlimited access to the special user
+          // Give unlimited access to special users
           const freeUnlimitedSubscription = {
-            tier: 'unlimited',
+            tier: 'basic',
             scan_count: 999,
             status: 'active',
             user_id: currentUserId
@@ -94,12 +99,16 @@ export const useSubscription = (currentUserId: string) => {
     setIsExporting(true);
     
     try {
-      console.log('Starting PDF export');
-      await exportToPDF(exportData);
+      console.log('Starting enhanced PDF export');
+      await exportToHighQualityPDF(exportData);
       
-      // Update scan count
+      // Update scan count for non-special users
       const { data: { user } } = await supabase.auth.getUser();
-      const isSpecialUser = user?.email === "ahmedkhairyabdelfatah@gmail.com";
+      const specialFreeUsers = [
+        "ahmedkhairyabdelfatah@gmail.com",
+        "ahmedz.khairy@gmail.com"
+      ];
+      const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
       
       if (currentSubscription.tier !== 'unlimited' && !isSpecialUser) {
         await supabase
@@ -114,16 +123,16 @@ export const useSubscription = (currentUserId: string) => {
 
         toast({
           title: "Resume Exported!",
-          description: `PDF downloaded. ${currentSubscription.scan_count - 1} exports remaining.`,
+          description: `High-quality PDF downloaded. ${currentSubscription.scan_count - 1} exports remaining.`,
         });
       } else {
         toast({
           title: "Resume Exported!",
-          description: "PDF downloaded successfully.",
+          description: "High-quality PDF downloaded successfully.",
         });
       }
     } catch (error) {
-      console.error('PDF export error:', error);
+      console.error('Enhanced PDF export error:', error);
       toast({
         title: "Export Failed",
         description: "Export failed. Please try again.",
@@ -154,12 +163,16 @@ export const useSubscription = (currentUserId: string) => {
     setIsExporting(true);
     
     try {
-      console.log('Starting Word export');
-      await exportToWord(exportData);
+      console.log('Starting enhanced Word export');
+      await exportToEnhancedWord(exportData);
       
-      // Update scan count
+      // Update scan count for non-special users
       const { data: { user } } = await supabase.auth.getUser();
-      const isSpecialUser = user?.email === "ahmedkhairyabdelfatah@gmail.com";
+      const specialFreeUsers = [
+        "ahmedkhairyabdelfatah@gmail.com",
+        "ahmedz.khairy@gmail.com"
+      ];
+      const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
       
       if (currentSubscription.tier !== 'unlimited' && !isSpecialUser) {
         await supabase
@@ -174,16 +187,16 @@ export const useSubscription = (currentUserId: string) => {
 
         toast({
           title: "Resume Exported!",
-          description: `Word document downloaded. ${currentSubscription.scan_count - 1} exports remaining.`,
+          description: `Enhanced Word document downloaded. ${currentSubscription.scan_count - 1} exports remaining.`,
         });
       } else {
         toast({
           title: "Resume Exported!",
-          description: "Word document downloaded successfully.",
+          description: "Enhanced Word document downloaded successfully.",
         });
       }
     } catch (error) {
-      console.error('Word export error:', error);
+      console.error('Enhanced Word export error:', error);
       toast({
         title: "Export Failed",
         description: "Word export failed. Please try again.",

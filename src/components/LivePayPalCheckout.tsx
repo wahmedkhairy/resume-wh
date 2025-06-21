@@ -52,7 +52,6 @@ const LivePayPalCheckout: React.FC<LivePayPalCheckoutProps> = ({
                 try {
                   console.log('Creating live PayPal order:', orderData);
                   
-                  // Get current user
                   const { data: { user } } = await supabase.auth.getUser();
                   
                   const { data, error } = await supabase.functions.invoke('create-paypal-order-production', {
@@ -68,18 +67,31 @@ const LivePayPalCheckout: React.FC<LivePayPalCheckoutProps> = ({
 
                   if (error) {
                     console.error('Error creating live PayPal order:', error);
-                    throw error;
+                    let errorMessage = 'Failed to create payment order';
+                    
+                    // Provide specific error messages based on error type
+                    if (error.message?.includes('invalid_client')) {
+                      errorMessage = 'Live PayPal configuration error. Please verify your live client ID.';
+                    } else if (error.message?.includes('account_not_verified')) {
+                      errorMessage = 'Your PayPal business account needs to be verified for live payments.';
+                    } else if (error.message?.includes('permission_denied')) {
+                      errorMessage = 'PayPal API permissions error. Please check your account settings.';
+                    } else if (error.message?.includes('amount')) {
+                      errorMessage = 'Invalid payment amount. Please contact support.';
+                    }
+                    
+                    toast({
+                      title: "Live Payment Order Error",
+                      description: errorMessage,
+                      variant: "destructive",
+                    });
+                    throw new Error(errorMessage);
                   }
                   
                   console.log('Live PayPal order created:', data);
                   return data.orderId;
                 } catch (error) {
                   console.error("Error creating live order:", error);
-                  toast({
-                    title: "Payment Error",
-                    description: "Failed to create payment order. Please try again.",
-                    variant: "destructive",
-                  });
                   onError(error);
                   throw error;
                 }
@@ -97,32 +109,63 @@ const LivePayPalCheckout: React.FC<LivePayPalCheckoutProps> = ({
 
                   if (error) {
                     console.error('Error capturing live PayPal order:', error);
-                    throw error;
+                    let errorMessage = 'Failed to process live payment';
+                    
+                    // Provide specific error messages for live capture errors
+                    if (error.message?.includes('INSTRUMENT_DECLINED')) {
+                      errorMessage = 'Your payment method was declined by your bank. Please contact your bank or try a different payment method.';
+                    } else if (error.message?.includes('INSUFFICIENT_FUNDS')) {
+                      errorMessage = 'Insufficient funds in your account. Please add funds or use a different payment method.';
+                    } else if (error.message?.includes('EXPIRED_CARD')) {
+                      errorMessage = 'Your card has expired. Please update your payment method.';
+                    } else if (error.message?.includes('INVALID_ACCOUNT_STATUS')) {
+                      errorMessage = 'There is an issue with your PayPal account status. Please contact PayPal support.';
+                    } else if (error.message?.includes('TRANSACTION_LIMIT_EXCEEDED')) {
+                      errorMessage = 'Transaction limit exceeded. Please contact PayPal to increase your limits.';
+                    } else if (error.message?.includes('DUPLICATE_INVOICE_ID')) {
+                      errorMessage = 'This payment has already been processed. Please contact support if you believe this is an error.';
+                    }
+                    
+                    toast({
+                      title: "Live Payment Processing Error",
+                      description: errorMessage,
+                      variant: "destructive",
+                    });
+                    throw new Error(errorMessage);
                   }
                   
                   console.log('Live PayPal payment captured:', captureData);
                   
                   toast({
                     title: "Payment Successful!",
-                    description: "Your payment has been processed successfully.",
+                    description: "Your live payment has been processed successfully.",
                   });
                   
                   onSuccess(captureData);
                 } catch (error) {
                   console.error("Error capturing live order:", error);
-                  toast({
-                    title: "Payment Processing Error",
-                    description: "Payment was approved but there was an issue processing it. Please contact support.",
-                    variant: "destructive",
-                  });
                   onError(error);
                 }
               },
               onError: (error: any) => {
                 console.error("Live PayPal error:", error);
+                
+                let errorMessage = "There was an error with live PayPal processing. Please try again.";
+                
+                // Handle specific live PayPal errors
+                if (error?.message?.includes('popup_blocked')) {
+                  errorMessage = "Popup was blocked. Please allow popups for this site and try again.";
+                } else if (error?.message?.includes('network')) {
+                  errorMessage = "Network connection error. Please check your internet connection.";
+                } else if (error?.message?.includes('declined')) {
+                  errorMessage = "Payment was declined by your financial institution. Please contact your bank.";
+                } else if (error?.message?.includes('security')) {
+                  errorMessage = "Security verification failed. Please verify your account with PayPal.";
+                }
+                
                 toast({
-                  title: "Payment Error",
-                  description: "There was an error with PayPal. Please try again.",
+                  title: "Live PayPal Error",
+                  description: errorMessage,
                   variant: "destructive",
                 });
                 onError(error);
@@ -131,7 +174,7 @@ const LivePayPalCheckout: React.FC<LivePayPalCheckoutProps> = ({
                 console.log("Live PayPal payment cancelled");
                 toast({
                   title: "Payment Cancelled",
-                  description: "Your payment was cancelled.",
+                  description: "Your live payment was cancelled.",
                 });
                 if (onCancel) {
                   onCancel();
@@ -151,11 +194,11 @@ const LivePayPalCheckout: React.FC<LivePayPalCheckoutProps> = ({
         
         script.onerror = () => {
           setIsLoading(false);
-          const error = new Error("Failed to load PayPal SDK - Please check your live client ID");
+          const error = new Error("Failed to load live PayPal SDK - Please check your live client ID and internet connection");
           console.error("Live PayPal SDK loading error:", error);
           toast({
-            title: "PayPal Error",
-            description: "Failed to load PayPal. Please check your live PayPal configuration.",
+            title: "Live PayPal Loading Error",
+            description: "Failed to load live PayPal. Please verify your live PayPal configuration and internet connection.",
             variant: "destructive",
           });
           onError(error);
@@ -172,8 +215,8 @@ const LivePayPalCheckout: React.FC<LivePayPalCheckoutProps> = ({
         console.error("Live PayPal initialization error:", error);
         setIsLoading(false);
         toast({
-          title: "PayPal Error",
-          description: "Failed to initialize live PayPal. Please try again.",
+          title: "Live PayPal Error",
+          description: "Failed to initialize live PayPal. Please check your configuration.",
           variant: "destructive",
         });
         onError(error);
@@ -187,7 +230,7 @@ const LivePayPalCheckout: React.FC<LivePayPalCheckoutProps> = ({
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
-        <p className="text-sm text-muted-foreground">Loading Live PayPal...</p>
+        <p className="text-sm text-muted-foreground">Loading Live PayPal (Production)...</p>
       </div>
     );
   }
@@ -199,7 +242,7 @@ const LivePayPalCheckout: React.FC<LivePayPalCheckoutProps> = ({
           🔒 Live PayPal Payment - USD {formatPayPalPrice(parseFloat(orderData.amount))}
         </p>
         <p className="text-xs text-green-700">
-          Secure payment processing via PayPal
+          Secure live payment processing via PayPal Production
         </p>
       </div>
       <div ref={paypalRef} />

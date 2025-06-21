@@ -1,4 +1,3 @@
-import { loadScript } from "@paypal/paypal-js";
 
 export interface LivePayPalOrderData {
   amount: string;
@@ -7,11 +6,17 @@ export interface LivePayPalOrderData {
   tier: string;
 }
 
+export interface LivePayPalSettings {
+  clientId: string;
+  clientSecret?: string;
+  webhookId?: string;
+  isProduction: boolean;
+}
+
 export class LivePayPalService {
   private static instance: LivePayPalService;
   private paypal: any = null;
-  private clientId: string = "";
-  private isInitialized: boolean = false;
+  private settings: LivePayPalSettings | null = null;
 
   private constructor() {}
 
@@ -24,72 +29,24 @@ export class LivePayPalService {
 
   async initialize(liveClientId: string): Promise<boolean> {
     try {
-      if (this.isInitialized && this.clientId === liveClientId) {
-        return true;
-      }
-
-      this.clientId = liveClientId;
-      
-      console.log('Initializing Live PayPal with Client ID:', liveClientId.substring(0, 10) + '...');
-
-      // Load PayPal SDK with live environment (production is default when using live client ID)
-      this.paypal = await loadScript({
+      this.settings = {
         clientId: liveClientId,
-        currency: "USD",
-        intent: "capture"
-      });
+        isProduction: true
+      };
 
-      this.isInitialized = true;
-      console.log('Live PayPal SDK loaded successfully');
+      console.log('Live PayPal production settings loaded');
       return true;
     } catch (error) {
       console.error("Failed to initialize Live PayPal:", error);
-      this.isInitialized = false;
       return false;
     }
   }
 
-  async createOrder(orderData: LivePayPalOrderData): Promise<string> {
-    if (!this.paypal || !this.isInitialized) {
-      throw new Error("Live PayPal not initialized");
-    }
-
-    try {
-      console.log("Creating live PayPal order:", orderData);
-      
-      // Create order using PayPal SDK
-      const orderId = await this.paypal.Buttons.createOrder({
-        purchase_units: [{
-          amount: {
-            currency_code: orderData.currency,
-            value: orderData.amount
-          },
-          description: orderData.description,
-          custom_id: orderData.tier
-        }],
-        application_context: {
-          return_url: `${window.location.origin}/payment-success`,
-          cancel_url: `${window.location.origin}/payment-cancelled`
-        }
-      });
-      
-      console.log("Live PayPal order created:", orderId);
-      return orderId;
-    } catch (error) {
-      console.error("Error creating live PayPal order:", error);
-      throw error;
-    }
+  getSettings() {
+    return this.settings;
   }
 
-  getPayPal() {
-    return this.paypal;
-  }
-
-  isLiveMode() {
-    return true; // Always true for live service
-  }
-
-  getClientId() {
-    return this.clientId;
+  isProductionMode() {
+    return this.settings?.isProduction || false;
   }
 }

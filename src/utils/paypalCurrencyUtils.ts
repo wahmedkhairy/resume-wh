@@ -1,27 +1,25 @@
 
-// PayPal-specific currency utilities for USD conversion
-export interface PayPalPricing {
-  currency: string;
-  symbol: string;
-  basicPrice: number;
-  premiumPrice: number;
-  unlimitedPrice: number;
-}
-
-// Convert EGP prices to USD for PayPal
-const EGP_TO_USD_RATE = 0.0203; // Approximate rate: 1 EGP = $0.0203
-
-export const getPayPalPricing = (): PayPalPricing => {
-  // Always return USD pricing for PayPal
+// PayPal pricing configuration
+export const getPayPalPricing = () => {
   return {
-    currency: "USD",
-    symbol: "$",
-    basicPrice: 2.00, // Convert 100 EGP to ~$2
-    premiumPrice: 3.00, // Convert 150 EGP to ~$3
-    unlimitedPrice: 4.99 // Convert 250 EGP to ~$5
+    basicPrice: 2.00,
+    premiumPrice: 3.00,
+    unlimitedPrice: 4.99,
+    currency: 'USD'
   };
 };
 
+// Format price for PayPal display
 export const formatPayPalPrice = (amount: number): string => {
-  return `$${amount.toFixed(2)}`;
+  return amount.toFixed(2);
+};
+
+// Convert price to cents for PayPal API
+export const convertToCents = (amount: number): number => {
+  return Math.round(amount * 100);
+};
+
+// Convert cents back to dollars
+export const convertFromCents = (cents: number): number => {
+  return cents / 100;
 };

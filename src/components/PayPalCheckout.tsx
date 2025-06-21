@@ -26,13 +26,18 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
       try {
         setIsLoading(true);
         
-        // Get PayPal client ID from Supabase edge function
         console.log('Fetching PayPal configuration...');
         const { data: configData, error: configError } = await supabase.functions.invoke('get-paypal-config');
         
         if (configError) {
           console.error('Error fetching PayPal config:', configError);
-          throw new Error('Failed to get PayPal configuration');
+          const errorMessage = configError.message || 'Failed to get PayPal configuration';
+          toast({
+            title: "PayPal Configuration Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
+          throw new Error(errorMessage);
         }
         
         if (!configData?.success || !configData?.clientId) {
@@ -49,7 +54,6 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
         script.async = true;
         
         script.onload = () => {
-          // Access PayPal from window object
           const paypalInstance = (window as any).paypal;
           if (paypalInstance && paypalRef.current) {
             paypalInstance.Buttons({
@@ -57,7 +61,6 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
                 try {
                   console.log('Creating PayPal order with data:', orderData);
                   
-                  // Get current user - but don't fail if not authenticated
                   const { data: { user } } = await supabase.auth.getUser();
                   
                   const { data, error } = await supabase.functions.invoke('create-paypal-order', {
@@ -66,24 +69,35 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
                       currency: orderData.currency,
                       description: orderData.description,
                       tier: orderData.tier,
-                      user_id: user?.id || null // Allow null user_id for guest payments
+                      user_id: user?.id || null
                     }
                   });
 
                   if (error) {
                     console.error('Error creating PayPal order:', error);
-                    throw error;
+                    let errorMessage = 'Failed to create payment order';
+                    
+                    // Provide specific error messages based on error type
+                    if (error.message?.includes('invalid_client')) {
+                      errorMessage = 'PayPal configuration error. Please check your PayPal settings.';
+                    } else if (error.message?.includes('network')) {
+                      errorMessage = 'Network error. Please check your internet connection.';
+                    } else if (error.message?.includes('amount')) {
+                      errorMessage = 'Invalid payment amount. Please try again.';
+                    }
+                    
+                    toast({
+                      title: "Payment Order Error",
+                      description: errorMessage,
+                      variant: "destructive",
+                    });
+                    throw new Error(errorMessage);
                   }
                   
                   console.log('PayPal order created:', data);
                   return data.orderId;
                 } catch (error) {
                   console.error("Error creating order:", error);
-                  toast({
-                    title: "Payment Error",
-                    description: "Failed to create payment order. Please try again.",
-                    variant: "destructive",
-                  });
                   onError(error);
                   throw error;
                 }
@@ -100,7 +114,25 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
 
                   if (error) {
                     console.error('Error capturing PayPal order:', error);
-                    throw error;
+                    let errorMessage = 'Failed to process payment';
+                    
+                    // Provide specific error messages for capture errors
+                    if (error.message?.includes('INSTRUMENT_DECLINED')) {
+                      errorMessage = 'Your payment method was declined. Please try a different card or payment method.';
+                    } else if (error.message?.includes('INSUFFICIENT_FUNDS')) {
+                      errorMessage = 'Insufficient funds. Please check your account balance or try a different payment method.';
+                    } else if (error.message?.includes('DUPLICATE_INVOICE_ID')) {
+                      errorMessage = 'This payment has already been processed. Please refresh and try again.';
+                    } else if (error.message?.includes('INVALID_ACCOUNT_STATUS')) {
+                      errorMessage = 'There is an issue with your PayPal account. Please contact PayPal support.';
+                    }
+                    
+                    toast({
+                      title: "Payment Processing Error",
+                      description: errorMessage,
+                      variant: "destructive",
+                    });
+                    throw new Error(errorMessage);
                   }
                   
                   console.log('PayPal payment captured:', captureData);
@@ -112,9 +144,21 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
               },
               onError: (error: any) => {
                 console.error("PayPal error:", error);
+                
+                let errorMessage = "There was an error with PayPal. Please try again.";
+                
+                // Handle specific PayPal errors
+                if (error?.message?.includes('popup_blocked')) {
+                  errorMessage = "Popup was blocked. Please allow popups for this site and try again.";
+                } else if (error?.message?.includes('network')) {
+                  errorMessage = "Network connection error. Please check your internet and try again.";
+                } else if (error?.message?.includes('declined')) {
+                  errorMessage = "Payment was declined. Please check your payment details and try again.";
+                }
+                
                 toast({
-                  title: "Payment Error",
-                  description: "There was an error with PayPal. Please try again.",
+                  title: "PayPal Error",
+                  description: errorMessage,
                   variant: "destructive",
                 });
                 onError(error);
@@ -145,8 +189,8 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
           const error = new Error("Failed to load PayPal SDK - Invalid client ID or network issue");
           console.error("PayPal SDK loading error:", error);
           toast({
-            title: "PayPal Error",
-            description: "Failed to load PayPal. Please check your PayPal configuration.",
+            title: "PayPal Loading Error",
+            description: "Failed to load PayPal. Please check your internet connection and PayPal configuration.",
             variant: "destructive",
           });
           onError(error);
@@ -162,11 +206,6 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
       } catch (error) {
         console.error("PayPal initialization error:", error);
         setIsLoading(false);
-        toast({
-          title: "PayPal Error",
-          description: "Failed to initialize PayPal. Please try again.",
-          variant: "destructive",
-        });
         onError(error);
       }
     };
@@ -178,7 +217,7 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
-        <p className="text-sm text-muted-foreground">Loading PayPal...</p>
+        <p className="text-sm text-muted-foreground">Loading secure PayPal checkout...</p>
       </div>
     );
   }
