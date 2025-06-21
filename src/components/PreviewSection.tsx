@@ -5,13 +5,14 @@ import ATSScanner from "@/components/ATSScanner";
 import AntiTheftProtection from "@/components/AntiTheftProtection";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
 import { Button } from "@/components/ui/button";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Crown } from "lucide-react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import LiveSubscriptionDialog from "@/components/LiveSubscriptionDialog";
 
 interface Skill {
   id: string;
@@ -90,14 +91,26 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
     coursesAndCertifications,
   };
 
+  const handleExportClick = () => {
+    if (canExport && onExport) {
+      onExport();
+    }
+  };
+
+  const handleWordExportClick = () => {
+    if (canExport && onExportWord) {
+      onExportWord();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Resume Preview</h2>
           
-          {/* Export Controls in Preview Section */}
-          {canExport && onExport && onExportWord && (
+          {/* Export Controls - Always visible */}
+          {canExport ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button disabled={isExporting}>
@@ -106,16 +119,23 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onExport}>
+                <DropdownMenuItem onClick={handleExportClick}>
                   <Download className="mr-2 h-4 w-4" />
                   Export as PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onExportWord}>
+                <DropdownMenuItem onClick={handleWordExportClick}>
                   <FileText className="mr-2 h-4 w-4" />
                   Export as Word (.DOCX)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          ) : (
+            <LiveSubscriptionDialog>
+              <Button>
+                <Crown className="mr-2 h-4 w-4" />
+                Upgrade to Export
+              </Button>
+            </LiveSubscriptionDialog>
           )}
         </div>
         
