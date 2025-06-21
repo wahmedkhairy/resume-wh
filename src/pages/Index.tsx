@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +8,6 @@ import Footer from "@/components/Footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useResumeData } from "@/hooks/useResumeData";
 import { useSubscription } from "@/hooks/useSubscription";
-import { exportResumeAsText } from "@/utils/resumeExport";
 
 const LoadingSkeleton = () => (
   <div className="space-y-6">
@@ -80,7 +78,7 @@ const Index = () => {
     checkUser();
   }, []);
 
-  // Fix: Create properly structured resume data object (not function)
+  // Create properly structured resume data object
   const currentResumeData = useMemo(() => {
     const resumeData = tailoredResumeData || {
       personalInfo,
@@ -124,37 +122,14 @@ const Index = () => {
 
   const handleExportResume = async () => {
     console.log('=== handleExportResume called ===');
-    console.log('Current resume data:', currentResumeData);
-    
-    // Validate data structure before export
-    if (!currentResumeData || typeof currentResumeData !== 'object') {
-      console.error('Invalid export data structure:', currentResumeData);
-      toast({
-        title: "Export Error",
-        description: "Invalid resume data. Please refresh the page and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check if required data exists
-    if (!currentResumeData.personalInfo) {
-      console.error('Missing personal info in export data');
-      toast({
-        title: "Export Error",
-        description: "Personal information is required for export.",
-        variant: "destructive",
-      });
-      return;
-    }
     
     try {
       await handleExport(currentResumeData);
     } catch (error) {
-      console.error('Export failed in Index.tsx:', error);
+      console.error('Export failed:', error);
       toast({
         title: "Export Failed",
-        description: error instanceof Error ? error.message : "Export failed. Please try again.",
+        description: "Export failed. Please try again.",
         variant: "destructive",
       });
     }
@@ -162,53 +137,14 @@ const Index = () => {
 
   const handleExportResumeAsWord = async () => {
     console.log('=== handleExportResumeAsWord called ===');
-    console.log('Current resume data:', currentResumeData);
-    
-    // Validate data structure before export
-    if (!currentResumeData || typeof currentResumeData !== 'object') {
-      console.error('Invalid export data structure:', currentResumeData);
-      toast({
-        title: "Export Error",
-        description: "Invalid resume data. Please refresh the page and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check if required data exists
-    if (!currentResumeData.personalInfo) {
-      console.error('Missing personal info in export data');
-      toast({
-        title: "Export Error",
-        description: "Personal information is required for export.",
-        variant: "destructive",
-      });
-      return;
-    }
     
     try {
       await handleWordExport(currentResumeData);
     } catch (error) {
-      console.error('Word export failed in Index.tsx:', error);
+      console.error('Word export failed:', error);
       toast({
         title: "Export Failed",
-        description: error instanceof Error ? error.message : "Word export failed. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleExportResumeAsText = () => {
-    console.log('=== handleExportResumeAsText called ===');
-    console.log('Current resume data:', currentResumeData);
-    
-    try {
-      exportResumeAsText(currentResumeData);
-    } catch (error) {
-      console.error('Text export failed:', error);
-      toast({
-        title: "Export Failed",
-        description: "Text export failed. Please try again.",
+        description: "Word export failed. Please try again.",
         variant: "destructive",
       });
     }

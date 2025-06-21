@@ -5,15 +5,8 @@ import { Save } from "lucide-react";
 
 interface ExportControlsProps {
   onSave: () => void;
-  onExport: () => void;
-  onExportWord?: () => void;
   isSaving: boolean;
-  isExporting: boolean;
-  currentUserId: string;
-  isPremiumUser: boolean;
   isTailoredResume?: boolean;
-  canExport?: boolean;
-  currentSubscription?: any;
 }
 
 const ExportControls: React.FC<ExportControlsProps> = ({

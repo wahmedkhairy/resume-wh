@@ -84,7 +84,7 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
 }) => {
   const { toast } = useToast();
 
-  // Prepare resume data for ATS Scanner and export
+  // Prepare resume data for ATS Scanner
   const resumeData = {
     personalInfo,
     summary,
@@ -95,90 +95,46 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
   };
 
   const handleExportClick = async () => {
-    console.log('=== PreviewSection Export PDF Button Clicked ===');
-    console.log('canExport:', canExport);
-    console.log('onExport function available:', !!onExport);
-    console.log('isExporting:', isExporting);
-    
-    // Prevent multiple export attempts
-    if (isExporting) {
-      console.log('Export already in progress, ignoring click');
-      return;
-    }
-
-    if (!canExport) {
-      console.log('Export not allowed - showing upgrade message');
-      toast({
-        title: "Export Not Available",
-        description: "Please upgrade to export your resume.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!onExport) {
-      console.log('onExport function not available');
-      toast({
-        title: "Export Error",
-        description: "Export function not available. Please try refreshing the page.",
-        variant: "destructive",
-      });
+    if (isExporting || !canExport || !onExport) {
+      if (!canExport) {
+        toast({
+          title: "Export Not Available",
+          description: "Please upgrade to export your resume.",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
     try {
-      console.log('Starting export process...');
       await onExport();
     } catch (error) {
-      console.error('Export failed in PreviewSection:', error);
       toast({
         title: "Export Failed", 
-        description: error instanceof Error ? error.message : "There was an error exporting your resume. Please try again.",
+        description: "There was an error exporting your resume.",
         variant: "destructive",
       });
     }
   };
 
   const handleWordExportClick = async () => {
-    console.log('=== PreviewSection Export Word Button Clicked ===');
-    console.log('canExport:', canExport);
-    console.log('onExportWord function available:', !!onExportWord);
-    console.log('isExporting:', isExporting);
-    
-    // Prevent multiple export attempts
-    if (isExporting) {
-      console.log('Word export already in progress, ignoring click');
-      return;
-    }
-
-    if (!canExport) {
-      console.log('Word export not allowed - showing upgrade message');
-      toast({
-        title: "Export Not Available",
-        description: "Please upgrade to export your resume.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!onExportWord) {
-      console.log('onExportWord function not available');
-      toast({
-        title: "Export Error",
-        description: "Word export function not available. Please try refreshing the page.",
-        variant: "destructive",
-      });
+    if (isExporting || !canExport || !onExportWord) {
+      if (!canExport) {
+        toast({
+          title: "Export Not Available",
+          description: "Please upgrade to export your resume.",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
     try {
-      console.log('Starting Word export process...');
       await onExportWord();
     } catch (error) {
-      console.error('Word export failed in PreviewSection:', error);
       toast({
         title: "Export Failed",
-        description: error instanceof Error ? error.message : "There was an error exporting your resume as Word. Please try again.",
+        description: "There was an error exporting your resume as Word.",
         variant: "destructive",
       });
     }

@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { exportResumeToPDF } from "@/utils/resumeExport";
-import { exportResumeAsWord } from "@/utils/wordExport";
+import { exportToPDF, exportToWord, ResumeData } from "@/utils/simpleExport";
 
 export const useSubscription = (currentUserId: string) => {
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
@@ -76,19 +74,15 @@ export const useSubscription = (currentUserId: string) => {
     }
   };
 
-  const handleExport = async (exportData: any) => {
-    console.log('=== useSubscription.handleExport called ===');
-    console.log('Can export:', canExport());
-    console.log('Is already exporting:', isExporting);
+  const handleExport = async (exportData: ResumeData) => {
+    console.log('=== handleExport called ===');
     
-    // Prevent multiple exports
     if (isExporting) {
-      console.log('Export already in progress, aborting');
+      console.log('Export already in progress');
       return;
     }
     
     if (!canExport()) {
-      console.log('Export not allowed - insufficient permissions');
       toast({
         title: "Upgrade Required",
         description: "Please purchase export credits to download your resume.",
@@ -97,65 +91,40 @@ export const useSubscription = (currentUserId: string) => {
       return;
     }
 
-    // Validate export data
-    if (!exportData || typeof exportData !== 'object') {
-      console.error('Invalid export data provided to handleExport:', exportData);
-      toast({
-        title: "Export Error",
-        description: "Invalid resume data. Please refresh and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsExporting(true);
     
-    // Show immediate feedback
-    toast({
-      title: "Starting Export...",
-      description: "Please wait while we generate your PDF. This may take a few moments.",
-    });
-    
     try {
-      console.log('Calling exportResumeToPDF with validated data...');
-      await exportResumeToPDF(exportData);
+      await exportToPDF(exportData);
       
-      // Only decrement scan count for non-unlimited users and non-special users
+      // Update scan count
       const { data: { user } } = await supabase.auth.getUser();
       const isSpecialUser = user?.email === "ahmedkhairyabdelfatah@gmail.com";
       
       if (currentSubscription.tier !== 'unlimited' && !isSpecialUser) {
-        const { error: updateError } = await supabase
+        await supabase
           .from('subscriptions')
           .update({ scan_count: currentSubscription.scan_count - 1 })
           .eq('user_id', currentUserId);
         
-        if (updateError) {
-          console.error('Error updating scan count:', updateError);
-          throw updateError;
-        }
-        
-        // Update local state
         setCurrentSubscription(prev => ({
           ...prev,
           scan_count: prev.scan_count - 1
         }));
 
         toast({
-          title: "Resume Exported Successfully!",
-          description: `Your resume has been downloaded as PDF. ${currentSubscription.scan_count - 1} exports remaining.`,
+          title: "Resume Exported!",
+          description: `PDF downloaded. ${currentSubscription.scan_count - 1} exports remaining.`,
         });
       } else {
         toast({
-          title: "Resume Exported Successfully!",
-          description: "Your resume has been downloaded as PDF.",
+          title: "Resume Exported!",
+          description: "PDF downloaded successfully.",
         });
       }
     } catch (error) {
-      console.error('Export error in useSubscription:', error);
       toast({
         title: "Export Failed",
-        description: error instanceof Error ? error.message : "There was an error exporting your resume. Please try again.",
+        description: error instanceof Error ? error.message : "Export failed",
         variant: "destructive",
       });
     } finally {
@@ -163,19 +132,15 @@ export const useSubscription = (currentUserId: string) => {
     }
   };
 
-  const handleWordExport = async (exportData: any) => {
-    console.log('=== useSubscription.handleWordExport called ===');
-    console.log('Can export:', canExport());
-    console.log('Is already exporting:', isExporting);
+  const handleWordExport = async (exportData: ResumeData) => {
+    console.log('=== handleWordExport called ===');
     
-    // Prevent multiple exports
     if (isExporting) {
-      console.log('Word export already in progress, aborting');
+      console.log('Export already in progress');
       return;
     }
     
     if (!canExport()) {
-      console.log('Word export not allowed - insufficient permissions');
       toast({
         title: "Upgrade Required",
         description: "Please purchase export credits to download your resume.",
@@ -184,65 +149,40 @@ export const useSubscription = (currentUserId: string) => {
       return;
     }
 
-    // Validate export data
-    if (!exportData || typeof exportData !== 'object') {
-      console.error('Invalid export data provided to handleWordExport:', exportData);
-      toast({
-        title: "Export Error",
-        description: "Invalid resume data. Please refresh and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsExporting(true);
     
-    // Show immediate feedback
-    toast({
-      title: "Starting Word Export...",
-      description: "Please wait while we generate your Word document. This may take a few moments.",
-    });
-    
     try {
-      console.log('Calling exportResumeAsWord with validated data...');
-      await exportResumeAsWord(exportData);
+      await exportToWord(exportData);
       
-      // Only decrement scan count for non-unlimited users and non-special users
+      // Update scan count
       const { data: { user } } = await supabase.auth.getUser();
       const isSpecialUser = user?.email === "ahmedkhairyabdelfatah@gmail.com";
       
       if (currentSubscription.tier !== 'unlimited' && !isSpecialUser) {
-        const { error: updateError } = await supabase
+        await supabase
           .from('subscriptions')
           .update({ scan_count: currentSubscription.scan_count - 1 })
           .eq('user_id', currentUserId);
         
-        if (updateError) {
-          console.error('Error updating scan count:', updateError);
-          throw updateError;
-        }
-        
-        // Update local state
         setCurrentSubscription(prev => ({
           ...prev,
           scan_count: prev.scan_count - 1
         }));
 
         toast({
-          title: "Resume Exported Successfully!",
-          description: `Your resume has been downloaded as Word document. ${currentSubscription.scan_count - 1} exports remaining.`,
+          title: "Resume Exported!",
+          description: `Word document downloaded. ${currentSubscription.scan_count - 1} exports remaining.`,
         });
       } else {
         toast({
-          title: "Resume Exported Successfully!",
-          description: "Your resume has been downloaded as Word document.",
+          title: "Resume Exported!",
+          description: "Word document downloaded successfully.",
         });
       }
     } catch (error) {
-      console.error('Word export error in useSubscription:', error);
       toast({
         title: "Export Failed",
-        description: error instanceof Error ? error.message : "There was an error exporting your resume as Word. Please try again.",
+        description: error instanceof Error ? error.message : "Word export failed",
         variant: "destructive",
       });
     } finally {

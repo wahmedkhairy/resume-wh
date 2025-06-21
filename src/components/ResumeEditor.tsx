@@ -1,4 +1,3 @@
-
 import React from "react";
 import ResumeData from "@/components/ResumeData";
 import PreviewSection from "@/components/PreviewSection";
@@ -107,15 +106,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
         <ExportControls
           onSave={onSave}
-          onExport={onExport}
-          onExportWord={onExportWord}
           isSaving={isSaving}
-          isExporting={isExporting}
-          currentUserId={currentUserId}
-          isPremiumUser={isPremiumUser}
           isTailoredResume={!!tailoredResumeData}
-          canExport={canExport()}
-          currentSubscription={currentSubscription}
         />
 
         <SubscriptionStatus
