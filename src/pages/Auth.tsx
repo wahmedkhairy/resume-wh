@@ -36,7 +36,6 @@ const Auth = () => {
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [lastResetAttempt, setLastResetAttempt] = useState<number | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -686,7 +685,7 @@ const Auth = () => {
                     disabled={isResettingPassword || !canAttemptReset()}
                   >
                     {isResettingPassword ? "Sending..." : 
-                     !canAttemptReset() ? `Wait ${remainingWaitTime}s...` : 
+                     !canAttemptReset() ? `Wait ${remainingTime}s...` : 
                      "Send Reset Link"}
                   </Button>
                   <Button 
