@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,6 +75,15 @@ export const useSubscription = (currentUserId: string) => {
     }
   };
 
+  // Create a timeout wrapper for export functions
+  const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> => {
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
+    });
+    
+    return Promise.race([promise, timeoutPromise]);
+  };
+
   const handleExport = async (exportData: ResumeData) => {
     console.log('=== handleExport called ===');
     
@@ -94,7 +104,12 @@ export const useSubscription = (currentUserId: string) => {
     setIsExporting(true);
     
     try {
-      await exportToPDF(exportData);
+      console.log('Starting PDF export with 30 second timeout');
+      await withTimeout(
+        exportToPDF(exportData),
+        30000,
+        'PDF export timed out after 30 seconds'
+      );
       
       // Update scan count
       const { data: { user } } = await supabase.auth.getUser();
@@ -122,6 +137,7 @@ export const useSubscription = (currentUserId: string) => {
         });
       }
     } catch (error) {
+      console.error('PDF export error:', error);
       toast({
         title: "Export Failed",
         description: error instanceof Error ? error.message : "Export failed",
@@ -152,7 +168,12 @@ export const useSubscription = (currentUserId: string) => {
     setIsExporting(true);
     
     try {
-      await exportToWord(exportData);
+      console.log('Starting Word export with 20 second timeout');
+      await withTimeout(
+        exportToWord(exportData),
+        20000,
+        'Word export timed out after 20 seconds'
+      );
       
       // Update scan count
       const { data: { user } } = await supabase.auth.getUser();
@@ -180,6 +201,7 @@ export const useSubscription = (currentUserId: string) => {
         });
       }
     } catch (error) {
+      console.error('Word export error:', error);
       toast({
         title: "Export Failed",
         description: error instanceof Error ? error.message : "Word export failed",
