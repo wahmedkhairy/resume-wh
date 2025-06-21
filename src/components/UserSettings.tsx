@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import UserInfoCard from "./UserInfoCard";
 import SubscriptionCard from "./SubscriptionCard";
 import GeneralSettingsCard from "./GeneralSettingsCard";
+import PasswordChangeCard from "./PasswordChangeCard";
 
 const UserSettings: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -79,6 +80,8 @@ const UserSettings: React.FC = () => {
         userInfo={userInfo} 
         onUserInfoUpdate={loadUserData}
       />
+      
+      <PasswordChangeCard />
       
       <SubscriptionCard 
         subscription={subscription}

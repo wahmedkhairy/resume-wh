@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from '@supabase/supabase-js';
-import { AlertCircle, Eye, EyeOff, CheckCircle, Clock, AlertTriangle, ExternalLink } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, CheckCircle, Clock, AlertTriangle, ExternalLink, Home, Key } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import EmailVerification from "@/components/EmailVerification";
 
@@ -34,6 +34,7 @@ const Auth = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [showPasswordResetOptions, setShowPasswordResetOptions] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [lastResetAttempt, setLastResetAttempt] = useState<number | null>(null);
@@ -64,10 +65,10 @@ const Auth = () => {
           });
         } else {
           console.log('Session set successfully for password reset');
-          setIsPasswordReset(true);
+          setShowPasswordResetOptions(true);
           toast({
-            title: "Password Reset",
-            description: "Please enter your new password below.",
+            title: "Password Reset Link Verified",
+            description: "Choose how you'd like to proceed.",
           });
         }
       });
@@ -81,7 +82,7 @@ const Auth = () => {
         setUser(session?.user ?? null);
         
         // Handle successful authentication
-        if (event === 'SIGNED_IN' && session?.user && !isPasswordReset) {
+        if (event === 'SIGNED_IN' && session?.user && !isPasswordReset && !showPasswordResetOptions) {
           toast({
             title: "Welcome!",
             description: "You have successfully signed in.",
@@ -102,7 +103,7 @@ const Auth = () => {
         // Handle password recovery
         if (event === 'PASSWORD_RECOVERY') {
           console.log('Password recovery event detected');
-          setIsPasswordReset(true);
+          setShowPasswordResetOptions(true);
         }
       }
     );
@@ -114,13 +115,13 @@ const Auth = () => {
       setUser(session?.user ?? null);
       setIsInitialLoading(false);
       
-      if (session?.user && !isPasswordReset) {
+      if (session?.user && !isPasswordReset && !showPasswordResetOptions) {
         navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast, searchParams, isPasswordReset]);
+  }, [navigate, toast, searchParams, isPasswordReset, showPasswordResetOptions]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -132,6 +133,15 @@ const Auth = () => {
       return "Password must be at least 6 characters long";
     }
     return null;
+  };
+
+  const handleGoToHomePage = () => {
+    navigate("/");
+  };
+
+  const handleChooseNewPassword = () => {
+    setShowPasswordResetOptions(false);
+    setIsPasswordReset(true);
   };
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -169,19 +179,19 @@ const Auth = () => {
 
       toast({
         title: "Password Updated",
-        description: "Your password has been successfully updated. You can now sign in with your new password.",
+        description: "Your password has been successfully updated. Redirecting to home page...",
       });
       
       // Clear the reset state and redirect
       setIsPasswordReset(false);
+      setShowPasswordResetOptions(false);
       setNewPassword("");
       setConfirmNewPassword("");
       
-      // Sign out to force fresh login
-      await supabase.auth.signOut();
-      
-      // Clear URL parameters
-      navigate("/auth", { replace: true });
+      // Clear URL parameters and redirect to home
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 1500);
     } catch (error: any) {
       console.error('Password update error:', error);
       toast({
@@ -275,7 +285,7 @@ const Auth = () => {
         setResetEmailSent(true);
         toast({
           title: "Reset Email Sent",
-          description: `Check your email (${forgotPasswordEmail}) for a password reset link. If you don't see it within 5 minutes, check your spam folder.`,
+          description: "Check your email for a password reset link. It should arrive within 2-5 seconds.",
         });
         
         setForgotPasswordEmail("");
@@ -504,6 +514,50 @@ const Auth = () => {
     );
   }
 
+  // Password reset options screen
+  if (showPasswordResetOptions) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Password Reset</CardTitle>
+            <CardDescription className="text-center">
+              Choose how you'd like to proceed
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <Button 
+                onClick={handleChooseNewPassword}
+                className="w-full h-12 flex items-center justify-center gap-3"
+                size="lg"
+              >
+                <Key className="h-5 w-5" />
+                Create New Password
+              </Button>
+              
+              <Button 
+                onClick={handleGoToHomePage}
+                variant="outline"
+                className="w-full h-12 flex items-center justify-center gap-3"
+                size="lg"
+              >
+                <Home className="h-5 w-5" />
+                Go to Home Page
+              </Button>
+            </div>
+            
+            <div className="text-center pt-4">
+              <p className="text-sm text-muted-foreground">
+                You can change your password later in your account settings
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Password reset form
   if (isPasswordReset) {
     return (
@@ -577,6 +631,19 @@ const Auth = () => {
               <Button type="submit" className="w-full" disabled={isUpdatingPassword}>
                 {isUpdatingPassword ? "Updating Password..." : "Update Password"}
               </Button>
+              
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  setIsPasswordReset(false);
+                  setShowPasswordResetOptions(true);
+                }}
+                disabled={isUpdatingPassword}
+              >
+                Back to Options
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -594,7 +661,7 @@ const Auth = () => {
             <CardTitle className="text-2xl text-center">Reset Password</CardTitle>
             <CardDescription className="text-center">
               {resetEmailSent 
-                ? "Reset email sent! Check your inbox and spam folder."
+                ? "Reset email sent! Check your inbox."
                 : "Enter your email address and we'll send you a password reset link"
               }
             </CardDescription>
@@ -606,7 +673,7 @@ const Auth = () => {
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription>
                     We've sent a password reset link to your email. The link will expire in 1 hour.
-                    If you don't see the email within 5 minutes, please check your spam folder.
+                    The email should arrive within 2-5 seconds.
                   </AlertDescription>
                 </Alert>
 
