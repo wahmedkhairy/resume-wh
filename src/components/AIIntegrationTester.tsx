@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ const AIIntegrationTester: React.FC = () => {
   const [testInput, setTestInput] = useState("Software Engineer with 5 years experience in React and Node.js");
   const { toast } = useToast();
 
-  const updateTestResult = (name: string, status: 'success' | 'error', message: string, duration?: number) => {
+  const updateTestResult = (name: string, status: 'pending' | 'success' | 'error', message: string, duration?: number) => {
     setTestResults(prev => prev.map(test => 
       test.name === name 
         ? { ...test, status, message, duration }
