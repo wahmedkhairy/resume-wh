@@ -79,8 +79,13 @@ export const useSubscription = (currentUserId: string) => {
   const handleExport = async (exportData: any) => {
     console.log('=== useSubscription.handleExport called ===');
     console.log('Can export:', canExport());
-    console.log('Export data received:', exportData);
-    console.log('Export data type:', typeof exportData);
+    console.log('Is already exporting:', isExporting);
+    
+    // Prevent multiple exports
+    if (isExporting) {
+      console.log('Export already in progress, aborting');
+      return;
+    }
     
     if (!canExport()) {
       console.log('Export not allowed - insufficient permissions');
@@ -104,6 +109,12 @@ export const useSubscription = (currentUserId: string) => {
     }
 
     setIsExporting(true);
+    
+    // Show immediate feedback
+    toast({
+      title: "Starting Export...",
+      description: "Please wait while we generate your PDF. This may take a few moments.",
+    });
     
     try {
       console.log('Calling exportResumeToPDF with validated data...');
@@ -155,8 +166,13 @@ export const useSubscription = (currentUserId: string) => {
   const handleWordExport = async (exportData: any) => {
     console.log('=== useSubscription.handleWordExport called ===');
     console.log('Can export:', canExport());
-    console.log('Export data received:', exportData);
-    console.log('Export data type:', typeof exportData);
+    console.log('Is already exporting:', isExporting);
+    
+    // Prevent multiple exports
+    if (isExporting) {
+      console.log('Word export already in progress, aborting');
+      return;
+    }
     
     if (!canExport()) {
       console.log('Word export not allowed - insufficient permissions');
@@ -180,6 +196,12 @@ export const useSubscription = (currentUserId: string) => {
     }
 
     setIsExporting(true);
+    
+    // Show immediate feedback
+    toast({
+      title: "Starting Word Export...",
+      description: "Please wait while we generate your Word document. This may take a few moments.",
+    });
     
     try {
       console.log('Calling exportResumeAsWord with validated data...');
