@@ -609,19 +609,6 @@ const Auth = () => {
                     If you don't see the email within 5 minutes, please check your spam folder.
                   </AlertDescription>
                 </Alert>
-                
-                <Alert>
-                  <AlertTriangle className="h-4 w-4 text-orange-600" />
-                  <AlertDescription className="text-sm">
-                    <strong>Important:</strong> If you still don't receive the email:
-                    <ul className="mt-2 space-y-1 list-disc list-inside text-xs">
-                      <li>Check spam/junk folder thoroughly</li>
-                      <li>Wait at least 60 seconds before requesting another reset</li>
-                      <li>Make sure the email address is correct</li>
-                      <li>Some email providers have delays - be patient</li>
-                    </ul>
-                  </AlertDescription>
-                </Alert>
 
                 <div className="space-y-2">
                   <Button 
@@ -686,7 +673,7 @@ const Auth = () => {
                     disabled={isResettingPassword || !canAttemptReset()}
                   >
                     {isResettingPassword ? "Sending..." : 
-                     !canAttemptReset() ? `Wait ${remainingTime}s...` : 
+                     !canAttemptReset() ? `Wait ${remainingWaitTime}s...` : 
                      "Send Reset Link"}
                   </Button>
                   <Button 
@@ -702,18 +689,6 @@ const Auth = () => {
                     Back to Sign In
                   </Button>
                 </form>
-                
-                <Alert>
-                  <AlertTriangle className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-sm">
-                    <strong>Email Delivery Tips:</strong>
-                    <ul className="mt-1 space-y-1 list-disc list-inside text-xs">
-                      <li>Check spam/junk folder if email doesn't arrive</li>
-                      <li>Wait 60 seconds between requests to avoid rate limits</li>
-                      <li>Some email providers may have delays</li>
-                    </ul>
-                  </AlertDescription>
-                </Alert>
               </div>
             )}
           </CardContent>
