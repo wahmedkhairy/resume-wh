@@ -1,4 +1,3 @@
-
 import React from "react";
 import ResumePreview from "@/components/ResumePreview";
 import ATSScanner from "@/components/ATSScanner";
@@ -117,12 +116,25 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
 
     try {
       console.log('Calling onExport function...');
+      
+      // Show loading toast
+      toast({
+        title: "Exporting Resume",
+        description: "Generating your PDF, please wait...",
+      });
+      
       await onExport();
+      
+      // Show success toast
+      toast({
+        title: "Export Successful",
+        description: "Your resume has been downloaded as PDF.",
+      });
     } catch (error) {
       console.error('Export error in PreviewSection:', error);
       toast({
-        title: "Export Failed",
-        description: "There was an error exporting your resume. Please try again.",
+        title: "Export Failed", 
+        description: error.message || "There was an error exporting your resume. Please try again.",
         variant: "destructive",
       });
     }
@@ -151,12 +163,25 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
 
     try {
       console.log('Calling onExportWord function...');
+      
+      // Show loading toast
+      toast({
+        title: "Exporting Resume",
+        description: "Generating your Word document, please wait...",
+      });
+      
       await onExportWord();
+      
+      // Show success toast
+      toast({
+        title: "Export Successful",
+        description: "Your resume has been downloaded as Word document.",
+      });
     } catch (error) {
       console.error('Word export error in PreviewSection:', error);
       toast({
         title: "Export Failed",
-        description: "There was an error exporting your resume as Word. Please try again.",
+        description: error.message || "There was an error exporting your resume as Word. Please try again.",
         variant: "destructive",
       });
     }

@@ -1,6 +1,3 @@
-
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { exportResumeAsPlainText } from './textExport';
 
 export interface ExportData {
@@ -16,6 +13,10 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
   try {
     console.log('Starting PDF export with data:', data);
     
+    // Dynamic import to avoid build issues
+    const html2canvas = (await import('html2canvas')).default;
+    const jsPDF = (await import('jspdf')).jsPDF;
+    
     // Get the resume preview element - try multiple selectors
     let resumeElement = document.querySelector('[data-resume-preview]') as HTMLElement;
     
@@ -27,14 +28,13 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     }
     
     if (!resumeElement) {
-      console.error('Resume preview element not found. Available elements:', 
-        Array.from(document.querySelectorAll('*')).map(el => el.className).filter(cn => cn.includes('resume')));
+      console.error('Resume preview element not found');
       throw new Error('Resume preview not found. Please ensure the resume is visible and try again.');
     }
 
     console.log('Found resume element:', resumeElement);
 
-    // Temporarily hide watermark for export
+    // Temporarily hide watermark and anti-theft for export
     const watermark = document.querySelector('.watermark') as HTMLElement;
     const antiTheft = document.querySelector('[data-anti-theft]') as HTMLElement;
     
@@ -51,18 +51,16 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     }
 
     // Wait for DOM updates
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-    // Create high-quality canvas
+    // Create canvas with optimized settings
     console.log('Creating canvas...');
     const canvas = await html2canvas(resumeElement, {
-      scale: 2.5,
+      scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
-      width: resumeElement.scrollWidth || resumeElement.offsetWidth,
-      height: resumeElement.scrollHeight || resumeElement.offsetHeight,
-      logging: true,
+      logging: false,
       onclone: (clonedDoc) => {
         // Remove watermarks and anti-theft elements in clone
         const clonedWatermark = clonedDoc.querySelector('.watermark');
@@ -72,7 +70,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
       }
     });
 
-    // Restore original display styles
+    // Restore original display styles immediately
     if (watermark && originalWatermarkDisplay !== undefined) {
       watermark.style.display = originalWatermarkDisplay;
     }
@@ -83,12 +81,11 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     console.log('Canvas created successfully, dimensions:', canvas.width, 'x', canvas.height);
 
     // Create PDF
-    const imgData = canvas.toDataURL('image/png', 1.0);
+    const imgData = canvas.toDataURL('image/png', 0.92);
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a4',
-      compress: false
+      format: 'a4'
     });
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -105,7 +102,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     const imgX = (pdfWidth - scaledWidth) / 2;
     const imgY = (pdfHeight - scaledHeight) / 2;
 
-    pdf.addImage(imgData, 'PNG', imgX, imgY, scaledWidth, scaledHeight, '', 'FAST');
+    pdf.addImage(imgData, 'PNG', imgX, imgY, scaledWidth, scaledHeight);
     
     // Generate filename
     const timestamp = new Date().toISOString().slice(0, 10);
@@ -115,7 +112,7 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
     console.log('Saving PDF:', filename);
     pdf.save(filename);
     
-    return Promise.resolve();
+    console.log('PDF export completed successfully');
   } catch (error) {
     console.error('Error exporting resume:', error);
     throw new Error(`Failed to export resume: ${error.message}`);
@@ -124,9 +121,14 @@ export const exportResumeToPDF = async (data: ExportData): Promise<void> => {
 
 // Export as Word
 export const exportResumeAsWord = async (data: ExportData): Promise<void> => {
-  console.log('Starting Word export with data:', data);
-  const { exportResumeAsWord: exportWordFunction } = await import('./wordExport');
-  return exportWordFunction(data);
+  try {
+    console.log('Starting Word export with data:', data);
+    const { exportResumeAsWord: exportWordFunction } = await import('./wordExport');
+    return exportWordFunction(data);
+  } catch (error) {
+    console.error('Error exporting Word document:', error);
+    throw new Error(`Failed to export Word document: ${error.message}`);
+  }
 };
 
 // Export as plain text
