@@ -27,8 +27,9 @@ export const useSubscription = (currentUserId: string) => {
         if (isSpecialUser) {
           // Give unlimited access to special users
           const freeUnlimitedSubscription = {
-            tier: 'basic',
+            tier: 'unlimited',
             scan_count: 999,
+            max_scans: 999,
             status: 'active',
             user_id: currentUserId
           };
@@ -46,6 +47,9 @@ export const useSubscription = (currentUserId: string) => {
         if (subscription && subscription.scan_count > 0) {
           setIsPremiumUser(true);
           setCurrentSubscription(subscription);
+        } else {
+          setIsPremiumUser(false);
+          setCurrentSubscription(null);
         }
       } catch (error) {
         console.error('Error checking subscription:', error);
@@ -78,6 +82,31 @@ export const useSubscription = (currentUserId: string) => {
       default:
         return 0;
     }
+  };
+
+  const getMaxExports = () => {
+    if (!currentSubscription) return 0;
+    
+    switch (currentSubscription.tier) {
+      case 'basic':
+        return 2;
+      case 'premium':
+        return 6;
+      case 'unlimited':
+        return 999;
+      default:
+        return 0;
+    }
+  };
+
+  const getRemainingExports = () => {
+    if (!currentSubscription) return 0;
+    
+    if (currentSubscription.tier === 'unlimited') {
+      return 999; // Show as unlimited
+    }
+    
+    return currentSubscription.scan_count || 0;
   };
 
   const handleExport = async (exportData: ResumeData) => {
@@ -113,19 +142,20 @@ export const useSubscription = (currentUserId: string) => {
       const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
       
       if (currentSubscription.tier !== 'unlimited' && !isSpecialUser) {
+        const newScanCount = currentSubscription.scan_count - 1;
         await supabase
           .from('subscriptions')
-          .update({ scan_count: currentSubscription.scan_count - 1 })
+          .update({ scan_count: newScanCount })
           .eq('user_id', currentUserId);
         
         setCurrentSubscription(prev => ({
           ...prev,
-          scan_count: prev.scan_count - 1
+          scan_count: newScanCount
         }));
 
         toast({
           title: "Resume Exported!",
-          description: `High-quality PDF downloaded. ${currentSubscription.scan_count - 1} exports remaining.`,
+          description: `High-quality PDF downloaded. ${newScanCount} exports remaining.`,
         });
       } else {
         toast({
@@ -178,19 +208,20 @@ export const useSubscription = (currentUserId: string) => {
       const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
       
       if (currentSubscription.tier !== 'unlimited' && !isSpecialUser) {
+        const newScanCount = currentSubscription.scan_count - 1;
         await supabase
           .from('subscriptions')
-          .update({ scan_count: currentSubscription.scan_count - 1 })
+          .update({ scan_count: newScanCount })
           .eq('user_id', currentUserId);
         
         setCurrentSubscription(prev => ({
           ...prev,
-          scan_count: prev.scan_count - 1
+          scan_count: newScanCount
         }));
 
         toast({
           title: "Resume Exported!",
-          description: `Enhanced Word document downloaded. ${currentSubscription.scan_count - 1} exports remaining.`,
+          description: `Enhanced Word document downloaded. ${newScanCount} exports remaining.`,
         });
       } else {
         toast({
@@ -218,5 +249,7 @@ export const useSubscription = (currentUserId: string) => {
     handleWordExport,
     canExport,
     getTargetedResumeLimit,
+    getMaxExports,
+    getRemainingExports,
   };
 };
