@@ -104,7 +104,7 @@ export const exportToHighQualityPDF = async (data: ResumeData): Promise<void> =>
   }
 };
 
-// Enhanced Word export with better formatting
+// Enhanced Word export with all formatting changes applied
 export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
   console.log('=== Enhanced Word Export Started ===');
   
@@ -113,75 +113,102 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
     
     const children = [];
     
-    // Header with exact formatting
+    // Header with exact formatting and all requested changes
     if (data.personalInfo.name) {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: data.personalInfo.name, bold: true, size: 32 })],
+          children: [new TextRun({ 
+            text: data.personalInfo.name, 
+            bold: true, 
+            size: 52, // Increased from 32 (26pt equivalent)
+            color: "000000" // Explicit black color
+          })],
           alignment: AlignmentType.CENTER,
           spacing: { after: 200 }
         })
       );
     }
     
-    // Job title and location
+    // Job title and location with increased font size and black color
     if (data.personalInfo.jobTitle) {
       const titleLine = data.personalInfo.jobTitle + 
         (data.personalInfo.location ? ` | ${data.personalInfo.location}` : '');
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: titleLine, size: 18 })],
+          children: [new TextRun({ 
+            text: titleLine, 
+            size: 36, // Increased to match 18pt
+            color: "000000" // Explicit black color
+          })],
           alignment: AlignmentType.CENTER,
           spacing: { after: 100 }
         })
       );
     }
     
-    // Contact info
+    // Contact info with increased font size and black color
     const contact = [data.personalInfo.email, data.personalInfo.phone]
       .filter(Boolean).join(' | ');
     if (contact) {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: contact, size: 16 })],
+          children: [new TextRun({ 
+            text: contact, 
+            size: 32, // Increased to match 16pt
+            color: "000000" // Explicit black color
+          })],
           alignment: AlignmentType.CENTER,
           spacing: { after: 400 }
         })
       );
     }
     
-    // Summary section
+    // Summary section with normal font weight for heading and black color
     if (data.summary) {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: 'Summary', bold: true, size: 22 })],
+          children: [new TextRun({ 
+            text: 'Summary', 
+            bold: false, // Changed to normal font weight
+            size: 36, // Increased to match 18pt
+            color: "000000" // Explicit black color
+          })],
           heading: HeadingLevel.HEADING_2,
           spacing: { before: 200, after: 150 },
           border: {
             bottom: {
-              color: "CCCCCC",
+              color: "000000", // Changed to black
               size: 1,
               style: BorderStyle.SINGLE,
             },
           },
         }),
         new Paragraph({
-          children: [new TextRun({ text: data.summary, size: 16 })],
+          children: [new TextRun({ 
+            text: data.summary, 
+            size: 32, // Increased to match 16pt
+            color: "000000" // Explicit black color
+          })],
           spacing: { after: 300 }
         })
       );
     }
     
-    // Experience section
+    // Experience section with increased font sizes and black color
     if (data.workExperience.length > 0) {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: 'Experience', bold: true, size: 22 })],
+          children: [new TextRun({ 
+            text: 'Experience', 
+            bold: true, 
+            size: 36, // Increased to match 18pt
+            color: "000000" // Explicit black color
+          })],
           heading: HeadingLevel.HEADING_2,
           spacing: { before: 200, after: 150 },
           border: {
             bottom: {
-              color: "CCCCCC",
+              color: "000000", // Changed to black
               size: 1,
               style: BorderStyle.SINGLE,
             },
@@ -192,14 +219,20 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       data.workExperience.forEach(job => {
         children.push(
           new Paragraph({
-            children: [new TextRun({ text: `${job.jobTitle} - ${job.company}`, bold: true, size: 18 })],
+            children: [new TextRun({ 
+              text: `${job.jobTitle} - ${job.company}`, 
+              bold: true, 
+              size: 32, // Increased to match 16pt
+              color: "000000" // Explicit black color
+            })],
             spacing: { before: 200, after: 50 }
           }),
           new Paragraph({
             children: [new TextRun({ 
               text: `${job.startDate} - ${job.endDate}${job.location ? ` | ${job.location}` : ''}`, 
-              size: 16, 
-              italics: true 
+              size: 32, // Increased to match 16pt
+              italics: true,
+              color: "000000" // Explicit black color
             })],
             spacing: { after: 100 }
           })
@@ -208,7 +241,11 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
         job.responsibilities.forEach(resp => {
           children.push(
             new Paragraph({
-              children: [new TextRun({ text: `• ${resp}`, size: 16 })],
+              children: [new TextRun({ 
+                text: `• ${resp}`, 
+                size: 32, // Increased to match 16pt
+                color: "000000" // Explicit black color
+              })],
               spacing: { after: 50 }
             })
           );
@@ -216,16 +253,21 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       });
     }
     
-    // Education section
+    // Education section with increased font sizes and black color
     if (data.education.length > 0) {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: 'Education', bold: true, size: 22 })],
+          children: [new TextRun({ 
+            text: 'Education', 
+            bold: true, 
+            size: 36, // Increased to match 18pt
+            color: "000000" // Explicit black color
+          })],
           heading: HeadingLevel.HEADING_2,
           spacing: { before: 400, after: 150 },
           border: {
             bottom: {
-              color: "CCCCCC",
+              color: "000000", // Changed to black
               size: 1,
               style: BorderStyle.SINGLE,
             },
@@ -236,13 +278,19 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       data.education.forEach(edu => {
         children.push(
           new Paragraph({
-            children: [new TextRun({ text: edu.degree, bold: true, size: 18 })],
+            children: [new TextRun({ 
+              text: edu.degree, 
+              bold: true, 
+              size: 32, // Increased to match 16pt
+              color: "000000" // Explicit black color
+            })],
             spacing: { before: 100, after: 50 }
           }),
           new Paragraph({
             children: [new TextRun({ 
               text: `${edu.institution} - ${edu.graduationYear}${edu.location ? ` | ${edu.location}` : ''}`, 
-              size: 16 
+              size: 32, // Increased to match 16pt
+              color: "000000" // Explicit black color
             })],
             spacing: { after: 200 }
           })
@@ -250,11 +298,16 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       });
     }
     
-    // Courses and certifications
+    // Courses and certifications with normal font weight and increased font sizes
     if (data.coursesAndCertifications.length > 0) {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: 'Courses & Certifications', bold: true, size: 18 })],
+          children: [new TextRun({ 
+            text: 'Courses & Certifications', 
+            bold: false, // Changed to normal font weight
+            size: 32, // Increased to match 16pt
+            color: "000000" // Explicit black color
+          })],
           spacing: { before: 200, after: 100 }
         })
       );
@@ -262,7 +315,12 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       data.coursesAndCertifications.forEach(item => {
         children.push(
           new Paragraph({
-            children: [new TextRun({ text: `${item.title} - ${item.provider} (${item.date})`, size: 16, bold: true })],
+            children: [new TextRun({ 
+              text: `${item.title} - ${item.provider} (${item.date})`, 
+              size: 32, // Increased to match 16pt
+              color: "000000", // Explicit black color
+              bold: true // Keep the bold formatting for the title line
+            })],
             spacing: { after: 100 }
           })
         );

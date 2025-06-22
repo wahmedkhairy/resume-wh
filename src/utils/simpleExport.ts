@@ -59,19 +59,23 @@ export const exportToPDF = (data: ResumeData): Promise<void> => {
       
       console.log('Libraries imported');
 
-      // Create canvas
+      // Create canvas with enhanced settings for downloadable resume
       const canvas = await html2canvas.default(resumeElement, {
-        scale: 1,
+        scale: 2, // Higher quality for downloadable version
         useCORS: true,
         backgroundColor: '#ffffff',
-        logging: false
+        logging: false,
+        allowTaint: false,
+        foreignObjectRendering: true,
+        imageTimeout: 0,
+        removeContainer: false
       });
       
       console.log('Canvas created');
 
       // Create PDF
       const pdf = new jsPDF.jsPDF('portrait', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png', 0.9);
+      const imgData = canvas.toDataURL('image/png', 1.0); // Maximum quality
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -93,73 +97,202 @@ export const exportToPDF = (data: ResumeData): Promise<void> => {
   });
 };
 
-// Simplified Word export function
+// Enhanced Word export function with all formatting changes applied
 export const exportToWord = (data: ResumeData): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     console.log('=== Word Export Started ===');
     
     try {
-      const { Document, Packer, Paragraph, TextRun } = await import('docx');
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import('docx');
       
       const children = [];
       
-      // Name
+      // Name with increased font size and black color
       if (data.personalInfo.name) {
         children.push(
           new Paragraph({
-            children: [new TextRun({ text: data.personalInfo.name, bold: true, size: 48 })],
+            children: [new TextRun({ 
+              text: data.personalInfo.name, 
+              bold: true, 
+              size: 52, // Increased from 48 (26pt equivalent)
+              color: "000000" // Explicit black color
+            })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 }
           })
         );
       }
       
-      // Contact info
-      const contact = [data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location]
+      // Job title and location with increased font size and black color
+      if (data.personalInfo.jobTitle) {
+        const titleLine = data.personalInfo.jobTitle + 
+          (data.personalInfo.location ? ` | ${data.personalInfo.location}` : '');
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ 
+              text: titleLine, 
+              size: 36, // Increased from 18pt to match preview
+              color: "000000" // Explicit black color
+            })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 100 }
+          })
+        );
+      }
+      
+      // Contact info with increased font size and black color
+      const contact = [data.personalInfo.email, data.personalInfo.phone]
         .filter(Boolean).join(' | ');
       if (contact) {
         children.push(
           new Paragraph({
-            children: [new TextRun({ text: contact, size: 24 })],
+            children: [new TextRun({ 
+              text: contact, 
+              size: 32, // Increased from 24 (16pt equivalent)
+              color: "000000" // Explicit black color
+            })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 }
           })
         );
       }
       
-      // Summary
+      // Summary section with normal font weight for heading and black color
       if (data.summary) {
         children.push(
           new Paragraph({
-            children: [new TextRun({ text: 'Summary', bold: true, size: 32 })],
+            children: [new TextRun({ 
+              text: 'Summary', 
+              bold: false, // Changed to normal font weight
+              size: 36, // Increased from 32 (18pt equivalent)
+              color: "000000" // Explicit black color
+            })],
+            spacing: { before: 200, after: 150 }
           }),
           new Paragraph({
-            children: [new TextRun({ text: data.summary, size: 24 })],
+            children: [new TextRun({ 
+              text: data.summary, 
+              size: 32, // Increased from 24 (16pt equivalent)
+              color: "000000" // Explicit black color
+            })],
+            spacing: { after: 300 }
           })
         );
       }
       
-      // Experience
+      // Experience section with increased font sizes and black color
       if (data.workExperience.length > 0) {
         children.push(
           new Paragraph({
-            children: [new TextRun({ text: 'Experience', bold: true, size: 32 })],
+            children: [new TextRun({ 
+              text: 'Experience', 
+              bold: true, 
+              size: 36, // Increased from 32 (18pt equivalent)
+              color: "000000" // Explicit black color
+            })],
+            spacing: { before: 200, after: 150 }
           })
         );
         
         data.workExperience.forEach(job => {
           children.push(
             new Paragraph({
-              children: [new TextRun({ text: `${job.jobTitle} - ${job.company}`, bold: true, size: 28 })],
+              children: [new TextRun({ 
+                text: `${job.jobTitle} - ${job.company}`, 
+                bold: true, 
+                size: 32, // Increased from 28 (16pt equivalent)
+                color: "000000" // Explicit black color
+              })],
+              spacing: { before: 200, after: 50 }
             }),
             new Paragraph({
-              children: [new TextRun({ text: `${job.startDate} - ${job.endDate}`, size: 24 })],
+              children: [new TextRun({ 
+                text: `${job.startDate} - ${job.endDate}${job.location ? ` | ${job.location}` : ''}`, 
+                size: 32, // Increased from 24 (16pt equivalent)
+                italics: true,
+                color: "000000" // Explicit black color
+              })],
+              spacing: { after: 100 }
             })
           );
           
           job.responsibilities.forEach(resp => {
             children.push(
               new Paragraph({
-                children: [new TextRun({ text: `• ${resp}`, size: 24 })],
+                children: [new TextRun({ 
+                  text: `• ${resp}`, 
+                  size: 32, // Increased from 24 (16pt equivalent)
+                  color: "000000" // Explicit black color
+                })],
+                spacing: { after: 50 }
               })
             );
           });
+        });
+      }
+      
+      // Education section with increased font sizes and black color
+      if (data.education.length > 0) {
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ 
+              text: 'Education', 
+              bold: true, 
+              size: 36, // Increased from 32 (18pt equivalent)
+              color: "000000" // Explicit black color
+            })],
+            spacing: { before: 400, after: 150 }
+          })
+        );
+        
+        data.education.forEach(edu => {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ 
+                text: edu.degree, 
+                bold: true, 
+                size: 32, // Increased from 28 (16pt equivalent)
+                color: "000000" // Explicit black color
+              })],
+              spacing: { before: 100, after: 50 }
+            }),
+            new Paragraph({
+              children: [new TextRun({ 
+                text: `${edu.institution} - ${edu.graduationYear}${edu.location ? ` | ${edu.location}` : ''}`, 
+                size: 32, // Increased from 24 (16pt equivalent)
+                color: "000000" // Explicit black color
+              })],
+              spacing: { after: 200 }
+            })
+          );
+        });
+      }
+      
+      // Courses and certifications with normal font weight and increased font sizes
+      if (data.coursesAndCertifications.length > 0) {
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ 
+              text: 'Courses & Certifications', 
+              bold: false, // Changed to normal font weight
+              size: 32, // Increased from 28 (16pt equivalent)
+              color: "000000" // Explicit black color
+            })],
+            spacing: { before: 200, after: 100 }
+          })
+        );
+        
+        data.coursesAndCertifications.forEach(item => {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ 
+                text: `${item.title} - ${item.provider} (${item.date})`, 
+                size: 32, // Increased from 24 (16pt equivalent)
+                color: "000000" // Explicit black color
+              })],
+              spacing: { after: 100 }
+            })
+          );
         });
       }
       

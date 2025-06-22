@@ -1,4 +1,3 @@
-
 import React from "react";
 
 interface PersonalInfo {
@@ -59,7 +58,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       className="resume-container bg-white relative"
       style={{ 
         fontFamily: 'Times, serif',
-        fontSize: '16pt', // Increased from 14pt
+        fontSize: '14pt', // Reverted to original size
         lineHeight: '1.3',
         color: '#000000',
         padding: '0.5in',
@@ -86,7 +85,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       <header style={{ marginBottom: '24pt', direction: 'ltr' }}>
         <h1 
           style={{ 
-            fontSize: '26pt', // Increased from 22pt
+            fontSize: '22pt', // Reverted to original size
             fontWeight: 'bold',
             margin: '0 0 10pt 0',
             color: '#000000',
@@ -100,7 +99,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         {personalInfo.jobTitle && (
           <div 
             style={{ 
-              fontSize: '18pt', // Increased from 16pt
+              fontSize: '16pt', // Reverted to original size
               margin: '0 0 10pt 0',
               color: '#000000',
               direction: 'ltr',
@@ -114,7 +113,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         
         <div 
           style={{ 
-            fontSize: '16pt', // Increased from 14pt
+            fontSize: '14pt', // Reverted to original size
             color: '#000000',
             lineHeight: '1.3',
             direction: 'ltr',
@@ -127,14 +126,14 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </div>
       </header>
 
-      {/* Summary Section */}
+      {/* Summary Section - ONLY KEEP FONT WEIGHT CHANGE HERE */}
       <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
         <h2 
           style={{ 
-            fontSize: '18pt', // Increased from 16pt
-            fontWeight: 'bold',
+            fontSize: '16pt', // Reverted to original size
+            fontWeight: 'normal', // KEEP THIS CHANGE - Changed from bold to normal
             margin: '0 0 10pt 0',
-            color: '#000000', // Explicitly set to black
+            color: '#000000',
             textAlign: 'left',
             borderBottom: '1pt solid #000000',
             paddingBottom: '3pt',
@@ -146,7 +145,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         
         <div 
           style={{ 
-            fontSize: '16pt', // Increased from 14pt
+            fontSize: '14pt', // Reverted to original size
             lineHeight: '1.4',
             margin: '0',
             color: '#000000',
@@ -163,10 +162,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
         <h2 
           style={{ 
-            fontSize: '18pt', // Increased from 16pt
-            fontWeight: 'bold',
+            fontSize: '16pt', // Reverted to original size
+            fontWeight: 'bold', // Reverted to original
             margin: '0 0 14pt 0',
-            color: '#000000', // Explicitly set to black
+            color: '#000000',
             textAlign: 'left',
             borderBottom: '1pt solid #000000',
             paddingBottom: '3pt',
@@ -180,10 +179,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
           <div key={job.id} style={{ marginBottom: '18pt', direction: 'ltr' }}>
             <h3 
               style={{ 
-                fontSize: '16pt', // Increased from 14pt
+                fontSize: '14pt', // Reverted to original size
                 fontWeight: 'bold',
                 margin: '0 0 5pt 0',
-                color: '#000000', // Explicitly set to black
+                color: '#000000',
                 direction: 'ltr',
                 textAlign: 'left'
               }}
@@ -193,7 +192,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             
             <div 
               style={{ 
-                fontSize: '16pt', // Increased from 14pt
+                fontSize: '14pt', // Reverted to original size
                 margin: '0 0 8pt 0',
                 color: '#000000',
                 fontStyle: 'italic',
@@ -213,7 +212,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
                   <li 
                     key={respIndex} 
                     style={{ 
-                      fontSize: '16pt', // Increased from 14pt
+                      fontSize: '14pt', // Reverted to original size
                       margin: '4pt 0',
                       color: '#000000',
                       lineHeight: '1.3',
@@ -231,10 +230,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
           <div style={{ marginBottom: '18pt', direction: 'ltr' }}>
             <h3 
               style={{ 
-                fontSize: '16pt', // Increased from 14pt
+                fontSize: '14pt', // Reverted to original size
                 fontWeight: 'bold',
                 margin: '0 0 5pt 0',
-                color: '#000000', // Explicitly set to black
+                color: '#000000',
                 direction: 'ltr',
                 textAlign: 'left'
               }}
@@ -244,7 +243,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             
             <div 
               style={{ 
-                fontSize: '16pt', // Increased from 14pt
+                fontSize: '14pt', // Reverted to original size
                 margin: '0 0 8pt 0',
                 color: '#000000',
                 fontStyle: 'italic',
@@ -256,13 +255,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             </div>
             
             <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr' }}>
-              <li style={{ fontSize: '16pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
+              <li style={{ fontSize: '14pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
                 Led development of company's flagship SaaS product using React and TypeScript
               </li>
-              <li style={{ fontSize: '16pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
+              <li style={{ fontSize: '14pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
                 Improved application performance by <strong>40%</strong> through code optimization and efficient state management
               </li>
-              <li style={{ fontSize: '16pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
+              <li style={{ fontSize: '14pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
                 Collaborated with cross-functional teams to deliver high-quality user experiences
               </li>
             </ul>
@@ -275,10 +274,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
           <h2 
             style={{ 
-              fontSize: '18pt', // Increased from 16pt
-              fontWeight: 'bold',
+              fontSize: '16pt', // Reverted to original size
+              fontWeight: 'bold', // Reverted to original
               margin: '0 0 14pt 0',
-              color: '#000000', // Explicitly set to black
+              color: '#000000',
               textAlign: 'left',
               borderBottom: '1pt solid #000000',
               paddingBottom: '3pt',
@@ -292,10 +291,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr' }}>
               <div 
                 style={{ 
-                  fontSize: '16pt', // Increased from 14pt
+                  fontSize: '14pt', // Reverted to original size
                   fontWeight: 'bold',
                   margin: '0 0 5pt 0',
-                  color: '#000000', // Explicitly set to black
+                  color: '#000000',
                   direction: 'ltr',
                   textAlign: 'left'
                 }}
@@ -304,7 +303,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               </div>
               <div 
                 style={{ 
-                  fontSize: '16pt', // Increased from 14pt
+                  fontSize: '14pt', // Reverted to original size
                   margin: '0',
                   color: '#000000',
                   direction: 'ltr',
@@ -319,10 +318,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             <div style={{ marginBottom: '14pt', direction: 'ltr' }}>
               <div 
                 style={{ 
-                  fontSize: '16pt', // Increased from 14pt
+                  fontSize: '14pt', // Reverted to original size
                   fontWeight: 'bold',
                   margin: '0 0 5pt 0',
-                  color: '#000000', // Explicitly set to black
+                  color: '#000000',
                   direction: 'ltr',
                   textAlign: 'left'
                 }}
@@ -331,7 +330,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               </div>
               <div 
                 style={{ 
-                  fontSize: '16pt', // Increased from 14pt
+                  fontSize: '14pt', // Reverted to original size
                   margin: '0',
                   color: '#000000',
                   direction: 'ltr',
@@ -347,10 +346,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             <>
               <h3 
                 style={{ 
-                  fontSize: '16pt', // Increased from 14pt
-                  fontWeight: 'bold',
+                  fontSize: '14pt', // Reverted to original size
+                  fontWeight: 'bold', // Reverted to original
                   margin: '18pt 0 10pt 0',
-                  color: '#000000', // Explicitly set to black
+                  color: '#000000',
                   direction: 'ltr',
                   textAlign: 'left'
                 }}
@@ -361,8 +360,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
                 <div key={item.id} style={{ marginBottom: '10pt', direction: 'ltr' }}>
                   <div 
                     style={{ 
-                      fontSize: '16pt', // Increased from 14pt
-                      fontWeight: 'normal', // Changed from 'normal' - this makes it body text not heading
+                      fontSize: '14pt', // Reverted to original size
+                      fontWeight: 'normal',
                       margin: '0',
                       color: '#000000',
                       direction: 'ltr',
