@@ -160,13 +160,13 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
         );
       }
       
-      // Summary section with normal font weight for heading and black color
+      // Summary section with BOLD font weight for heading and black color
       if (data.summary) {
         children.push(
           new Paragraph({
             children: [new TextRun({ 
               text: 'Summary', 
-              bold: false, // Changed to normal font weight
+              bold: true, // Changed to BOLD to match preview
               size: 36, // Increased from 32 (18pt equivalent)
               color: "000000" // Explicit black color
             })],
@@ -289,7 +289,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
         });
       }
       
-      // Courses and certifications - TITLE STAYS BOLD, BODY TEXT IS NORMAL
+      // Courses and certifications - TITLE IS BOLD, BODY TEXT IS NORMAL WITH BOLD COURSE TITLE
       if (data.coursesAndCertifications.length > 0) {
         children.push(
           new Paragraph({
@@ -308,12 +308,20 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
         data.coursesAndCertifications.forEach(item => {
           children.push(
             new Paragraph({
-              children: [new TextRun({ 
-                text: `${item.title} - ${item.provider} (${item.date})`, 
-                size: 32, // Increased from 24 (16pt equivalent)
-                color: "000000", // Explicit black color
-                bold: false // Body text is normal weight
-              })],
+              children: [
+                new TextRun({ 
+                  text: item.title, 
+                  size: 32, // Increased from 24 (16pt equivalent)
+                  color: "000000", // Explicit black color
+                  bold: true // Course title is bold to match preview
+                }),
+                new TextRun({ 
+                  text: ` - ${item.provider} (${item.date})`, 
+                  size: 32, // Increased from 24 (16pt equivalent)
+                  color: "000000", // Explicit black color
+                  bold: false // Rest is normal weight
+                })
+              ],
               spacing: { after: 100 },
               alignment: AlignmentType.LEFT,
               bidirectional: false // Ensure left-to-right
