@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,12 +43,16 @@ export const useSubscription = (currentUserId: string) => {
           .eq('user_id', currentUserId)
           .maybeSingle();
         
-        if (subscription && subscription.scan_count > 0) {
-          setIsPremiumUser(true);
+        if (subscription && subscription.status === 'active') {
+          // Only set as premium if user has remaining scans AND is not demo tier
+          const hasPaidTier = subscription.tier !== 'demo';
+          const hasRemainingScans = subscription.scan_count > 0;
+          
+          setIsPremiumUser(hasPaidTier && hasRemainingScans);
           setCurrentSubscription(subscription);
         } else {
           setIsPremiumUser(false);
-          setCurrentSubscription(null);
+          setCurrentSubscription(subscription);
         }
       } catch (error) {
         console.error('Error checking subscription:', error);
@@ -60,17 +63,19 @@ export const useSubscription = (currentUserId: string) => {
   }, [currentUserId]);
 
   const canExport = () => {
-    if (!isPremiumUser || !currentSubscription) return false;
+    if (!currentSubscription) return false;
     
-    // Users with unlimited tier have unlimited exports
+    // Special users with unlimited tier have unlimited exports
     if (currentSubscription.tier === 'unlimited') return true;
     
-    // Other paid users (basic, premium) are limited by scan_count
-    return currentSubscription.scan_count > 0;
+    // Other users must have active subscription and remaining scans
+    return currentSubscription.status === 'active' && 
+           currentSubscription.tier !== 'demo' && 
+           currentSubscription.scan_count > 0;
   };
 
   const getTargetedResumeLimit = () => {
-    if (!isPremiumUser || !currentSubscription) return 0;
+    if (!currentSubscription) return 0;
     
     switch (currentSubscription.tier) {
       case 'basic':

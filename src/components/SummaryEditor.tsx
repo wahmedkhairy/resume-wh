@@ -35,6 +35,12 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({
   };
 
   const handleGenerateWithAI = async () => {
+    console.log('=== Generate Summary AI Called ===');
+    console.log('Work Experience:', workExperience);
+    console.log('Education:', education);
+    console.log('Skills:', skills);
+    console.log('Personal Info:', personalInfo);
+
     if (workExperience.length === 0) {
       toast({
         title: "No Experience Data",
@@ -47,6 +53,8 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({
     setIsGenerating(true);
 
     try {
+      console.log('Calling generate-summary edge function...');
+      
       const { data, error } = await supabase.functions.invoke('generate-summary', {
         body: { 
           experience: workExperience,
@@ -56,22 +64,31 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({
         }
       });
       
-      if (error) throw error;
+      console.log('Generate summary response:', { data, error });
+      
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to generate summary');
+      }
       
       if (data?.summary) {
         const generatedSummary = data.summary;
+        console.log('Generated summary:', generatedSummary);
         setSummary(generatedSummary);
         onSummaryChange(generatedSummary);
         toast({
           title: "Summary Generated",
           description: "Your professional summary has been generated using AI.",
         });
+      } else {
+        console.error('No summary in response:', data);
+        throw new Error('No summary received from AI service');
       }
     } catch (error) {
       console.error('Error generating summary:', error);
       toast({
         title: "Generation Failed",
-        description: "There was an error generating your summary. Please try again later.",
+        description: error.message || "There was an error generating your summary. Please try again later.",
         variant: "destructive",
       });
     } finally {

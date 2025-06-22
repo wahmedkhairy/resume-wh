@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Card, 
@@ -137,6 +136,9 @@ const KeywordMatcher: React.FC<KeywordMatcherProps> = ({ resumeData }) => {
   };
 
   const handleGenerateSkillRecommendations = async () => {
+    console.log('=== Generate Skill Recommendations Called ===');
+    console.log('Resume Data:', resumeData);
+    
     if (!resumeData?.workExperience || resumeData.workExperience.length === 0) {
       toast({
         title: "No Experience Data",
@@ -153,11 +155,15 @@ const KeywordMatcher: React.FC<KeywordMatcherProps> = ({ resumeData }) => {
         .map(exp => `${exp.jobTitle} at ${exp.company}: ${exp.responsibilities?.join(', ') || ''}`)
         .join('\n');
 
-      console.log('Calling polish-resume edge function for skill recommendations');
+      console.log('Calling generate-summary edge function for skill recommendations');
+      console.log('Experience text:', experienceText);
       
-      const { data, error } = await supabase.functions.invoke('polish-resume', {
+      const { data, error } = await supabase.functions.invoke('generate-summary', {
         body: { 
-          content: experienceText,
+          experience: resumeData.workExperience,
+          education: resumeData.education || [],
+          skills: resumeData.skills || [],
+          personalInfo: resumeData.personalInfo || {},
           action: "recommend-skills"
         }
       });
@@ -169,13 +175,16 @@ const KeywordMatcher: React.FC<KeywordMatcherProps> = ({ resumeData }) => {
         throw new Error(error.message || 'Failed to get skill recommendations');
       }
 
-      if (data?.recommendations) {
-        setSkillRecommendations(data.recommendations);
+      if (data?.recommendations || data?.skills) {
+        const recommendations = data.recommendations || data.skills || [];
+        console.log('Skill recommendations received:', recommendations);
+        setSkillRecommendations(recommendations);
         toast({
           title: "Skills Recommended",
-          description: `Generated ${data.recommendations.length} skill recommendations based on your experience.`,
+          description: `Generated ${recommendations.length} skill recommendations based on your experience.`,
         });
       } else {
+        console.error('No skill recommendations in response:', data);
         throw new Error('No skill recommendations received from AI service');
       }
     } catch (error) {
@@ -262,8 +271,8 @@ const KeywordMatcher: React.FC<KeywordMatcherProps> = ({ resumeData }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {skillRecommendations.map((skill, index) => (
                   <div key={index} className="flex items-center justify-between p-2 border rounded-lg">
-                    <span className="font-medium">{skill.name}</span>
-                    <Badge variant="outline">{skill.level}%</Badge>
+                    <span className="font-medium">{skill.name || skill}</span>
+                    <Badge variant="outline">{skill.level || 'High'}%</Badge>
                   </div>
                 ))}
               </div>
