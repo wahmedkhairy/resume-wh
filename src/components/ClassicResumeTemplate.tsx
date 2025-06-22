@@ -58,9 +58,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
     <div 
       className="resume-container bg-white relative"
       style={{ 
-        fontFamily: 'serif',
-        fontSize: '12pt', // Increased from 11pt
-        lineHeight: '1.2', // Adjusted for better readability
+        fontFamily: 'Times, serif',
+        fontSize: '14pt',
+        lineHeight: '1.3',
         color: '#000000',
         padding: '0.5in',
         margin: '0 auto',
@@ -68,7 +68,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         minHeight: '11in',
         boxSizing: 'border-box',
         textAlign: 'center',
-        direction: 'ltr' // Ensure left-to-right text direction
+        direction: 'ltr',
+        unicodeBidi: 'embed'
       }}
       data-resume-preview="true"
     >
@@ -82,13 +83,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       )}
 
       {/* Header */}
-      <header style={{ marginBottom: '20pt' }}>
+      <header style={{ marginBottom: '24pt', direction: 'ltr' }}>
         <h1 
           style={{ 
-            fontSize: '18pt', // Increased from 16pt
+            fontSize: '22pt',
             fontWeight: 'bold',
-            margin: '0 0 8pt 0',
-            color: '#000000' // Changed from blue to black
+            margin: '0 0 10pt 0',
+            color: '#000000',
+            direction: 'ltr',
+            textAlign: 'center'
           }}
         >
           {personalInfo.name || "Your Name"}
@@ -97,9 +100,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         {personalInfo.jobTitle && (
           <div 
             style={{ 
-              fontSize: '14pt', // Increased from 12pt
-              margin: '0 0 8pt 0',
-              color: '#000000' // Ensure black color
+              fontSize: '16pt',
+              margin: '0 0 10pt 0',
+              color: '#000000',
+              direction: 'ltr',
+              textAlign: 'center'
             }}
           >
             {personalInfo.jobTitle}
@@ -109,9 +114,11 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         
         <div 
           style={{ 
-            fontSize: '12pt', // Increased from 11pt
+            fontSize: '14pt',
             color: '#000000',
-            lineHeight: '1.2'
+            lineHeight: '1.3',
+            direction: 'ltr',
+            textAlign: 'center'
           }}
         >
           {personalInfo.email && <span>{personalInfo.email}</span>}
@@ -121,16 +128,17 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       </header>
 
       {/* Summary Section */}
-      <section style={{ marginBottom: '20pt', textAlign: 'left', direction: 'ltr' }}>
+      <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
         <h2 
           style={{ 
-            fontSize: '14pt', // Increased from 12pt
+            fontSize: '16pt',
             fontWeight: 'bold',
-            margin: '0 0 8pt 0',
-            color: '#000000', // Changed from blue to black
+            margin: '0 0 10pt 0',
+            color: '#000000',
             textAlign: 'left',
-            borderBottom: '1pt solid #000000', // Changed border color to black
-            paddingBottom: '2pt'
+            borderBottom: '1pt solid #000000',
+            paddingBottom: '3pt',
+            direction: 'ltr'
           }}
         >
           Summary
@@ -138,12 +146,13 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         
         <div 
           style={{ 
-            fontSize: '12pt', // Increased from 11pt
-            lineHeight: '1.3',
+            fontSize: '14pt',
+            lineHeight: '1.4',
             margin: '0',
             color: '#000000',
             textAlign: 'left',
-            direction: 'ltr'
+            direction: 'ltr',
+            unicodeBidi: 'embed'
           }}
         >
           {summary || "Generate your professional summary using AI by clicking the 'Generate Summary' button."}
@@ -151,29 +160,32 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       </section>
 
       {/* Experience Section */}
-      <section style={{ marginBottom: '20pt', textAlign: 'left', direction: 'ltr' }}>
+      <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
         <h2 
           style={{ 
-            fontSize: '14pt', // Increased from 12pt
+            fontSize: '16pt',
             fontWeight: 'bold',
-            margin: '0 0 12pt 0',
-            color: '#000000', // Changed from blue to black
+            margin: '0 0 14pt 0',
+            color: '#000000',
             textAlign: 'left',
-            borderBottom: '1pt solid #000000', // Changed border color to black
-            paddingBottom: '2pt'
+            borderBottom: '1pt solid #000000',
+            paddingBottom: '3pt',
+            direction: 'ltr'
           }}
         >
           Experience
         </h2>
         
         {workExperience.length > 0 ? workExperience.map((job, index) => (
-          <div key={job.id} style={{ marginBottom: '16pt', direction: 'ltr' }}>
+          <div key={job.id} style={{ marginBottom: '18pt', direction: 'ltr' }}>
             <h3 
               style={{ 
-                fontSize: '12pt', // Increased from 11pt
+                fontSize: '14pt',
                 fontWeight: 'bold',
-                margin: '0 0 4pt 0',
-                color: '#000000'
+                margin: '0 0 5pt 0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
               }}
             >
               {job.jobTitle} - {job.company}
@@ -181,10 +193,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             
             <div 
               style={{ 
-                fontSize: '12pt', // Increased from 11pt
-                margin: '0 0 6pt 0',
+                fontSize: '14pt',
+                margin: '0 0 8pt 0',
                 color: '#000000',
-                fontStyle: 'italic'
+                fontStyle: 'italic',
+                direction: 'ltr',
+                textAlign: 'left'
               }}
             >
               {job.startDate} - {job.endDate}
@@ -192,18 +206,19 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             </div>
             
             {job.responsibilities.length > 0 && (
-              <ul style={{ margin: '0', paddingLeft: '18pt', direction: 'ltr' }}>
+              <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr' }}>
                 {job.responsibilities
                   .filter(resp => resp.trim())
                   .map((responsibility, respIndex) => (
                   <li 
                     key={respIndex} 
                     style={{ 
-                      fontSize: '12pt', // Increased from 11pt
-                      margin: '3pt 0',
+                      fontSize: '14pt',
+                      margin: '4pt 0',
                       color: '#000000',
-                      lineHeight: '1.2',
-                      direction: 'ltr'
+                      lineHeight: '1.3',
+                      direction: 'ltr',
+                      textAlign: 'left'
                     }}
                   >
                     {responsibility}
@@ -213,13 +228,15 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             )}
           </div>
         )) : (
-          <div style={{ marginBottom: '16pt', direction: 'ltr' }}>
+          <div style={{ marginBottom: '18pt', direction: 'ltr' }}>
             <h3 
               style={{ 
-                fontSize: '12pt', // Increased from 11pt
+                fontSize: '14pt',
                 fontWeight: 'bold',
-                margin: '0 0 4pt 0',
-                color: '#000000'
+                margin: '0 0 5pt 0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
               }}
             >
               Senior Frontend Developer - Tech Solutions Inc.
@@ -227,23 +244,25 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             
             <div 
               style={{ 
-                fontSize: '12pt', // Increased from 11pt
-                margin: '0 0 6pt 0',
+                fontSize: '14pt',
+                margin: '0 0 8pt 0',
                 color: '#000000',
-                fontStyle: 'italic'
+                fontStyle: 'italic',
+                direction: 'ltr',
+                textAlign: 'left'
               }}
             >
               January 2020 - Present
             </div>
             
-            <ul style={{ margin: '0', paddingLeft: '18pt', direction: 'ltr' }}>
-              <li style={{ fontSize: '12pt', margin: '3pt 0', color: '#000000', lineHeight: '1.2', direction: 'ltr' }}>
+            <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr' }}>
+              <li style={{ fontSize: '14pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
                 Led development of company's flagship SaaS product using React and TypeScript
               </li>
-              <li style={{ fontSize: '12pt', margin: '3pt 0', color: '#000000', lineHeight: '1.2', direction: 'ltr' }}>
+              <li style={{ fontSize: '14pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
                 Improved application performance by <strong>40%</strong> through code optimization and efficient state management
               </li>
-              <li style={{ fontSize: '12pt', margin: '3pt 0', color: '#000000', lineHeight: '1.2', direction: 'ltr' }}>
+              <li style={{ fontSize: '14pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
                 Collaborated with cross-functional teams to deliver high-quality user experiences
               </li>
             </ul>
@@ -253,38 +272,43 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
 
       {/* Education Section */}
       {(education.length > 0 || coursesAndCertifications.length > 0) && (
-        <section style={{ marginBottom: '20pt', textAlign: 'left', direction: 'ltr' }}>
+        <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
           <h2 
             style={{ 
-              fontSize: '14pt', // Increased from 12pt
+              fontSize: '16pt',
               fontWeight: 'bold',
-              margin: '0 0 12pt 0',
-              color: '#000000', // Changed from blue to black
+              margin: '0 0 14pt 0',
+              color: '#000000',
               textAlign: 'left',
-              borderBottom: '1pt solid #000000', // Changed border color to black
-              paddingBottom: '2pt'
+              borderBottom: '1pt solid #000000',
+              paddingBottom: '3pt',
+              direction: 'ltr'
             }}
           >
             Education
           </h2>
           
           {education.length > 0 ? education.map((edu, index) => (
-            <div key={edu.id} style={{ marginBottom: '12pt', direction: 'ltr' }}>
+            <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr' }}>
               <div 
                 style={{ 
-                  fontSize: '12pt', // Increased from 11pt
+                  fontSize: '14pt',
                   fontWeight: 'bold',
-                  margin: '0 0 4pt 0',
-                  color: '#000000'
+                  margin: '0 0 5pt 0',
+                  color: '#000000',
+                  direction: 'ltr',
+                  textAlign: 'left'
                 }}
               >
                 {edu.degree}
               </div>
               <div 
                 style={{ 
-                  fontSize: '12pt', // Increased from 11pt
+                  fontSize: '14pt',
                   margin: '0',
-                  color: '#000000'
+                  color: '#000000',
+                  direction: 'ltr',
+                  textAlign: 'left'
                 }}
               >
                 {edu.institution} - {edu.graduationYear}
@@ -292,22 +316,26 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               </div>
             </div>
           )) : (
-            <div style={{ marginBottom: '12pt', direction: 'ltr' }}>
+            <div style={{ marginBottom: '14pt', direction: 'ltr' }}>
               <div 
                 style={{ 
-                  fontSize: '12pt', // Increased from 11pt
+                  fontSize: '14pt',
                   fontWeight: 'bold',
-                  margin: '0 0 4pt 0',
-                  color: '#000000'
+                  margin: '0 0 5pt 0',
+                  color: '#000000',
+                  direction: 'ltr',
+                  textAlign: 'left'
                 }}
               >
                 Bachelor of Science in Computer Science
               </div>
               <div 
                 style={{ 
-                  fontSize: '12pt', // Increased from 11pt
+                  fontSize: '14pt',
                   margin: '0',
-                  color: '#000000'
+                  color: '#000000',
+                  direction: 'ltr',
+                  textAlign: 'left'
                 }}
               >
                 University Name - 2020
@@ -319,25 +347,29 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             <>
               <h3 
                 style={{ 
-                  fontSize: '12pt', // Increased from 11pt
+                  fontSize: '14pt',
                   fontWeight: 'bold',
-                  margin: '16pt 0 8pt 0',
-                  color: '#000000'
+                  margin: '18pt 0 10pt 0',
+                  color: '#000000',
+                  direction: 'ltr',
+                  textAlign: 'left'
                 }}
               >
                 Courses & Certifications
               </h3>
               {coursesAndCertifications.map((item, index) => (
-                <div key={item.id} style={{ marginBottom: '8pt', direction: 'ltr' }}>
+                <div key={item.id} style={{ marginBottom: '10pt', direction: 'ltr' }}>
                   <div 
                     style={{ 
-                      fontSize: '12pt', // Increased from 11pt
-                      fontWeight: 'bold',
+                      fontSize: '14pt',
+                      fontWeight: 'normal',
                       margin: '0',
-                      color: '#000000'
+                      color: '#000000',
+                      direction: 'ltr',
+                      textAlign: 'left'
                     }}
                   >
-                    {item.title} - {item.provider} ({item.date})
+                    <strong>{item.title}</strong> - {item.provider} ({item.date})
                   </div>
                 </div>
               ))}
