@@ -118,7 +118,8 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               color: "000000" // Explicit black color
             })],
             alignment: AlignmentType.CENTER,
-            spacing: { after: 200 }
+            spacing: { after: 200 },
+            bidirectional: false // Ensure left-to-right
           })
         );
       }
@@ -135,7 +136,8 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               color: "000000" // Explicit black color
             })],
             alignment: AlignmentType.CENTER,
-            spacing: { after: 100 }
+            spacing: { after: 100 },
+            bidirectional: false // Ensure left-to-right
           })
         );
       }
@@ -152,7 +154,8 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               color: "000000" // Explicit black color
             })],
             alignment: AlignmentType.CENTER,
-            spacing: { after: 400 }
+            spacing: { after: 400 },
+            bidirectional: false // Ensure left-to-right
           })
         );
       }
@@ -167,7 +170,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               size: 36, // Increased from 32 (18pt equivalent)
               color: "000000" // Explicit black color
             })],
-            spacing: { before: 200, after: 150 }
+            spacing: { before: 200, after: 150 },
+            alignment: AlignmentType.LEFT,
+            bidirectional: false // Ensure left-to-right
           }),
           new Paragraph({
             children: [new TextRun({ 
@@ -175,7 +180,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               size: 32, // Increased from 24 (16pt equivalent)
               color: "000000" // Explicit black color
             })],
-            spacing: { after: 300 }
+            spacing: { after: 300 },
+            alignment: AlignmentType.LEFT,
+            bidirectional: false // Ensure left-to-right
           })
         );
       }
@@ -190,7 +197,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               size: 36, // Increased from 32 (18pt equivalent)
               color: "000000" // Explicit black color
             })],
-            spacing: { before: 200, after: 150 }
+            spacing: { before: 200, after: 150 },
+            alignment: AlignmentType.LEFT,
+            bidirectional: false // Ensure left-to-right
           })
         );
         
@@ -203,7 +212,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
                 size: 32, // Increased from 28 (16pt equivalent)
                 color: "000000" // Explicit black color
               })],
-              spacing: { before: 200, after: 50 }
+              spacing: { before: 200, after: 50 },
+              alignment: AlignmentType.LEFT,
+              bidirectional: false // Ensure left-to-right
             }),
             new Paragraph({
               children: [new TextRun({ 
@@ -212,7 +223,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
                 italics: true,
                 color: "000000" // Explicit black color
               })],
-              spacing: { after: 100 }
+              spacing: { after: 100 },
+              alignment: AlignmentType.LEFT,
+              bidirectional: false // Ensure left-to-right
             })
           );
           
@@ -224,7 +237,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
                   size: 32, // Increased from 24 (16pt equivalent)
                   color: "000000" // Explicit black color
                 })],
-                spacing: { after: 50 }
+                spacing: { after: 50 },
+                alignment: AlignmentType.LEFT,
+                bidirectional: false // Ensure left-to-right
               })
             );
           });
@@ -241,7 +256,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               size: 36, // Increased from 32 (18pt equivalent)
               color: "000000" // Explicit black color
             })],
-            spacing: { before: 400, after: 150 }
+            spacing: { before: 400, after: 150 },
+            alignment: AlignmentType.LEFT,
+            bidirectional: false // Ensure left-to-right
           })
         );
         
@@ -254,7 +271,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
                 size: 32, // Increased from 28 (16pt equivalent)
                 color: "000000" // Explicit black color
               })],
-              spacing: { before: 100, after: 50 }
+              spacing: { before: 100, after: 50 },
+              alignment: AlignmentType.LEFT,
+              bidirectional: false // Ensure left-to-right
             }),
             new Paragraph({
               children: [new TextRun({ 
@@ -262,7 +281,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
                 size: 32, // Increased from 24 (16pt equivalent)
                 color: "000000" // Explicit black color
               })],
-              spacing: { after: 200 }
+              spacing: { after: 200 },
+              alignment: AlignmentType.LEFT,
+              bidirectional: false // Ensure left-to-right
             })
           );
         });
@@ -278,7 +299,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               size: 32, // Increased from 28 (16pt equivalent)
               color: "000000" // Explicit black color
             })],
-            spacing: { before: 200, after: 100 }
+            spacing: { before: 200, after: 100 },
+            alignment: AlignmentType.LEFT,
+            bidirectional: false // Ensure left-to-right
           })
         );
         
@@ -291,7 +314,9 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
                 color: "000000", // Explicit black color
                 bold: false // Body text is normal weight
               })],
-              spacing: { after: 100 }
+              spacing: { after: 100 },
+              alignment: AlignmentType.LEFT,
+              bidirectional: false // Ensure left-to-right
             })
           );
         });

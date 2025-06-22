@@ -177,7 +177,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </h2>
         
         {workExperience.length > 0 ? workExperience.map((job, index) => (
-          <div key={job.id} style={{ marginBottom: '18pt', direction: 'ltr' }}>
+          <div key={job.id} style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
             <h3 
               style={{ 
                 fontSize: '14pt',
@@ -206,7 +206,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             </div>
             
             {job.responsibilities.length > 0 && (
-              <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr' }}>
+              <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
                 {job.responsibilities
                   .filter(resp => resp.trim())
                   .map((responsibility, respIndex) => (
@@ -228,7 +228,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             )}
           </div>
         )) : (
-          <div style={{ marginBottom: '18pt', direction: 'ltr' }}>
+          <div style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
             <h3 
               style={{ 
                 fontSize: '14pt',
@@ -255,7 +255,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               January 2020 - Present
             </div>
             
-            <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr' }}>
+            <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
               <li style={{ fontSize: '14pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
                 Led development of company's flagship SaaS product using React and TypeScript
               </li>
@@ -289,7 +289,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
           </h2>
           
           {education.length > 0 ? education.map((edu, index) => (
-            <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr' }}>
+            <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
               <div 
                 style={{ 
                   fontSize: '14pt',
@@ -316,7 +316,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               </div>
             </div>
           )) : (
-            <div style={{ marginBottom: '14pt', direction: 'ltr' }}>
+            <div style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
               <div 
                 style={{ 
                   fontSize: '14pt',
@@ -358,7 +358,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
                 Courses & Certifications
               </h3>
               {coursesAndCertifications.map((item, index) => (
-                <div key={item.id} style={{ marginBottom: '10pt', direction: 'ltr' }}>
+                <div key={item.id} style={{ marginBottom: '10pt', direction: 'ltr', textAlign: 'left' }}>
                   <div 
                     style={{ 
                       fontSize: '14pt',
