@@ -170,10 +170,12 @@ export type Database = {
           created_at: string
           email_notifications: boolean | null
           id: string
+          marketing_emails: boolean | null
           paypal_client_id: string | null
           paypal_client_secret: string | null
           paypal_production_mode: boolean | null
           paypal_webhook_id: string | null
+          two_factor_auth: boolean | null
           updated_at: string
           user_id: string
         }
@@ -181,10 +183,12 @@ export type Database = {
           created_at?: string
           email_notifications?: boolean | null
           id?: string
+          marketing_emails?: boolean | null
           paypal_client_id?: string | null
           paypal_client_secret?: string | null
           paypal_production_mode?: boolean | null
           paypal_webhook_id?: string | null
+          two_factor_auth?: boolean | null
           updated_at?: string
           user_id: string
         }
@@ -192,10 +196,12 @@ export type Database = {
           created_at?: string
           email_notifications?: boolean | null
           id?: string
+          marketing_emails?: boolean | null
           paypal_client_id?: string | null
           paypal_client_secret?: string | null
           paypal_production_mode?: boolean | null
           paypal_webhook_id?: string | null
+          two_factor_auth?: boolean | null
           updated_at?: string
           user_id?: string
         }

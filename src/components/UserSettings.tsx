@@ -16,6 +16,8 @@ import SubscriptionCard from "./SubscriptionCard";
 
 const UserSettings: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [subscription, setSubscription] = useState<any>(null);
   const [settings, setSettings] = useState({
     emailNotifications: true,
     marketingEmails: false,
@@ -29,7 +31,9 @@ const UserSettings: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setCurrentUserId(user.id);
+        setUserInfo(user);
         loadUserSettings(user.id);
+        loadSubscription(user.id);
       }
     };
     
@@ -58,6 +62,25 @@ const UserSettings: React.FC = () => {
       }
     } catch (error) {
       console.log('Error loading user settings:', error);
+    }
+  };
+
+  const loadSubscription = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error loading subscription:', error);
+        return;
+      }
+      
+      setSubscription(data);
+    } catch (error) {
+      console.log('Error loading subscription:', error);
     }
   };
 
@@ -102,6 +125,23 @@ const UserSettings: React.FC = () => {
     }
   };
 
+  const handleUserInfoUpdate = () => {
+    // Refresh user data when updated
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserInfo(user);
+      }
+    };
+    checkUser();
+  };
+
+  const handleRefreshSubscription = () => {
+    if (currentUserId) {
+      loadSubscription(currentUserId);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Account Information */}
@@ -110,9 +150,12 @@ const UserSettings: React.FC = () => {
           <User className="h-5 w-5" />
           <h2 className="text-xl font-semibold">Account Information</h2>
         </div>
-        <UserInfoCard />
+        <UserInfoCard userInfo={userInfo} onUserInfoUpdate={handleUserInfoUpdate} />
         <PasswordChangeCard />
-        <GeneralSettingsCard />
+        <GeneralSettingsCard 
+          emailNotifications={settings.emailNotifications}
+          setEmailNotifications={(value) => setSettings(prev => ({ ...prev, emailNotifications: value }))}
+        />
       </div>
 
       <Separator />
@@ -123,7 +166,7 @@ const UserSettings: React.FC = () => {
           <CreditCard className="h-5 w-5" />
           <h2 className="text-xl font-semibold">Subscription</h2>
         </div>
-        <SubscriptionCard />
+        <SubscriptionCard subscription={subscription} onRefreshSubscription={handleRefreshSubscription} />
       </div>
 
       <Separator />
