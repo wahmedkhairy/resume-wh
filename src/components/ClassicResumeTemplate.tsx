@@ -132,7 +132,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         <h2 
           style={{ 
             fontSize: '16pt',
-            fontWeight: 'normal',
+            fontWeight: 'bold', // Changed from 'normal' to 'bold'
             margin: '0 0 10pt 0',
             color: '#000000',
             textAlign: 'left',
