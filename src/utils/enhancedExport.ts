@@ -298,13 +298,13 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       });
     }
     
-    // Courses and certifications with normal font weight and increased font sizes
+    // Courses and certifications - TITLE STAYS BOLD, BODY TEXT IS NORMAL
     if (data.coursesAndCertifications.length > 0) {
       children.push(
         new Paragraph({
           children: [new TextRun({ 
             text: 'Courses & Certifications', 
-            bold: false, // Changed to normal font weight
+            bold: true, // Keep title bold
             size: 32, // Increased to match 16pt
             color: "000000" // Explicit black color
           })],
@@ -319,7 +319,7 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
               text: `${item.title} - ${item.provider} (${item.date})`, 
               size: 32, // Increased to match 16pt
               color: "000000", // Explicit black color
-              bold: true // Keep the bold formatting for the title line
+              bold: false // Body text is normal weight
             })],
             spacing: { after: 100 }
           })

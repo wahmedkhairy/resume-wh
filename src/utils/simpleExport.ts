@@ -268,13 +268,13 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
         });
       }
       
-      // Courses and certifications with normal font weight and increased font sizes
+      // Courses and certifications - TITLE STAYS BOLD, BODY TEXT IS NORMAL
       if (data.coursesAndCertifications.length > 0) {
         children.push(
           new Paragraph({
             children: [new TextRun({ 
               text: 'Courses & Certifications', 
-              bold: false, // Changed to normal font weight
+              bold: true, // Keep title bold
               size: 32, // Increased from 28 (16pt equivalent)
               color: "000000" // Explicit black color
             })],
@@ -288,7 +288,8 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               children: [new TextRun({ 
                 text: `${item.title} - ${item.provider} (${item.date})`, 
                 size: 32, // Increased from 24 (16pt equivalent)
-                color: "000000" // Explicit black color
+                color: "000000", // Explicit black color
+                bold: false // Body text is normal weight
               })],
               spacing: { after: 100 }
             })
