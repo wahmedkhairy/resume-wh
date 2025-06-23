@@ -18,10 +18,13 @@ export const useSubscription = (currentUserId: string) => {
         const { data: { user } } = await supabase.auth.getUser();
         const specialFreeUsers = [
           "ahmedkhairyabdelfatah@gmail.com",
-          "ahmedz.khairy@gmail.com",
-          "ahmedz.khairy88@gmail.com"
+          "ahmedz.khairy@gmail.com"
         ];
         const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
+        
+        // Check if this is the basic plan user
+        const basicPlanUser = "ahmedz.khairy88@gmail.com";
+        const isBasicUser = user?.email === basicPlanUser;
         
         if (isSpecialUser) {
           // Give unlimited access to special users
@@ -34,6 +37,20 @@ export const useSubscription = (currentUserId: string) => {
           };
           setIsPremiumUser(true);
           setCurrentSubscription(freeUnlimitedSubscription);
+          return;
+        }
+        
+        if (isBasicUser) {
+          // Give basic plan to this specific user
+          const basicSubscription = {
+            tier: 'basic',
+            scan_count: 2,
+            max_scans: 2,
+            status: 'active',
+            user_id: currentUserId
+          };
+          setIsPremiumUser(true);
+          setCurrentSubscription(basicSubscription);
           return;
         }
 
@@ -141,8 +158,7 @@ export const useSubscription = (currentUserId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       const specialFreeUsers = [
         "ahmedkhairyabdelfatah@gmail.com",
-        "ahmedz.khairy@gmail.com",
-        "ahmedz.khairy88@gmail.com"
+        "ahmedz.khairy@gmail.com"
       ];
       const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
       
@@ -207,8 +223,7 @@ export const useSubscription = (currentUserId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       const specialFreeUsers = [
         "ahmedkhairyabdelfatah@gmail.com",
-        "ahmedz.khairy@gmail.com",
-        "ahmedz.khairy88@gmail.com"
+        "ahmedz.khairy@gmail.com"
       ];
       const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
       

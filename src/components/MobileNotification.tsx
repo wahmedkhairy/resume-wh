@@ -1,24 +1,50 @@
 
 import React, { useState, useEffect } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { X } from "lucide-react";
 
 const MobileNotification: React.FC = () => {
-  const isMobile = useIsMobile();
+  const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (isMobile) {
-      setIsVisible(true);
+    const checkMobile = () => {
+      // Check for mobile devices using user agent and screen size
+      const userAgent = navigator.userAgent.toLowerCase();
+      const mobileKeywords = ['mobile', 'android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
+      const isMobileUserAgent = mobileKeywords.some(keyword => userAgent.includes(keyword));
+      const isMobileScreen = window.innerWidth <= 768;
       
-      // Auto-hide after 5 seconds
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-      }, 5000);
+      return isMobileUserAgent || isMobileScreen;
+    };
 
-      return () => clearTimeout(timer);
-    }
-  }, [isMobile]);
+    const handleResize = () => {
+      const mobileStatus = checkMobile();
+      setIsMobile(mobileStatus);
+      
+      if (mobileStatus && !isVisible) {
+        setIsVisible(true);
+        
+        // Auto-hide after 5 seconds
+        const timer = setTimeout(() => {
+          setIsVisible(false);
+        }, 5000);
+
+        return () => clearTimeout(timer);
+      } else if (!mobileStatus) {
+        setIsVisible(false);
+      }
+    };
+
+    // Initial check
+    handleResize();
+    
+    // Listen for resize events
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isVisible]);
 
   if (!isMobile || !isVisible) return null;
 
