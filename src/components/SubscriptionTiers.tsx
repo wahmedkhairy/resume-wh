@@ -4,17 +4,62 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Zap, Target } from "lucide-react";
+import { detectUserLocation, formatCurrency } from "@/utils/currencyUtils";
 
 interface SubscriptionTiersProps {
   onSubscriptionSelect: (tier: string) => void;
 }
 
 const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSelect }) => {
+  const [locationData, setLocationData] = React.useState<{
+    country: string;
+    currency: {
+      symbol: string;
+      code: string;
+      basicPrice: number;
+      premiumPrice: number;
+      unlimitedPrice: number;
+    };
+  } | null>(null);
+
+  React.useEffect(() => {
+    const loadLocationData = async () => {
+      try {
+        const data = await detectUserLocation();
+        setLocationData({
+          country: data.country,
+          currency: {
+            symbol: data.currency.symbol,
+            code: data.currency.code,
+            basicPrice: data.currency.basicPrice,
+            premiumPrice: data.currency.premiumPrice,
+            unlimitedPrice: data.currency.unlimitedPrice
+          }
+        });
+      } catch (error) {
+        console.error("Error loading location data:", error);
+        // Set default USD values on error
+        setLocationData({
+          country: "United States",
+          currency: {
+            symbol: "$",
+            code: "USD",
+            basicPrice: 2,
+            premiumPrice: 3,
+            unlimitedPrice: 4.99
+          }
+        });
+      }
+    };
+    
+    loadLocationData();
+  }, []);
+
   const tiers = [
     {
       id: "basic",
       name: "Basic",
-      price: 2.00,
+      price: locationData?.currency.basicPrice || 2.00,
       exports: 2,
       targetedResumes: 1,
       icon: Check,
@@ -32,7 +77,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
     {
       id: "premium",
       name: "Premium",
-      price: 3.00,
+      price: locationData?.currency.premiumPrice || 3.00,
       exports: 6,
       targetedResumes: 3,
       icon: Star,
@@ -51,7 +96,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
     {
       id: "unlimited",
       name: "Unlimited",
-      price: 4.99,
+      price: locationData?.currency.unlimitedPrice || 4.99,
       exports: "Unlimited",
       targetedResumes: "Unlimited",
       icon: Zap,
@@ -73,6 +118,14 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
     console.log('SubscriptionTiers: Tier selected', { tierId });
     onSubscriptionSelect(tierId);
   };
+
+  if (!locationData) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -105,7 +158,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
                 <CardTitle className="text-xl">{tier.name}</CardTitle>
                 <div className="space-y-2">
                   <div className="text-3xl font-bold">
-                    ${tier.price.toFixed(2)}
+                    {formatCurrency(tier.price, locationData.currency)}
                   </div>
                   <div className="space-y-1 text-sm text-muted-foreground">
                     <p>{tier.exports} resume exports</p>

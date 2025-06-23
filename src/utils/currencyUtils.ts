@@ -70,9 +70,9 @@ const getCurrencyForCountry = (countryCode: string): CurrencyConfig => {
       return {
         symbol: 'EGP',
         code: 'EGP',
-        basicPrice: 39,
-        premiumPrice: 49,
-        unlimitedPrice: 99
+        basicPrice: 99,
+        premiumPrice: 149,
+        unlimitedPrice: 249
       };
     default: // Default to USD
       return {
@@ -80,7 +80,7 @@ const getCurrencyForCountry = (countryCode: string): CurrencyConfig => {
         code: 'USD',
         basicPrice: 2,
         premiumPrice: 3,
-        unlimitedPrice: 9.9
+        unlimitedPrice: 4.99
       };
   }
 };
@@ -93,9 +93,9 @@ const getDefaultLocationData = (): LocationData => ({
 
 export const formatCurrency = (amount: number, currencyConfig: CurrencyConfig): string => {
   if (currencyConfig.code === 'EGP') {
-    return `${amount} ${currencyConfig.symbol}`;
+    return `${currencyConfig.symbol} ${amount}`;
   }
-  return `${currencyConfig.symbol}${amount}`;
+  return `${currencyConfig.symbol}${amount.toFixed(2)}`;
 };
 
 // Legacy function for backward compatibility
