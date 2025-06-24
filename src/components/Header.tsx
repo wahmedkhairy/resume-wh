@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { FileText, CreditCard, LogIn, UserPlus } from "lucide-react";
+import { FileText, CreditCard, LogIn, UserPlus, Zap } from "lucide-react";
 import LiveSubscriptionDialog from "@/components/LiveSubscriptionDialog";
+import FreeATSScanner from "@/components/FreeATSScanner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -46,6 +48,29 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
+          {/* Free ATS Scanner Button */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Free ATS Check</span>
+                <span className="sm:hidden">ATS</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-2xl text-center">🆓 Free ATS Scanner</DialogTitle>
+              </DialogHeader>
+              <div className="mt-4">
+                <FreeATSScanner />
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {!user && (
             <>
               <Button 
