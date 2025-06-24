@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,8 +23,8 @@ export const useSubscription = (currentUserId: string) => {
         const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
         
         // Check if this is the basic plan user
-        const basicPlanUser = "ahmedz.khairy88@gmail.com";
-        const isBasicUser = user?.email === basicPlanUser;
+        const basicPlanUsers = ["ahmedz.khairy88@gmail.com"];
+        const isBasicUser = user?.email && basicPlanUsers.includes(user.email);
         
         if (isSpecialUser) {
           // Check if subscription exists in database first

@@ -20,18 +20,21 @@ const MobileNotification: React.FC = () => {
     const handleResize = () => {
       const mobileStatus = checkMobile();
       setIsMobile(mobileStatus);
-      
-      if (mobileStatus && !isVisible) {
-        setIsVisible(true);
-      } else if (!mobileStatus) {
-        setIsVisible(false);
-      }
     };
 
     // Initial check
-    handleResize();
+    const mobileStatus = checkMobile();
+    setIsMobile(mobileStatus);
     
-    // Listen for resize events
+    // Check if notification was already shown in this session
+    const notificationShown = sessionStorage.getItem('mobileNotificationShown');
+    
+    if (mobileStatus && !notificationShown) {
+      setIsVisible(true);
+      sessionStorage.setItem('mobileNotificationShown', 'true');
+    }
+    
+    // Listen for resize events but don't affect visibility
     window.addEventListener('resize', handleResize);
     
     return () => {
@@ -50,6 +53,10 @@ const MobileNotification: React.FC = () => {
     }
   }, [isMobile, isVisible]);
 
+  const handleClose = () => {
+    setIsVisible(false);
+  };
+
   if (!isMobile || !isVisible) return null;
 
   return (
@@ -59,7 +66,7 @@ const MobileNotification: React.FC = () => {
           Better on big screens. Use a laptop or PC for a better experience.
         </p>
         <button
-          onClick={() => setIsVisible(false)}
+          onClick={handleClose}
           className="ml-2 p-1 hover:bg-blue-700 rounded"
         >
           <X className="h-4 w-4" />
