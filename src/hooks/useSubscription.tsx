@@ -64,6 +64,8 @@ export const useSubscription = (currentUserId: string) => {
         }
         
         if (isBasicUser) {
+          console.log('Processing basic plan user:', user.email);
+          
           // Check if subscription exists in database first
           const { data: existingSubscription } = await supabase
             .from('subscriptions')
@@ -72,12 +74,38 @@ export const useSubscription = (currentUserId: string) => {
             .maybeSingle();
 
           if (existingSubscription) {
+            console.log('Found existing subscription for basic user:', existingSubscription);
+            
+            // Ensure they have the correct basic plan setup
+            if (existingSubscription.tier !== 'basic' || existingSubscription.max_scans !== 2) {
+              const { data: updatedSubscription, error: updateError } = await supabase
+                .from('subscriptions')
+                .update({
+                  tier: 'basic',
+                  scan_count: Math.max(existingSubscription.scan_count, 2),
+                  max_scans: 2,
+                  status: 'active'
+                })
+                .eq('user_id', currentUserId)
+                .select()
+                .single();
+              
+              if (updateError) {
+                console.error('Error updating basic subscription:', updateError);
+              } else {
+                setCurrentSubscription(updatedSubscription);
+                setIsPremiumUser(true);
+                return;
+              }
+            }
+            
             setIsPremiumUser(existingSubscription.scan_count > 0 && existingSubscription.tier !== 'demo');
             setCurrentSubscription(existingSubscription);
             return;
           }
 
           // Create basic subscription in database if it doesn't exist
+          console.log('Creating new basic subscription for user');
           const { data: newSubscription, error } = await supabase
             .from('subscriptions')
             .insert({
@@ -95,6 +123,7 @@ export const useSubscription = (currentUserId: string) => {
             return;
           }
 
+          console.log('Created basic subscription:', newSubscription);
           setIsPremiumUser(true);
           setCurrentSubscription(newSubscription);
           return;
