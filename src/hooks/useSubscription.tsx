@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,33 +28,80 @@ export const useSubscription = (currentUserId: string) => {
         const isBasicUser = user?.email === basicPlanUser;
         
         if (isSpecialUser) {
-          // Give unlimited access to special users
-          const freeUnlimitedSubscription = {
-            tier: 'unlimited',
-            scan_count: 999,
-            max_scans: 999,
-            status: 'active',
-            user_id: currentUserId
-          };
+          // Check if subscription exists in database first
+          const { data: existingSubscription } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('user_id', currentUserId)
+            .maybeSingle();
+
+          if (existingSubscription) {
+            setIsPremiumUser(true);
+            setCurrentSubscription(existingSubscription);
+            return;
+          }
+
+          // Create unlimited subscription in database if it doesn't exist
+          const { data: newSubscription, error } = await supabase
+            .from('subscriptions')
+            .insert({
+              user_id: currentUserId,
+              tier: 'unlimited',
+              scan_count: 999,
+              max_scans: 999,
+              status: 'active'
+            })
+            .select()
+            .single();
+
+          if (error) {
+            console.error('Error creating unlimited subscription:', error);
+            return;
+          }
+
           setIsPremiumUser(true);
-          setCurrentSubscription(freeUnlimitedSubscription);
+          setCurrentSubscription(newSubscription);
           return;
         }
         
         if (isBasicUser) {
-          // Give basic plan to this specific user
-          const basicSubscription = {
-            tier: 'basic',
-            scan_count: 2,
-            max_scans: 2,
-            status: 'active',
-            user_id: currentUserId
-          };
+          // Check if subscription exists in database first
+          const { data: existingSubscription } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('user_id', currentUserId)
+            .maybeSingle();
+
+          if (existingSubscription) {
+            setIsPremiumUser(existingSubscription.scan_count > 0 && existingSubscription.tier !== 'demo');
+            setCurrentSubscription(existingSubscription);
+            return;
+          }
+
+          // Create basic subscription in database if it doesn't exist
+          const { data: newSubscription, error } = await supabase
+            .from('subscriptions')
+            .insert({
+              user_id: currentUserId,
+              tier: 'basic',
+              scan_count: 2,
+              max_scans: 2,
+              status: 'active'
+            })
+            .select()
+            .single();
+
+          if (error) {
+            console.error('Error creating basic subscription:', error);
+            return;
+          }
+
           setIsPremiumUser(true);
-          setCurrentSubscription(basicSubscription);
+          setCurrentSubscription(newSubscription);
           return;
         }
 
+        // For all other users, fetch from database
         const { data: subscription } = await supabase
           .from('subscriptions')
           .select('*')
@@ -154,20 +202,23 @@ export const useSubscription = (currentUserId: string) => {
       console.log('Starting enhanced PDF export');
       await exportToHighQualityPDF(exportData);
       
-      // Update scan count for non-special users
-      const { data: { user } } = await supabase.auth.getUser();
-      const specialFreeUsers = [
-        "ahmedkhairyabdelfatah@gmail.com",
-        "ahmedz.khairy@gmail.com"
-      ];
-      const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
-      
-      if (currentSubscription.tier !== 'unlimited' && !isSpecialUser) {
+      // Update scan count for non-unlimited users
+      if (currentSubscription.tier !== 'unlimited') {
         const newScanCount = currentSubscription.scan_count - 1;
-        await supabase
+        const { error } = await supabase
           .from('subscriptions')
           .update({ scan_count: newScanCount })
           .eq('user_id', currentUserId);
+
+        if (error) {
+          console.error('Error updating scan count:', error);
+          toast({
+            title: "Export Warning",
+            description: "Resume exported but could not update usage count.",
+            variant: "destructive",
+          });
+          return;
+        }
         
         setCurrentSubscription(prev => ({
           ...prev,
@@ -219,20 +270,23 @@ export const useSubscription = (currentUserId: string) => {
       console.log('Starting enhanced Word export');
       await exportToEnhancedWord(exportData);
       
-      // Update scan count for non-special users
-      const { data: { user } } = await supabase.auth.getUser();
-      const specialFreeUsers = [
-        "ahmedkhairyabdelfatah@gmail.com",
-        "ahmedz.khairy@gmail.com"
-      ];
-      const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
-      
-      if (currentSubscription.tier !== 'unlimited' && !isSpecialUser) {
+      // Update scan count for non-unlimited users
+      if (currentSubscription.tier !== 'unlimited') {
         const newScanCount = currentSubscription.scan_count - 1;
-        await supabase
+        const { error } = await supabase
           .from('subscriptions')
           .update({ scan_count: newScanCount })
           .eq('user_id', currentUserId);
+
+        if (error) {
+          console.error('Error updating scan count:', error);
+          toast({
+            title: "Export Warning",
+            description: "Word document exported but could not update usage count.",
+            variant: "destructive",
+          });
+          return;
+        }
         
         setCurrentSubscription(prev => ({
           ...prev,

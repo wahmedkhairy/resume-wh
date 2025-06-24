@@ -18,7 +18,7 @@ interface ATSSectionProps {
 
 const ATSSection: React.FC<ATSSectionProps> = ({ resumeData }) => {
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 px-4">
+    <div className="w-full max-w-4xl mx-auto space-y-6 px-4">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-4">ATS Analysis & Free Scan</h2>
         <p className="text-lg text-muted-foreground">
@@ -33,11 +33,15 @@ const ATSSection: React.FC<ATSSectionProps> = ({ resumeData }) => {
         </TabsList>
         
         <TabsContent value="free-scan" className="space-y-6">
-          <FreeATSScanner />
+          <div className="w-full max-w-2xl mx-auto">
+            <FreeATSScanner />
+          </div>
         </TabsContent>
         
         <TabsContent value="detailed-analysis" className="space-y-6">
-          <NewATSAnalysis resumeData={resumeData} />
+          <div className="w-full">
+            <NewATSAnalysis resumeData={resumeData} />
+          </div>
         </TabsContent>
       </Tabs>
       

@@ -23,13 +23,6 @@ const MobileNotification: React.FC = () => {
       
       if (mobileStatus && !isVisible) {
         setIsVisible(true);
-        
-        // Auto-hide after 5 seconds
-        const timer = setTimeout(() => {
-          setIsVisible(false);
-        }, 5000);
-
-        return () => clearTimeout(timer);
       } else if (!mobileStatus) {
         setIsVisible(false);
       }
@@ -44,7 +37,18 @@ const MobileNotification: React.FC = () => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [isVisible]);
+  }, []);
+
+  // Separate useEffect for auto-hide timer
+  useEffect(() => {
+    if (isMobile && isVisible) {
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile, isVisible]);
 
   if (!isMobile || !isVisible) return null;
 

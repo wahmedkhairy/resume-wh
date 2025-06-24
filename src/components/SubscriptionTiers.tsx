@@ -132,7 +132,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       <div className="text-center mb-6">
         <h3 className="text-xl font-bold mb-2">Choose Your Plan</h3>
         <p className="text-gray-600 dark:text-gray-400 text-sm">
-          One-time payment, no recurring charges. Secure payment via PayPal.
+          One-time payment, no recurring charges. Secure payment processing.
         </p>
       </div>
 
@@ -199,7 +199,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({ onSubscriptionSel
       <div className="text-center text-sm text-muted-foreground mt-8 space-y-1">
         <p>• All plans include ATS optimization and AI-powered suggestions</p>
         <p>• One-time payment, no recurring charges</p>
-        <p>• Secure payment processing via PayPal</p>
+        <p>• Secure payment processing</p>
       </div>
     </div>
   );
