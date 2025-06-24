@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import MainContent from "@/components/MainContent";
 import Footer from "@/components/Footer";
+import FreeATSScanner from "@/components/FreeATSScanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useResumeData } from "@/hooks/useResumeData";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -189,6 +190,23 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <Header />
       <Navigation onSectionChange={handleSectionChange} currentSection={currentSection} />
+      
+      {/* Free ATS Scanner - Always visible section */}
+      {currentSection !== "ats" && (
+        <div className="border-b bg-white dark:bg-gray-800 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6 py-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2">🆓 Quick ATS Check</h2>
+              <p className="text-muted-foreground">
+                Get instant feedback on your resume's ATS compatibility - completely free
+              </p>
+            </div>
+            <div className="max-w-2xl mx-auto">
+              <FreeATSScanner />
+            </div>
+          </div>
+        </div>
+      )}
       
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
