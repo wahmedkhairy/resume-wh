@@ -152,6 +152,8 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
           exportCredits = 2;
       }
 
+      console.log('Creating subscription with credits:', exportCredits, 'for tier:', selectedTier);
+
       // Create subscription record
       const { data: subscription, error } = await supabase
         .from('subscriptions')
@@ -159,6 +161,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
           user_id: user.id,
           tier: selectedTier,
           scan_count: exportCredits,
+          max_scans: exportCredits,
           status: 'active',
           payment_method: 'credit_card',
           amount: amount,
@@ -195,7 +198,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
     setIsProcessing(true);
 
     try {
-      console.log('Processing payment...');
+      console.log('Processing payment for tier:', selectedTier, 'amount:', amount);
       
       // Simulate payment processing delay
       await new Promise(resolve => setTimeout(resolve, 3000));
@@ -218,19 +221,24 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
       
       console.log('Subscription created, preparing success response');
 
+      const successData = {
+        ...paymentDetails,
+        subscription: subscription
+      };
+
       toast({
         title: "Payment Successful!",
         description: `Your ${selectedTier} plan has been activated.`,
       });
 
-      // Call the success handler
-      onSuccess({
-        ...paymentDetails,
-        subscription: subscription
-      });
+      // Call the success handler first
+      onSuccess(successData);
 
-      // Navigate to payment success page instead of resume editor
-      navigate('/payment-success');
+      // Small delay to ensure success handler completes, then navigate
+      setTimeout(() => {
+        console.log('Navigating to payment success page');
+        navigate('/payment-success');
+      }, 100);
 
     } catch (error) {
       console.error('Payment processing error:', error);

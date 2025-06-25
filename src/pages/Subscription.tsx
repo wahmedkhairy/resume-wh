@@ -85,8 +85,8 @@ const Subscription = () => {
       description: `Welcome to ${getTierDetails(selectedTier!)?.name} plan!`,
     });
 
-    // Don't navigate immediately, let the CreditCardForm handle navigation
-    // The form will navigate to /payment-success
+    // Don't navigate here - let CreditCardForm handle navigation
+    // The form will navigate to /payment-success after a short delay
   };
 
   const handlePaymentError = (error: any) => {
