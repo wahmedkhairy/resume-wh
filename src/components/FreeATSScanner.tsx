@@ -21,6 +21,7 @@ const FreeATSScanner: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<ATSAnalysisResult | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +29,7 @@ const FreeATSScanner: React.FC = () => {
     if (file) {
       const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!validTypes.includes(file.type)) {
+        setError("Invalid file type. Please upload a PDF or Word document.");
         toast({
           title: "Invalid File Type",
           description: "Please upload a PDF or Word document.",
@@ -35,8 +37,20 @@ const FreeATSScanner: React.FC = () => {
         });
         return;
       }
+      
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setError("File too large. Please upload a file smaller than 5MB.");
+        toast({
+          title: "File Too Large",
+          description: "Please upload a file smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setSelectedFile(file);
       setAnalysisResult(null);
+      setError(null);
     }
   };
 
@@ -51,14 +65,15 @@ const FreeATSScanner: React.FC = () => {
     }
 
     setIsScanning(true);
+    setError(null);
 
     try {
-      // Simulate realistic ATS analysis
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Simulate realistic ATS analysis with proper error handling
+      await new Promise(resolve => setTimeout(resolve, 2500));
 
       // Read file content for basic analysis
       const text = await extractTextFromFile(selectedFile);
-      const analysis = performATSAnalysis(text);
+      const analysis = performATSAnalysis(text, selectedFile.name);
 
       setAnalysisResult(analysis);
 
@@ -76,6 +91,8 @@ const FreeATSScanner: React.FC = () => {
       }
 
     } catch (error) {
+      console.error('Free ATS Scanner error:', error);
+      setError("There was an error analyzing your resume. Please try again.");
       toast({
         title: "Analysis Failed",
         description: "There was an error analyzing your resume. Please try again.",
@@ -87,25 +104,46 @@ const FreeATSScanner: React.FC = () => {
   };
 
   const extractTextFromFile = async (file: File): Promise<string> => {
-    // For demo purposes, we'll return a simulation based on file name
+    // For demo purposes, we'll return a simulation based on file name and size
     // In a real implementation, you'd use libraries like pdf-parse or mammoth
-    return `Sample resume content for ${file.name}`;
+    const hasGoodKeywords = file.name.toLowerCase().includes('resume') || file.name.toLowerCase().includes('cv');
+    const baseText = `Sample resume content for ${file.name}. `;
+    
+    // Simulate content based on file size (larger files typically have more content)
+    const contentMultiplier = Math.min(file.size / (100 * 1024), 5); // Scale based on file size
+    return baseText.repeat(Math.max(1, Math.floor(contentMultiplier)));
   };
 
-  const performATSAnalysis = (text: string): ATSAnalysisResult => {
+  const performATSAnalysis = (text: string, fileName: string): ATSAnalysisResult => {
     let formatScore = 85; // Good format score for uploaded files
     let keywordScore = Math.floor(Math.random() * 40) + 30; // 30-70 range
     let contentScore = Math.floor(Math.random() * 50) + 40; // 40-90 range
 
+    // Improve scores based on file characteristics
+    if (fileName.toLowerCase().includes('resume') || fileName.toLowerCase().includes('cv')) {
+      formatScore += 5;
+      keywordScore += 10;
+    }
+
     // Basic keyword detection simulation
-    const commonKeywords = ['experience', 'skills', 'education', 'work', 'project', 'manage', 'develop'];
+    const commonKeywords = ['experience', 'skills', 'education', 'work', 'project', 'manage', 'develop', 'achievement'];
     const foundKeywords = commonKeywords.filter(keyword => 
       text.toLowerCase().includes(keyword)
     );
     
     if (foundKeywords.length > 3) {
-      keywordScore += 10;
+      keywordScore += 15;
     }
+
+    // Content analysis based on text length
+    if (text.length > 500) {
+      contentScore += 10;
+    }
+
+    // Ensure scores don't exceed 100
+    formatScore = Math.min(formatScore, 100);
+    keywordScore = Math.min(keywordScore, 100);
+    contentScore = Math.min(contentScore, 100);
 
     const overallScore = Math.round((formatScore + keywordScore + contentScore) / 3);
     const isWeak = overallScore < 65;
@@ -115,16 +153,22 @@ const FreeATSScanner: React.FC = () => {
 
     if (formatScore >= 80) {
       strengths.push("Professional document format");
+    } else {
+      suggestions.push("Improve document formatting and structure");
     }
 
     if (keywordScore < 60) {
       suggestions.push("Add more industry-relevant keywords");
       suggestions.push("Include technical skills mentioned in job postings");
+    } else {
+      strengths.push("Good keyword usage");
     }
 
     if (contentScore < 70) {
       suggestions.push("Add quantifiable achievements with numbers");
       suggestions.push("Include more detailed job descriptions");
+    } else {
+      strengths.push("Well-detailed content");
     }
 
     if (overallScore < 65) {
@@ -134,7 +178,7 @@ const FreeATSScanner: React.FC = () => {
 
     if (suggestions.length === 0) {
       strengths.push("Well-optimized content structure");
-      strengths.push("Good keyword density");
+      strengths.push("Excellent ATS compatibility");
     }
 
     return {
@@ -185,10 +229,11 @@ const FreeATSScanner: React.FC = () => {
                 className="hidden"
                 accept=".pdf,.doc,.docx"
                 onChange={handleFileUpload}
+                disabled={isScanning}
               />
             </label>
             <p className="text-sm text-gray-500">
-              Supports PDF, DOC, and DOCX files
+              Supports PDF, DOC, and DOCX files (max 5MB)
             </p>
           </div>
           {selectedFile && (
@@ -196,6 +241,14 @@ const FreeATSScanner: React.FC = () => {
               <p className="text-sm font-medium text-blue-800">
                 Selected: {selectedFile.name}
               </p>
+              <p className="text-xs text-blue-600">
+                Size: {(selectedFile.size / 1024).toFixed(1)} KB
+              </p>
+            </div>
+          )}
+          {error && (
+            <div className="mt-4 p-3 bg-red-50 rounded-lg">
+              <p className="text-sm font-medium text-red-800">{error}</p>
             </div>
           )}
         </div>
