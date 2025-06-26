@@ -89,6 +89,48 @@ export const useResumeData = (currentUserId: string) => {
     loadResumeData();
   }, [currentUserId]);
 
+  // Auto-save functionality - save data whenever it changes
+  useEffect(() => {
+    const autoSave = async () => {
+      if (!currentUserId) return;
+      
+      // Only auto-save if we have at least some data
+      const hasData = personalInfo.name || 
+                     resumeState.summary || 
+                     workExperience.length > 0 || 
+                     education.length > 0 || 
+                     skills.length > 0 || 
+                     coursesAndCertifications.length > 0;
+      
+      if (!hasData) return;
+
+      try {
+        const resumeData = {
+          user_id: currentUserId,
+          personal_info: personalInfo as any,
+          summary: resumeState.summary,
+          experience: workExperience as any,
+          education: education as any,
+          skills: skills as any,
+          courses: coursesAndCertifications as any,
+          updated_at: new Date().toISOString()
+        };
+
+        await supabase
+          .from('resumes')
+          .upsert(resumeData);
+
+        console.log('Resume data auto-saved successfully');
+      } catch (error) {
+        console.error('Auto-save error:', error);
+      }
+    };
+
+    // Debounce auto-save to avoid too frequent calls
+    const timeoutId = setTimeout(autoSave, 2000);
+    return () => clearTimeout(timeoutId);
+  }, [currentUserId, personalInfo, resumeState.summary, workExperience, education, skills, coursesAndCertifications]);
+
   const handleSave = async () => {
     if (!currentUserId) {
       toast({
@@ -121,7 +163,7 @@ export const useResumeData = (currentUserId: string) => {
 
       toast({
         title: "Resume Saved",
-        description: "Your resume has been saved successfully.",
+        description: "Your resume has been saved successfully and will persist across sessions.",
       });
     } catch (error) {
       console.error('Save error:', error);

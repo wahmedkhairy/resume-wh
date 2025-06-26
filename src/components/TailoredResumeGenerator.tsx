@@ -199,11 +199,6 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     navigate("/subscription");
   };
 
-  const handleExportUpgradeClick = () => {
-    console.log('TailoredResumeGenerator: Export upgrade button clicked - navigating to subscription page');
-    navigate("/subscription");
-  };
-
   const usageConfig = getUsageLimit();
   const currentUsageCount = monthlyUsage || 0;
   const remainingUses = Math.max(0, usageConfig.limit - currentUsageCount);
@@ -233,41 +228,6 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
             <AlertDescription>
               Free users need to upgrade to generate targeted resumes. To export your targeted resume as PDF 
               and get targeted resume generations, please upgrade to a plan.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              Monthly Usage:
-            </span>
-            <Badge variant={canGenerate ? "default" : "destructive"}>
-              {currentUsageCount} / {usageConfig.limit === 999 ? "∞" : usageConfig.limit}
-            </Badge>
-          </div>
-          <Badge variant="outline">
-            {usageConfig.limit === 999 ? "Unlimited" : `${remainingUses} remaining`}
-          </Badge>
-        </div>
-
-        {!canExportResume() && (
-          <Alert>
-            <Crown className="h-4 w-4" />
-            <AlertDescription>
-              <div className="flex items-center justify-between">
-                <span>Upgrade to a plan to export your targeted resumes as PDF or Word document.</span>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="ml-4"
-                  onClick={handleExportUpgradeClick}
-                >
-                  <Crown className="mr-2 h-4 w-4" />
-                  Upgrade Now
-                </Button>
-              </div>
             </AlertDescription>
           </Alert>
         )}

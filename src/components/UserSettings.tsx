@@ -11,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Save, User, CreditCard } from "lucide-react";
 import UserInfoCard from "./UserInfoCard";
 import PasswordChangeCard from "./PasswordChangeCard";
-import GeneralSettingsCard from "./GeneralSettingsCard";
 import SubscriptionCard from "./SubscriptionCard";
 
 const UserSettings: React.FC = () => {
@@ -110,10 +109,6 @@ const UserSettings: React.FC = () => {
         </div>
         <UserInfoCard userInfo={userInfo} onUserInfoUpdate={handleUserInfoUpdate} />
         <PasswordChangeCard />
-        <GeneralSettingsCard 
-          emailNotifications={settings.emailNotifications}
-          setEmailNotifications={(value) => setSettings(prev => ({ ...prev, emailNotifications: value }))}
-        />
       </div>
 
       <Separator />
