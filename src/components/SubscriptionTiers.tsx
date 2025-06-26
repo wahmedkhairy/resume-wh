@@ -23,11 +23,11 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
     {
       id: "basic",
       name: "Basic",
-      price: "$9.99",
-      period: "month",
+      price: "$2.00",
+      period: "lifetime",
       description: "Perfect for job seekers starting their career",
       features: [
-        "1 Professional resume template",
+        "2 Professional resume exports",
         "Basic ATS optimization",
         "PDF export",
         "1 Targeted resume per month",
@@ -40,12 +40,12 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
     {
       id: "premium",
       name: "Premium",
-      price: "$19.99",
-      period: "month",
+      price: "$3.00",
+      period: "lifetime",
       description: "Most popular choice for serious job seekers",
       features: [
         "All Basic features",
-        "3 Professional resume templates",
+        "6 Professional resume exports",
         "Advanced ATS analysis",
         "PDF & Word export",
         "3 Targeted resumes per month",
@@ -59,12 +59,12 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
     {
       id: "unlimited",
       name: "Unlimited",
-      price: "$39.99",
-      period: "month",
+      price: "$4.99",
+      period: "lifetime",
       description: "For professionals who need maximum flexibility",
       features: [
         "All Premium features",
-        "Unlimited resume templates",
+        "Unlimited resume exports",
         "Unlimited targeted resumes",
         "Advanced career insights",
         "1-on-1 career consultation",
@@ -132,13 +132,18 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
                   Current Plan
                 </Button>
               ) : (
-                <Button 
-                  className={`w-full ${tier.popular ? 'bg-primary hover:bg-primary/90' : ''}`}
-                  variant={tier.popular ? "default" : "outline"}
-                  onClick={() => handleTierClick(tier.id)}
+                <LivePayPalCheckout
+                  planId={tier.id}
+                  userId={currentUserId}
+                  onSuccess={onSubscriptionUpdate}
                 >
-                  {tier.buttonText}
-                </Button>
+                  <Button 
+                    className={`w-full ${tier.popular ? 'bg-primary hover:bg-primary/90' : ''}`}
+                    variant={tier.popular ? "default" : "outline"}
+                  >
+                    {tier.buttonText}
+                  </Button>
+                </LivePayPalCheckout>
               )}
             </div>
           </CardContent>
