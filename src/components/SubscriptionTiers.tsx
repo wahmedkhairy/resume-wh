@@ -81,25 +81,31 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
   };
 
   const canResubscribe = (tierId: string) => {
-    // Allow resubscription if:
-    // 1. User has the same tier but no remaining exports (scan_count = 0)
-    // 2. Or user has no active subscription
+    // Allow subscription if:
+    // 1. User has no active subscription
+    // 2. Or user has an active subscription but no remaining exports (can subscribe to any plan)
+    // 3. Or user has inactive subscription
     if (!currentSubscription) return true;
     
-    const isSameTier = currentSubscription.tier === tierId;
     const noRemainingExports = currentSubscription.scan_count <= 0;
     const isInactive = currentSubscription.status !== 'active';
     
-    return !isCurrentTier(tierId) && (isInactive || (isSameTier && noRemainingExports));
+    // If user has no remaining exports, they can subscribe to any plan (including upgrading/downgrading)
+    return isInactive || noRemainingExports;
   };
 
   const getButtonText = (tier: any) => {
-    if (isCurrentTier(tier.id)) {
+    if (isCurrentTier(tier.id) && currentSubscription?.scan_count > 0) {
       return "Current Plan";
     }
     
-    if (currentSubscription?.tier === tier.id && currentSubscription?.scan_count <= 0) {
-      return `Renew ${tier.name}`;
+    // If user has no remaining exports, show appropriate text
+    if (currentSubscription?.scan_count <= 0) {
+      if (currentSubscription?.tier === tier.id) {
+        return `Renew ${tier.name}`;
+      } else {
+        return `Switch to ${tier.name}`;
+      }
     }
     
     return tier.buttonText;
