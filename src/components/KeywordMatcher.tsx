@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { 
   Card, 
@@ -11,8 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CheckCircle, Sparkles } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Search, CheckCircle } from "lucide-react";
 
 interface Keyword {
   text: string;
@@ -34,8 +34,6 @@ const KeywordMatcher: React.FC<KeywordMatcherProps> = ({ resumeData }) => {
   const [jobDescription, setJobDescription] = useState("");
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [skillRecommendations, setSkillRecommendations] = useState<any[]>([]);
-  const [isGeneratingSkills, setIsGeneratingSkills] = useState(false);
   const { toast } = useToast();
 
   const extractKeywordsFromText = (text: string): string[] => {
@@ -103,6 +101,10 @@ const KeywordMatcher: React.FC<KeywordMatcherProps> = ({ resumeData }) => {
   };
 
   const handleExtractKeywords = () => {
+    console.log('Extract Keywords button clicked');
+    console.log('Job Description:', jobDescription);
+    console.log('Resume Data:', resumeData);
+    
     if (!jobDescription.trim()) {
       toast({
         title: "Empty Description",
@@ -114,183 +116,95 @@ const KeywordMatcher: React.FC<KeywordMatcherProps> = ({ resumeData }) => {
     
     setIsExtracting(true);
     
-    // Simulate processing time
+    // Simulate processing time for better UX
     setTimeout(() => {
-      const extractedKeywords = extractKeywordsFromText(jobDescription);
-      const keywordsWithMatches = extractedKeywords.map(keyword => ({
-        text: keyword.charAt(0).toUpperCase() + keyword.slice(1),
-        matched: checkKeywordMatch(keyword),
-        importance: Math.random() > 0.7 ? "high" : Math.random() > 0.4 ? "medium" : "low" as "high" | "medium" | "low"
-      }));
-      
-      setKeywords(keywordsWithMatches);
-      setIsExtracting(false);
-      
-      const matchedCount = keywordsWithMatches.filter(k => k.matched).length;
-      
-      toast({
-        title: "Keywords Extracted",
-        description: `Found ${keywordsWithMatches.length} keywords, ${matchedCount} already in your resume.`,
-      });
+      try {
+        const extractedKeywords = extractKeywordsFromText(jobDescription);
+        console.log('Extracted keywords:', extractedKeywords);
+        
+        const keywordsWithMatches = extractedKeywords.map(keyword => ({
+          text: keyword.charAt(0).toUpperCase() + keyword.slice(1),
+          matched: checkKeywordMatch(keyword),
+          importance: Math.random() > 0.7 ? "high" : Math.random() > 0.4 ? "medium" : "low" as "high" | "medium" | "low"
+        }));
+        
+        console.log('Keywords with matches:', keywordsWithMatches);
+        setKeywords(keywordsWithMatches);
+        setIsExtracting(false);
+        
+        const matchedCount = keywordsWithMatches.filter(k => k.matched).length;
+        
+        toast({
+          title: "Keywords Extracted Successfully",
+          description: `Found ${keywordsWithMatches.length} keywords, ${matchedCount} already in your resume.`,
+        });
+      } catch (error) {
+        console.error('Error extracting keywords:', error);
+        setIsExtracting(false);
+        toast({
+          title: "Extraction Failed",
+          description: "There was an error extracting keywords. Please try again.",
+          variant: "destructive",
+        });
+      }
     }, 1500);
   };
 
-  const handleGenerateSkillRecommendations = async () => {
-    console.log('=== Generate Skill Recommendations Called ===');
-    console.log('Resume Data:', resumeData);
-    
-    if (!resumeData?.workExperience || resumeData.workExperience.length === 0) {
-      toast({
-        title: "No Experience Data",
-        description: "Please add work experience to get skill recommendations.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGeneratingSkills(true);
-
-    try {
-      const experienceText = resumeData.workExperience
-        .map(exp => `${exp.jobTitle} at ${exp.company}: ${exp.responsibilities?.join(', ') || ''}`)
-        .join('\n');
-
-      console.log('Calling generate-summary edge function for skill recommendations');
-      console.log('Experience text:', experienceText);
-      
-      const { data, error } = await supabase.functions.invoke('generate-summary', {
-        body: { 
-          experience: resumeData.workExperience,
-          education: resumeData.education || [],
-          skills: resumeData.skills || [],
-          personalInfo: resumeData.personalInfo || {},
-          action: "recommend-skills"
-        }
-      });
-
-      console.log('Skill recommendations response:', { data, error });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(error.message || 'Failed to get skill recommendations');
-      }
-
-      if (data?.recommendations || data?.skills) {
-        const recommendations = data.recommendations || data.skills || [];
-        console.log('Skill recommendations received:', recommendations);
-        setSkillRecommendations(recommendations);
-        toast({
-          title: "Skills Recommended",
-          description: `Generated ${recommendations.length} skill recommendations based on your experience.`,
-        });
-      } else {
-        console.error('No skill recommendations in response:', data);
-        throw new Error('No skill recommendations received from AI service');
-      }
-    } catch (error) {
-      console.error('Error generating skill recommendations:', error);
-      
-      toast({
-        title: "Recommendation Failed",
-        description: error.message || "There was an error generating skill recommendations. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingSkills(false);
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Job Description Analysis</CardTitle>
-          <CardDescription>
-            Paste a job description to extract keywords and optimize your resume
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            placeholder="Paste job description here..."
-            className="min-h-[120px]"
-            value={jobDescription}
-            onChange={(e) => setJobDescription(e.target.value)}
-          />
-          
-          {keywords.length > 0 && (
-            <div className="pt-4">
-              <h4 className="text-sm font-medium mb-2">Keywords</h4>
-              <div className="flex flex-wrap gap-2">
-                {keywords.map((keyword, index) => (
-                  <Badge 
-                    key={index}
-                    variant={keyword.matched ? "default" : "outline"}
-                    className={keyword.matched ? "bg-green-100 text-green-800 border-green-300" : ""}
-                  >
-                    {keyword.text}
-                    {keyword.matched && <CheckCircle className="ml-1 h-3 w-3" />}
-                  </Badge>
-                ))}
-              </div>
-              <div className="mt-2 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <Badge variant="default" className="h-4 px-1 bg-green-100 text-green-800 border-green-300">
-                    <CheckCircle className="h-2 w-2" />
-                  </Badge>
-                  = Already in your resume
-                </span>
-                <span className="ml-4 inline-flex items-center gap-1">
-                  <Badge variant="outline" className="h-4 px-1">
-                    
-                  </Badge>
-                  = Consider adding
-                </span>
-              </div>
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Job Description Analysis</CardTitle>
+        <CardDescription>
+          Paste a job description to extract keywords and optimize your resume
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Textarea
+          placeholder="Paste job description here..."
+          className="min-h-[120px]"
+          value={jobDescription}
+          onChange={(e) => setJobDescription(e.target.value)}
+        />
+        
+        {keywords.length > 0 && (
+          <div className="pt-4">
+            <h4 className="text-sm font-medium mb-2">Keywords</h4>
+            <div className="flex flex-wrap gap-2">
+              {keywords.map((keyword, index) => (
+                <Badge 
+                  key={index}
+                  variant={keyword.matched ? "default" : "outline"}
+                  className={keyword.matched ? "bg-green-100 text-green-800 border-green-300" : ""}
+                >
+                  {keyword.text}
+                  {keyword.matched && <CheckCircle className="ml-1 h-3 w-3" />}
+                </Badge>
+              ))}
             </div>
-          )}
-        </CardContent>
-        <CardFooter>
-          <Button onClick={handleExtractKeywords} disabled={isExtracting}>
-            <Search className="mr-2 h-4 w-4" />
-            {isExtracting ? "Extracting..." : "Extract Keywords"}
-          </Button>
-        </CardFooter>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>AI Skill Recommendations</CardTitle>
-          <CardDescription>
-            Get personalized skill recommendations based on your work experience
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {skillRecommendations.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium">Recommended Skills</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {skillRecommendations.map((skill, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 border rounded-lg">
-                    <span className="font-medium">{skill.name || skill}</span>
-                    <Badge variant="outline">{skill.level || 'High'}%</Badge>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Badge variant="default" className="h-4 px-1 bg-green-100 text-green-800 border-green-300">
+                  <CheckCircle className="h-2 w-2" />
+                </Badge>
+                = Already in your resume
+              </span>
+              <span className="ml-4 inline-flex items-center gap-1">
+                <Badge variant="outline" className="h-4 px-1">
+                  
+                </Badge>
+                = Consider adding
+              </span>
             </div>
-          )}
-        </CardContent>
-        <CardFooter>
-          <Button 
-            onClick={handleGenerateSkillRecommendations} 
-            disabled={isGeneratingSkills}
-            variant="outline"
-          >
-            <Sparkles className="mr-2 h-4 w-4" />
-            {isGeneratingSkills ? "Generating..." : "Get Skill Recommendations"}
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
+          </div>
+        )}
+      </CardContent>
+      <CardFooter>
+        <Button onClick={handleExtractKeywords} disabled={isExtracting}>
+          <Search className="mr-2 h-4 w-4" />
+          {isExtracting ? "Extracting..." : "Extract Keywords"}
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 

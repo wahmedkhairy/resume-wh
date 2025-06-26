@@ -88,14 +88,14 @@ const ResumeData: React.FC<ResumeDataProps> = ({
         initialEducation={education}
       />
       
-      <SkillsBar 
-        onSkillsChange={onSkillsChange}
-        initialSkills={skills}
-      />
-      
       <CoursesAndCertifications 
         onCoursesChange={onCoursesChange}
         initialCourses={coursesAndCertifications}
+      />
+      
+      <SkillsBar 
+        onSkillsChange={onSkillsChange}
+        initialSkills={skills}
       />
 
       <SummaryEditor

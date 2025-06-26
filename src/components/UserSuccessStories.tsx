@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +63,7 @@ const UserSuccessStories: React.FC = () => {
   ];
 
   const stats = [
-    { icon: Users, label: "Success Stories", value: "2,500+" },
+    { icon: Users, label: "Success Stories", value: "10,000+" },
     { icon: TrendingUp, label: "Avg. Salary Increase", value: "35%" },
     { icon: CheckCircle, label: "Interview Success Rate", value: "78%" },
   ];

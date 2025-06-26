@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -192,10 +193,13 @@ const Index = () => {
       
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2">Professional Resume Builder</h1>
-            <p className="text-muted-foreground">Create ATS-optimized resumes that get you hired faster</p>
-          </div>
+          {/* Only show title and subtitle in Resume Editor section */}
+          {currentSection === "editor" && (
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-bold mb-2">Professional Resume Builder</h1>
+              <p className="text-muted-foreground">Create ATS-optimized resumes that get you hired faster</p>
+            </div>
+          )}
 
           <MainContent
             currentSection={currentSection}
