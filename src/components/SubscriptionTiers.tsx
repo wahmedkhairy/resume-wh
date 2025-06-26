@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Crown, Zap } from "lucide-react";
-import LivePayPalCheckout from "@/components/LivePayPalCheckout";
 
 interface SubscriptionTiersProps {
   currentUserId: string;
@@ -132,18 +131,13 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
                   Current Plan
                 </Button>
               ) : (
-                <LivePayPalCheckout
-                  planId={tier.id}
-                  userId={currentUserId}
-                  onSuccess={onSubscriptionUpdate}
+                <Button 
+                  className={`w-full ${tier.popular ? 'bg-primary hover:bg-primary/90' : ''}`}
+                  variant={tier.popular ? "default" : "outline"}
+                  onClick={() => handleTierClick(tier.id)}
                 >
-                  <Button 
-                    className={`w-full ${tier.popular ? 'bg-primary hover:bg-primary/90' : ''}`}
-                    variant={tier.popular ? "default" : "outline"}
-                  >
-                    {tier.buttonText}
-                  </Button>
-                </LivePayPalCheckout>
+                  {tier.buttonText}
+                </Button>
               )}
             </div>
           </CardContent>
