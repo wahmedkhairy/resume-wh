@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
       id: "basic",
       name: "Basic",
       price: "$2.00",
-      period: "one payment",
+      period: "one-time payment",
       description: "Perfect for job seekers starting their career",
       features: [
         "2 Professional resume exports",
@@ -40,7 +39,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
       id: "premium",
       name: "Premium",
       price: "$3.00",
-      period: "one payment",
+      period: "one-time payment",
       description: "Most popular choice for serious job seekers",
       features: [
         "All Basic features",
@@ -59,7 +58,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
       id: "unlimited",
       name: "Unlimited",
       price: "$4.99",
-      period: "one payment",
+      period: "one-time payment",
       description: "For professionals who need maximum flexibility",
       features: [
         "All Premium features",
