@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { detectUserLocation, formatCurrency } from "@/utils/currencyUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 const Subscription = () => {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ const Subscription = () => {
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [locationData, setLocationData] = useState<{
     country: string;
     currency: {
@@ -26,6 +29,26 @@ const Subscription = () => {
       unlimitedPrice: number;
     };
   } | null>(null);
+
+  React.useEffect(() => {
+    const loadUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+        
+        // Load subscription data
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        setCurrentSubscription(subscription);
+      }
+    };
+    
+    loadUserData();
+  }, []);
 
   React.useEffect(() => {
     const loadLocationData = async () => {
@@ -75,6 +98,22 @@ const Subscription = () => {
     console.log('Subscription page: Plan selected', tier);
     setSelectedTier(tier);
     setShowPayment(true);
+  };
+
+  const handleSubscriptionUpdate = () => {
+    // Refresh subscription data
+    if (currentUserId) {
+      const loadSubscription = async () => {
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+        
+        setCurrentSubscription(subscription);
+      };
+      loadSubscription();
+    }
   };
 
   const handlePaymentSuccess = (details: any) => {
@@ -169,7 +208,12 @@ const Subscription = () => {
 
           {!showPayment ? (
             <>
-              <SubscriptionTiers onSubscriptionSelect={handleSubscriptionSelect} />
+              <SubscriptionTiers 
+                currentUserId={currentUserId}
+                currentSubscription={currentSubscription}
+                onSubscriptionUpdate={handleSubscriptionUpdate}
+                onSubscriptionSelect={handleSubscriptionSelect}
+              />
 
               <Card className="mt-12">
                 <CardHeader>

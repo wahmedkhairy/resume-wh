@@ -10,12 +10,14 @@ interface SubscriptionTiersProps {
   currentUserId: string;
   currentSubscription: any;
   onSubscriptionUpdate: () => void;
+  onSubscriptionSelect?: (tier: string) => void;
 }
 
 const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
   currentUserId,
   currentSubscription,
   onSubscriptionUpdate,
+  onSubscriptionSelect,
 }) => {
   const tiers = [
     {
@@ -79,6 +81,12 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
     return currentSubscription?.tier === tierId && currentSubscription?.status === 'active';
   };
 
+  const handleTierClick = (tierId: string) => {
+    if (onSubscriptionSelect) {
+      onSubscriptionSelect(tierId);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {tiers.map((tier) => (
@@ -124,18 +132,13 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
                   Current Plan
                 </Button>
               ) : (
-                <LivePayPalCheckout
-                  planId={tier.id}
-                  userId={currentUserId}
-                  onSuccess={onSubscriptionUpdate}
+                <Button 
+                  className={`w-full ${tier.popular ? 'bg-primary hover:bg-primary/90' : ''}`}
+                  variant={tier.popular ? "default" : "outline"}
+                  onClick={() => handleTierClick(tier.id)}
                 >
-                  <Button 
-                    className={`w-full ${tier.popular ? 'bg-primary hover:bg-primary/90' : ''}`}
-                    variant={tier.popular ? "default" : "outline"}
-                  >
-                    {tier.buttonText}
-                  </Button>
-                </LivePayPalCheckout>
+                  {tier.buttonText}
+                </Button>
               )}
             </div>
           </CardContent>
