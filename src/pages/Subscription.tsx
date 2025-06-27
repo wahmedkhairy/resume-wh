@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -8,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { detectUserLocation, formatCurrency } from "@/utils/currencyUtils";
+import { detectUserLocation } from "@/utils/currencyUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { PayPalOrderData } from "@/services/paypalService";
 
@@ -93,6 +92,25 @@ const Subscription = () => {
       unlimited: { name: "Unlimited", price: locationData.currency.unlimitedPrice, exports: "Unlimited", targetedResumes: "Unlimited" }
     };
     return tiers[tier as keyof typeof tiers];
+  };
+
+  // Convert local currency to USD for PayPal
+  const convertToUSD = (localAmount: number, currencyCode: string) => {
+    if (currencyCode === 'EGP') {
+      // Convert EGP to USD using approximate rate
+      // EGP 99 = USD 2, EGP 149 = USD 3, EGP 249 = USD 4.99
+      switch (localAmount) {
+        case 99:
+          return 2.00;
+        case 149:
+          return 3.00;
+        case 249:
+          return 4.99;
+        default:
+          return localAmount / 49.5; // Approximate conversion rate
+      }
+    }
+    return localAmount; // Already in USD
   };
 
   const handleSubscriptionSelect = (tier: string) => {
@@ -182,13 +200,14 @@ const Subscription = () => {
     try {
       const subscription = await createSubscription(details);
       
+      const tierDetails = getTierDetails(selectedTier!);
       toast({
         title: "Payment Successful!",
         description: `Your ${selectedTier} plan has been activated with ${subscription.scan_count} export credits.`,
       });
 
       handleSubscriptionUpdate();
-      navigate(`/payment-success?session_id=${details.id}&tier=${selectedTier}&amount=${getTierDetails(selectedTier!)?.price}`);
+      navigate(`/payment-success?session_id=${details.id}&tier=${selectedTier}&amount=${tierDetails?.price}`);
     } catch (error) {
       console.error('Error updating subscription:', error);
       toast({
@@ -228,12 +247,28 @@ const Subscription = () => {
 
   const getPayPalOrderData = (): PayPalOrderData => {
     const tierDetails = getTierDetails(selectedTier!);
+    const usdAmount = convertToUSD(tierDetails.price, locationData.currency.code);
+    
+    console.log('Converting payment:', {
+      originalAmount: tierDetails.price,
+      originalCurrency: locationData.currency.code,
+      usdAmount: usdAmount,
+      tier: selectedTier
+    });
+
     return {
-      amount: tierDetails.price.toString(),
+      amount: usdAmount.toFixed(2),
       currency: "USD", // PayPal integration uses USD
       description: `${tierDetails.name} Plan - ${tierDetails.exports} exports`,
       tier: selectedTier!
     };
+  };
+
+  const formatDisplayPrice = (price: number) => {
+    if (locationData.currency.code === 'EGP') {
+      return `${locationData.currency.symbol} ${price}`;
+    }
+    return `${locationData.currency.symbol}${price.toFixed(2)}`;
   };
 
   return (
@@ -267,7 +302,12 @@ const Subscription = () => {
                   Complete Your Purchase
                 </h1>
                 <p className="text-muted-foreground">
-                  You're purchasing the {getTierDetails(selectedTier!)?.name} plan for ${getTierDetails(selectedTier!)?.price}
+                  You're purchasing the {getTierDetails(selectedTier!)?.name} plan for {formatDisplayPrice(getTierDetails(selectedTier!)?.price)}
+                  {locationData.currency.code !== 'USD' && (
+                    <span className="text-sm text-muted-foreground ml-2">
+                      (Processing in USD: ${convertToUSD(getTierDetails(selectedTier!)?.price, locationData.currency.code).toFixed(2)})
+                    </span>
+                  )}
                 </p>
                 <Button
                   variant="outline"
@@ -292,6 +332,7 @@ const Subscription = () => {
                 currentSubscription={currentSubscription}
                 onSubscriptionUpdate={handleSubscriptionUpdate}
                 onSubscriptionSelect={handleSubscriptionSelect}
+                locationData={locationData}
               />
 
               <Card className="mt-12">

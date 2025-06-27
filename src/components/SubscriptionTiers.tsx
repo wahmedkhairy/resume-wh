@@ -10,6 +10,16 @@ interface SubscriptionTiersProps {
   currentSubscription: any;
   onSubscriptionUpdate: () => void;
   onSubscriptionSelect?: (tier: string) => void;
+  locationData?: {
+    country: string;
+    currency: {
+      symbol: string;
+      code: string;
+      basicPrice: number;
+      premiumPrice: number;
+      unlimitedPrice: number;
+    };
+  };
 }
 
 const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
@@ -17,64 +27,136 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
   currentSubscription,
   onSubscriptionUpdate,
   onSubscriptionSelect,
+  locationData,
 }) => {
-  const tiers = [
-    {
-      id: "basic",
-      name: "Basic",
-      price: "$2.00",
-      period: "one-time payment",
-      description: "Perfect for job seekers starting their career",
-      features: [
-        "2 Professional resume exports",
-        "Basic ATS optimization",
-        "PDF export",
-        "1 Targeted resume per month",
-        "Email support"
-      ],
-      icon: <Zap className="h-6 w-6" />,
-      popular: false,
-      buttonText: "Get Basic"
-    },
-    {
-      id: "premium",
-      name: "Premium",
-      price: "$3.00",
-      period: "one-time payment",
-      description: "Most popular choice for serious job seekers",
-      features: [
-        "All Basic features",
-        "6 Professional resume exports",
-        "Advanced ATS analysis",
-        "PDF & Word export",
-        "3 Targeted resumes per month",
-        "Priority support",
-        "Interview preparation tips"
-      ],
-      icon: <Star className="h-6 w-6" />,
-      popular: true,
-      buttonText: "Get Premium"
-    },
-    {
-      id: "unlimited",
-      name: "Unlimited",
-      price: "$4.99",
-      period: "one-time payment",
-      description: "For professionals who need maximum flexibility",
-      features: [
-        "All Premium features",
-        "Unlimited resume exports",
-        "Unlimited targeted resumes",
-        "Advanced career insights",
-        "1-on-1 career consultation",
-        "Priority queue processing",
-        "White-label resume exports"
-      ],
-      icon: <Crown className="h-6 w-6" />,
-      popular: false,
-      buttonText: "Get Unlimited"
+  const getTiers = () => {
+    if (!locationData) {
+      return [
+        {
+          id: "basic",
+          name: "Basic",
+          price: "$2.00",
+          period: "one-time payment",
+          description: "Perfect for job seekers starting their career",
+          features: [
+            "2 Professional resume exports",
+            "Basic ATS optimization",
+            "PDF export",
+            "1 Targeted resume per month",
+            "Email support"
+          ],
+          icon: <Zap className="h-6 w-6" />,
+          popular: false,
+          buttonText: "Get Basic"
+        },
+        {
+          id: "premium",
+          name: "Premium",
+          price: "$3.00",
+          period: "one-time payment",
+          description: "Most popular choice for serious job seekers",
+          features: [
+            "All Basic features",
+            "6 Professional resume exports",
+            "Advanced ATS analysis",
+            "PDF & Word export",
+            "3 Targeted resumes per month",
+            "Priority support",
+            "Interview preparation tips"
+          ],
+          icon: <Star className="h-6 w-6" />,
+          popular: true,
+          buttonText: "Get Premium"
+        },
+        {
+          id: "unlimited",
+          name: "Unlimited",
+          price: "$4.99",
+          period: "one-time payment",
+          description: "For professionals who need maximum flexibility",
+          features: [
+            "All Premium features",
+            "Unlimited resume exports",
+            "Unlimited targeted resumes",
+            "Advanced career insights",
+            "1-on-1 career consultation",
+            "Priority queue processing",
+            "White-label resume exports"
+          ],
+          icon: <Crown className="h-6 w-6" />,
+          popular: false,
+          buttonText: "Get Unlimited"
+        }
+      ];
     }
-  ];
+
+    const formatPrice = (amount: number) => {
+      if (locationData.currency.code === 'EGP') {
+        return `${locationData.currency.symbol} ${amount}`;
+      }
+      return `${locationData.currency.symbol}${amount.toFixed(2)}`;
+    };
+
+    return [
+      {
+        id: "basic",
+        name: "Basic",
+        price: formatPrice(locationData.currency.basicPrice),
+        period: "one-time payment",
+        description: "Perfect for job seekers starting their career",
+        features: [
+          "2 Professional resume exports",
+          "Basic ATS optimization",
+          "PDF export",
+          "1 Targeted resume per month",
+          "Email support"
+        ],
+        icon: <Zap className="h-6 w-6" />,
+        popular: false,
+        buttonText: "Get Basic"
+      },
+      {
+        id: "premium",
+        name: "Premium",
+        price: formatPrice(locationData.currency.premiumPrice),
+        period: "one-time payment",
+        description: "Most popular choice for serious job seekers",
+        features: [
+          "All Basic features",
+          "6 Professional resume exports",
+          "Advanced ATS analysis",
+          "PDF & Word export",
+          "3 Targeted resumes per month",
+          "Priority support",
+          "Interview preparation tips"
+        ],
+        icon: <Star className="h-6 w-6" />,
+        popular: true,
+        buttonText: "Get Premium"
+      },
+      {
+        id: "unlimited",
+        name: "Unlimited",
+        price: formatPrice(locationData.currency.unlimitedPrice),
+        period: "one-time payment",
+        description: "For professionals who need maximum flexibility",
+        features: [
+          "All Premium features",
+          "Unlimited resume exports",
+          "Unlimited targeted resumes",
+          "Advanced career insights",
+          "1-on-1 career consultation",
+          "Priority queue processing",
+          "White-label resume exports"
+        ],
+        icon: <Crown className="h-6 w-6" />,
+        popular: false,
+        buttonText: "Get Unlimited"
+      }
+    ];
+  };
+
+  const tiers = getTiers();
 
   const isCurrentTier = (tierId: string) => {
     return currentSubscription?.tier === tierId && currentSubscription?.status === 'active';

@@ -35,6 +35,9 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
             <span className="text-sm text-muted-foreground">Plan:</span>
             <span className="text-sm capitalize">{orderData.tier}</span>
           </div>
+          <div className="text-xs text-muted-foreground mt-2">
+            Processing in USD via PayPal
+          </div>
         </div>
       </CardHeader>
       <CardContent>

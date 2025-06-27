@@ -32,7 +32,10 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
         
         // Check if PayPal script is already loaded
         if ((window as any).paypal) {
-          console.log('PayPal SDK already loaded, rendering buttons...');
+          console.log('PayPal SDK already loaded, clearing and re-rendering buttons...');
+          if (paypalRef.current) {
+            paypalRef.current.innerHTML = '';
+          }
           renderPayPalButtons();
           return;
         }
@@ -67,10 +70,17 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
         const paypalClientId = configData.clientId;
         console.log('PayPal Client ID received:', paypalClientId.substring(0, 10) + '...');
         
+        // Remove existing PayPal script if any
+        const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
+        if (existingScript) {
+          existingScript.remove();
+        }
+        
         // Load PayPal SDK
         const script = document.createElement('script');
         script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=${orderData.currency}&intent=capture&components=buttons`;
         script.async = true;
+        script.id = 'paypal-sdk-script';
         
         script.onload = () => {
           console.log('PayPal SDK loaded successfully');
@@ -78,7 +88,7 @@ const PayPalCheckout: React.FC<PayPalCheckoutProps> = ({
         };
         
         script.onerror = () => {
-          const errorMessage = "Failed to load PayPal SDK. Please check your internet connection.";
+          const errorMessage = "Failed to load PayPal SDK. Please check your internet connection and try again.";
           console.error("PayPal SDK loading error");
           setError(errorMessage);
           setIsLoading(false);
