@@ -65,7 +65,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
     };
 
     const initializePayPalButtons = () => {
-      if (!window.paypal || !paypalContainerRef.current) {
+      if (!(window as any).paypal || !paypalContainerRef.current) {
         console.error('PayPal SDK or container not available');
         return;
       }
@@ -74,7 +74,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
       paypalContainerRef.current.innerHTML = '';
 
       try {
-        window.paypal.Buttons({
+        (window as any).paypal.Buttons({
           createOrder: function(data: any, actions: any) {
             console.log('Creating PayPal order for amount:', amount);
             return actions.order.create({
@@ -201,12 +201,5 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
     </div>
   );
 };
-
-// Extend Window interface for PayPal
-declare global {
-  interface Window {
-    paypal: any;
-  }
-}
 
 export default PayPalSmartButtons;
