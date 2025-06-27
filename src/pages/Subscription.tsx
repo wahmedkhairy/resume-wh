@@ -144,15 +144,17 @@ const Subscription = () => {
         if (error) throw error;
       }
 
+      // Show success message
       toast({
         title: "Payment Successful!",
         description: `Your ${selectedTier} plan is now active.`,
       });
 
-      // Redirect to main app after a short delay
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
+      // Navigate to payment success page with details
+      const successUrl = `/payment-success?session_id=${details.id}&tier=${selectedTier}&amount=${details.amount}&currency=${details.currency}`;
+      console.log('Navigating to:', successUrl);
+      navigate(successUrl);
+      
     } catch (error) {
       console.error('Error updating subscription:', error);
       toast({

@@ -1,8 +1,11 @@
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { PayPalOrderData } from "@/services/paypalService";
 import { supabase } from "@/integrations/supabase/client";
+import CreditCardForm from "./CreditCardForm";
+import { CreditCard, Wallet } from "lucide-react";
 
 interface PaymentSectionProps {
   orderData: PayPalOrderData;
@@ -21,8 +24,15 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
 }) => {
   const paypalContainerRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef(false);
+  const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'card'>('paypal');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
+    // Only initialize PayPal if PayPal method is selected
+    if (paymentMethod !== 'paypal') {
+      return;
+    }
+
     // Prevent multiple initializations
     if (isInitializedRef.current) {
       return;
@@ -42,9 +52,9 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           // Get PayPal Client ID - using sandbox client ID that works
           const clientId = "ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2";
           
-          // Create and inject PayPal SDK script
+          // Create and inject PayPal SDK script with credit card support
           const script = document.createElement('script');
-          script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${orderData.currency}&disable-funding=credit,card&components=buttons`;
+          script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${orderData.currency}&components=buttons`;
           script.async = true;
           
           script.onload = () => {
@@ -66,7 +76,8 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
                   layout: 'vertical',
                   color: 'blue',
                   shape: 'rect',
-                  label: 'paypal'
+                  label: 'paypal',
+                  height: 40
                 },
                 createOrder: async function (data: any, actions: any) {
                   try {
@@ -112,7 +123,8 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
                       purchase_units: details.purchase_units,
                       amount: orderData.amount,
                       currency: orderData.currency,
-                      tier: orderData.tier
+                      tier: orderData.tier,
+                      payment_method: 'paypal'
                     };
                     
                     if (onSuccess) {
@@ -170,14 +182,19 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         isInitializedRef.current = false;
       };
     }
-  }, [useRawHTML, orderData, onSuccess, onError, onCancel]);
+  }, [useRawHTML, paymentMethod, orderData, onSuccess, onError, onCancel]);
+
+  // Reset PayPal initialization when switching payment methods
+  useEffect(() => {
+    isInitializedRef.current = false;
+  }, [paymentMethod]);
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
         <CardTitle className="text-lg">Secure Payment</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Complete your purchase with PayPal
+          Choose your payment method
         </p>
         <div className="bg-muted p-3 rounded-lg mt-4">
           <div className="flex justify-between items-center">
@@ -190,23 +207,57 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
             <span className="text-sm text-muted-foreground">Plan:</span>
             <span className="text-sm capitalize">{orderData.tier}</span>
           </div>
-          <div className="text-xs text-muted-foreground mt-2">
-            Processing via PayPal
-          </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="w-full">
-          <div style={{ marginTop: '20px' }}>
-            <div 
-              id="paypal-button-container" 
-              ref={paypalContainerRef}
-              className="min-h-[50px]"
-            />
+          {/* Payment Method Selection */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <Button
+              variant={paymentMethod === 'paypal' ? 'default' : 'outline'}
+              onClick={() => setPaymentMethod('paypal')}
+              className="flex items-center justify-center h-12"
+              disabled={isProcessing}
+            >
+              <Wallet className="h-4 w-4 mr-2" />
+              PayPal
+            </Button>
+            <Button
+              variant={paymentMethod === 'card' ? 'default' : 'outline'}
+              onClick={() => setPaymentMethod('card')}
+              className="flex items-center justify-center h-12"
+              disabled={isProcessing}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Card
+            </Button>
           </div>
-          <p className="text-xs text-center text-gray-500 mt-2">
-            Secure payment powered by PayPal
-          </p>
+
+          {/* Payment Method Content */}
+          {paymentMethod === 'paypal' ? (
+            <div>
+              <div 
+                id="paypal-button-container" 
+                ref={paypalContainerRef}
+                className="min-h-[50px]"
+              />
+              <p className="text-xs text-center text-gray-500 mt-2">
+                Secure payment powered by PayPal
+              </p>
+            </div>
+          ) : (
+            <CreditCardForm
+              onSuccess={onSuccess}
+              onError={onError}
+              onCancel={onCancel}
+              amount={parseFloat(orderData.amount)}
+              currency={orderData.currency}
+              symbol={orderData.currency === 'EGP' ? 'EGP' : '$'}
+              selectedTier={orderData.tier}
+              isProcessing={isProcessing}
+              setIsProcessing={setIsProcessing}
+            />
+          )}
         </div>
       </CardContent>
     </Card>
