@@ -131,11 +131,20 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
 
   const createSubscription = async (paymentDetails: any) => {
     try {
-      console.log('Creating subscription for user...');
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('🔄 Creating subscription for user...');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('❌ Error getting user:', userError);
+        throw new Error(`Authentication error: ${userError.message}`);
+      }
+      
       if (!user) {
+        console.error('❌ No user found');
         throw new Error("User not authenticated");
       }
+
+      console.log('✅ User authenticated:', user.id);
 
       // Calculate export credits based on tier
       let exportCredits = 0;
@@ -153,7 +162,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
           exportCredits = 2;
       }
 
-      console.log('Creating subscription with credits:', exportCredits, 'for tier:', selectedTier);
+      console.log('📊 Creating subscription with credits:', exportCredits, 'for tier:', selectedTier);
 
       // Create subscription record
       const { data: subscription, error } = await supabase
@@ -177,14 +186,14 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
         .single();
 
       if (error) {
-        console.error('Subscription creation error:', error);
-        throw error;
+        console.error('❌ Subscription creation error:', error);
+        throw new Error(`Database error: ${error.message}`);
       }
 
-      console.log('Subscription created successfully:', subscription);
+      console.log('✅ Subscription created successfully:', subscription);
       return subscription;
     } catch (error) {
-      console.error('Error creating subscription:', error);
+      console.error('❌ Error in createSubscription:', error);
       throw error;
     }
   };
@@ -192,16 +201,20 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🚀 Form submitted');
+    
     if (!validateForm()) {
+      console.log('❌ Form validation failed');
       return;
     }
 
-    console.log('Starting payment process for tier:', selectedTier, 'amount:', amount);
+    console.log('✅ Form validation passed');
+    console.log('🔄 Starting payment process for tier:', selectedTier, 'amount:', amount);
     setIsProcessing(true);
 
     try {
       // Simulate payment processing delay
-      console.log('Processing payment...');
+      console.log('⏳ Processing payment...');
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Create payment details
@@ -215,12 +228,13 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
         timestamp: new Date().toISOString()
       };
 
-      console.log('Payment processed successfully:', paymentDetails);
+      console.log('✅ Payment processed successfully:', paymentDetails);
 
       // Create subscription in Supabase
+      console.log('🔄 Creating subscription in database...');
       const subscription = await createSubscription(paymentDetails);
       
-      console.log('Subscription created, preparing success response');
+      console.log('✅ Subscription created, preparing success response');
 
       const successData = {
         ...paymentDetails,
@@ -228,24 +242,26 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
       };
 
       // Show success toast
+      console.log('🎉 Showing success toast');
       toast({
         title: "Payment Successful!",
         description: `Your ${selectedTier} plan has been activated with ${subscription.scan_count} export credits.`,
       });
 
       // Call the success handler
-      console.log('Calling onSuccess handler');
+      console.log('📞 Calling onSuccess handler');
       onSuccess(successData);
 
       // Navigate to success page
-      console.log('Navigating to payment success page');
+      console.log('🔄 Navigating to payment success page');
       navigate(`/payment-success?session_id=${paymentDetails.id}&tier=${selectedTier}&amount=${amount}`);
 
     } catch (error) {
-      console.error('Payment processing error:', error);
+      console.error('❌ Payment processing error:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       
+      console.log('🚨 Showing error toast');
       toast({
         title: "Payment Failed",
         description: `There was an error processing your payment: ${errorMessage}`,
@@ -253,8 +269,10 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
       });
       
       // Call error handler
+      console.log('📞 Calling onError handler');
       onError(error);
     } finally {
+      console.log('🔄 Setting isProcessing to false');
       setIsProcessing(false);
     }
   };
