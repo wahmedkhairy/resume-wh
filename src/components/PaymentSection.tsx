@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PayPalOrderData } from "@/services/paypalService";
 
@@ -18,18 +18,27 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   onCancel,
   useRawHTML = true
 }) => {
+  const paypalContainerRef = useRef<HTMLDivElement>(null);
+  const isInitializedRef = useRef(false);
+
   useEffect(() => {
+    // Prevent multiple initializations
+    if (isInitializedRef.current) {
+      return;
+    }
+
     if (useRawHTML) {
-      // Use the Supabase secret for PayPal Client ID
       const initializePayPal = async () => {
         try {
+          console.log('Initializing PayPal with order data:', orderData);
+          
           // Remove existing PayPal script if any
           const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
           if (existingScript) {
             existingScript.remove();
           }
 
-          // Get PayPal Client ID from Supabase secrets
+          // Get PayPal Client ID - using the one from Supabase secrets
           const clientId = "ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2";
           
           // Create and inject PayPal SDK script
@@ -40,10 +49,20 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           script.onload = () => {
             console.log('PayPal SDK loaded successfully');
             
+            // Ensure container is available
+            if (!paypalContainerRef.current) {
+              console.error('PayPal container not available');
+              return;
+            }
+
+            // Clear any existing content
+            paypalContainerRef.current.innerHTML = '';
+            
             // Initialize PayPal buttons
             if ((window as any).paypal) {
               (window as any).paypal.Buttons({
                 createOrder: function (data: any, actions: any) {
+                  console.log('Creating PayPal order for:', orderData);
                   return actions.order.create({
                     purchase_units: [{
                       amount: { 
@@ -55,6 +74,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
                   });
                 },
                 onApprove: function (data: any, actions: any) {
+                  console.log('PayPal payment approved:', data);
                   return actions.order.capture().then(function (details: any) {
                     console.log('PayPal payment completed:', details);
                     if (onSuccess) {
@@ -74,7 +94,9 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
                     onCancel();
                   }
                 }
-              }).render('#paypal-button-container');
+              }).render(paypalContainerRef.current);
+
+              isInitializedRef.current = true;
             }
           };
 
@@ -102,6 +124,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         if (scriptToRemove) {
           scriptToRemove.remove();
         }
+        isInitializedRef.current = false;
       };
     }
   }, [useRawHTML, orderData, onSuccess, onError, onCancel]);
@@ -132,7 +155,11 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       <CardContent>
         <div className="w-full">
           <div style={{ marginTop: '20px' }}>
-            <div id="paypal-button-container" className="min-h-[50px]"></div>
+            <div 
+              id="paypal-button-container" 
+              ref={paypalContainerRef}
+              className="min-h-[50px]"
+            />
           </div>
           <p className="text-xs text-center text-gray-500 mt-2">
             Secure payment powered by PayPal

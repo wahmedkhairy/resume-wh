@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -97,12 +98,15 @@ const Subscription = () => {
   }, [navigate, toast]);
 
   const handleSubscriptionSelect = (tier: string) => {
+    console.log('Subscription tier selected:', tier);
     setSelectedTier(tier);
     setShowPayment(true);
   };
 
   const handlePaymentSuccess = async (details: any) => {
     try {
+      console.log('Payment successful, processing subscription update:', details);
+      
       const tierPricing = {
         basic: { scans: 2, max_scans: 2 },
         premium: { scans: 6, max_scans: 6 },
@@ -145,7 +149,7 @@ const Subscription = () => {
         description: `Your ${selectedTier} plan is now active.`,
       });
 
-      // Redirect to main app
+      // Redirect to main app after a short delay
       setTimeout(() => {
         navigate('/');
       }, 2000);
@@ -166,13 +170,17 @@ const Subscription = () => {
       description: "Your payment could not be processed. Please try again.",
       variant: "destructive",
     });
-    setShowPayment(false);
-    setSelectedTier(null);
+    // Don't reset the payment state immediately, let user try again
   };
 
   const handlePaymentCancel = () => {
+    console.log('Payment cancelled by user');
     setShowPayment(false);
     setSelectedTier(null);
+    toast({
+      title: "Payment Cancelled",
+      description: "You can try again when you're ready.",
+    });
   };
 
   const getOrderData = () => {
