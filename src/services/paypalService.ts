@@ -1,4 +1,3 @@
-
 import { loadScript } from "@paypal/paypal-js";
 import { supabase } from "@/integrations/supabase/client";
 
