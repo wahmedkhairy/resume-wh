@@ -39,12 +39,12 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
             existingScript.remove();
           }
 
-          // Get PayPal Client ID - using the one from Supabase secrets
+          // Get PayPal Client ID - using sandbox client ID that works
           const clientId = "ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2";
           
           // Create and inject PayPal SDK script
           const script = document.createElement('script');
-          script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${orderData.currency}`;
+          script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${orderData.currency}&disable-funding=credit,card&components=buttons`;
           script.async = true;
           
           script.onload = () => {
@@ -62,27 +62,32 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
             // Initialize PayPal buttons
             if ((window as any).paypal) {
               (window as any).paypal.Buttons({
+                style: {
+                  layout: 'vertical',
+                  color: 'blue',
+                  shape: 'rect',
+                  label: 'paypal'
+                },
                 createOrder: async function (data: any, actions: any) {
                   try {
-                    console.log('Creating PayPal order via Supabase edge function:', orderData);
+                    console.log('Creating PayPal order directly with PayPal API');
                     
-                    // Use our Supabase edge function to create the order
-                    const { data: orderResponse, error } = await supabase.functions.invoke('create-paypal-order', {
-                      body: {
-                        amount: orderData.amount,
-                        currency: orderData.currency,
+                    // Create order directly with PayPal API instead of edge function
+                    return actions.order.create({
+                      purchase_units: [{
+                        amount: {
+                          currency_code: orderData.currency,
+                          value: orderData.amount
+                        },
                         description: orderData.description || `${orderData.tier} Plan`,
-                        tier: orderData.tier
+                        custom_id: orderData.tier
+                      }],
+                      application_context: {
+                        brand_name: 'Resume Builder',
+                        landing_page: 'NO_PREFERENCE',
+                        user_action: 'PAY_NOW'
                       }
                     });
-
-                    if (error) {
-                      console.error('Error creating PayPal order:', error);
-                      throw error;
-                    }
-
-                    console.log('PayPal order created successfully:', orderResponse.orderId);
-                    return orderResponse.orderId;
                   } catch (error) {
                     console.error('Failed to create PayPal order:', error);
                     if (onError) {
@@ -95,20 +100,23 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
                   try {
                     console.log('PayPal payment approved:', data);
                     
-                    // Capture the payment via our Supabase edge function
-                    const { data: captureResponse, error } = await supabase.functions.invoke('capture-paypal-order', {
-                      body: { orderId: data.orderID }
-                    });
-
-                    if (error) {
-                      console.error('Error capturing PayPal payment:', error);
-                      throw error;
-                    }
-
-                    console.log('PayPal payment captured successfully:', captureResponse);
+                    // Capture the payment directly with PayPal
+                    const details = await actions.order.capture();
+                    console.log('PayPal payment captured successfully:', details);
+                    
+                    // Process the successful payment
+                    const paymentResult = {
+                      id: details.id,
+                      status: details.status,
+                      payer: details.payer,
+                      purchase_units: details.purchase_units,
+                      amount: orderData.amount,
+                      currency: orderData.currency,
+                      tier: orderData.tier
+                    };
                     
                     if (onSuccess) {
-                      onSuccess(captureResponse);
+                      onSuccess(paymentResult);
                     }
                   } catch (error) {
                     console.error('Error capturing PayPal payment:', error);
@@ -169,7 +177,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       <CardHeader className="text-center">
         <CardTitle className="text-lg">Secure Payment</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Complete your purchase with PayPal or Credit Card
+          Complete your purchase with PayPal
         </p>
         <div className="bg-muted p-3 rounded-lg mt-4">
           <div className="flex justify-between items-center">
