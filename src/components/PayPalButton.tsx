@@ -14,20 +14,20 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
   onSuccess,
   onError
 }) => {
-  const paypalContainerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [paypalService] = useState(() => PayPalService.getInstance());
+  const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    let isMounted = true;
-
-    const initializePayPal = async () => {
+    const initPayPal = async () => {
       try {
-        console.log('Initializing PayPal service');
-        const initialized = await paypalService.initialize();
+        console.log('Initializing PayPal button...');
         
-        if (!initialized) {
+        const service = PayPalService.getInstance();
+        const ok = await service.initialize();
+        
+        if (!ok) {
           console.error('PayPal service initialization failed');
           setIsLoading(false);
           toast({
@@ -38,31 +38,38 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
           return;
         }
 
-        if (!isMounted) return;
-
-        const paypal = paypalService.getPayPal();
-        if (!paypal || !paypalContainerRef.current) {
-          console.error('PayPal SDK or container not available');
+        // Ensure container is available
+        if (!containerRef.current) {
+          console.error('PayPal container not available');
           setIsLoading(false);
           return;
         }
 
-        // Clear any existing content
-        paypalContainerRef.current.innerHTML = '';
+        const paypal = service.getPayPal();
+        if (!paypal) {
+          console.error('PayPal SDK not loaded');
+          setIsLoading(false);
+          return;
+        }
 
-        console.log('Rendering PayPal buttons for amount:', amount);
-        
+        console.log('Rendering PayPal buttons...');
+
+        const orderData = {
+          amount,
+          currency: "USD",
+          description: `Payment for $${amount}`,
+          tier: "basic"
+        };
+
+        // Clear any existing content
+        containerRef.current.innerHTML = '';
+
         paypal.Buttons({
           createOrder: async () => {
             try {
               console.log('Creating PayPal order...');
-              const orderId = await paypalService.createOrder({
-                amount,
-                currency: "USD",
-                description: `Payment for $${amount}`,
-                tier: "basic"
-              });
-              console.log('Order created with ID:', orderId);
+              const orderId = await service.createOrder(orderData);
+              console.log('Order created:', orderId);
               return orderId;
             } catch (error) {
               console.error('Error creating order:', error);
@@ -77,9 +84,9 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
           
           onApprove: async (data: any) => {
             try {
-              console.log('PayPal payment approved, capturing order:', data.orderID);
-              const details = await paypalService.captureOrder(data.orderID);
-              console.log('Order captured successfully:', details);
+              console.log('PayPal payment approved:', data.orderID);
+              const capture = await service.captureOrder(data.orderID);
+              console.log('Payment captured:', capture);
               
               toast({
                 title: "Payment Successful!",
@@ -87,10 +94,10 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
               });
 
               if (onSuccess) {
-                onSuccess(details);
+                onSuccess(capture);
               }
             } catch (error) {
-              console.error('Error capturing order:', error);
+              console.error('Error capturing payment:', error);
               toast({
                 title: "Payment Failed",
                 description: "Payment approval failed. Please try again.",
@@ -123,31 +130,35 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
               description: "Your payment was cancelled.",
             });
           }
-        }).render(paypalContainerRef.current);
+        }).render(containerRef.current);
 
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        setIsInitialized(true);
+        setIsLoading(false);
+        console.log('PayPal buttons rendered successfully');
         
       } catch (error) {
         console.error('Error initializing PayPal:', error);
-        if (isMounted) {
-          setIsLoading(false);
-          toast({
-            title: "PayPal Error",
-            description: "Failed to load PayPal. Please refresh the page.",
-            variant: "destructive"
-          });
-        }
+        setIsLoading(false);
+        toast({
+          title: "PayPal Error",
+          description: "Failed to load PayPal. Please refresh the page.",
+          variant: "destructive"
+        });
       }
     };
 
-    initializePayPal();
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPayPal);
+    } else {
+      // DOM is already ready
+      initPayPal();
+    }
 
     return () => {
-      isMounted = false;
+      document.removeEventListener('DOMContentLoaded', initPayPal);
     };
-  }, [amount, paypalService, onSuccess, onError, toast]);
+  }, [amount, onSuccess, onError, toast]);
 
   if (isLoading) {
     return (
@@ -161,8 +172,8 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
   return (
     <div className="w-full">
       <div 
-        id="paypal-button-container" 
-        ref={paypalContainerRef}
+        id="paypal-button-container"
+        ref={containerRef}
         className="min-h-[50px] w-full"
       />
       <p className="text-xs text-center text-gray-500 mt-2">

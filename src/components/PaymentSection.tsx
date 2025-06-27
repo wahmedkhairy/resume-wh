@@ -12,7 +12,7 @@ interface PaymentSectionProps {
   onError: (error: any) => void;
   onCancel: () => void;
   useSmartButtons?: boolean;
-  useNewButton?: boolean; // New prop to use the new PayPalButton component
+  useNewButton?: boolean;
 }
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
@@ -21,7 +21,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   onError,
   onCancel,
   useSmartButtons = false,
-  useNewButton = true // Default to new button
+  useNewButton = true
 }) => {
   return (
     <Card className="w-full max-w-md mx-auto">
