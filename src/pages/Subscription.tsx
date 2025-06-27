@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -172,7 +171,6 @@ const Subscription = () => {
       description: "Your payment could not be processed. Please try again.",
       variant: "destructive",
     });
-    // Don't reset the payment state immediately, let user try again
   };
 
   const handlePaymentCancel = () => {
@@ -267,14 +265,6 @@ const Subscription = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
-                      <span className="font-medium">Total Amount:</span>
-                      <span className="text-xl font-bold">
-                        {locationData?.currency.symbol}
-                        {getOrderData()?.amount} {locationData?.currency.code}
-                      </span>
-                    </div>
-                    
                     {getOrderData() && (
                       <PaymentSection
                         orderData={getOrderData()!}
@@ -291,7 +281,7 @@ const Subscription = () => {
                         onClick={handlePaymentCancel}
                         className="mt-4"
                       >
-                        Cancel
+                        Back to Plans
                       </Button>
                     </div>
                   </div>

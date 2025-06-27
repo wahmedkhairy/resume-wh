@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PayPalOrderData } from "@/services/paypalService";
 import { supabase } from "@/integrations/supabase/client";
 import CreditCardForm from "./CreditCardForm";
-import { CreditCard, Wallet } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface PaymentSectionProps {
   orderData: PayPalOrderData;
@@ -24,98 +24,93 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
 }) => {
   const paypalContainerRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef(false);
-  const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'card'>('paypal');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paypalError, setPaypalError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Only initialize PayPal if PayPal method is selected
-    if (paymentMethod !== 'paypal') {
-      return;
-    }
-
     // Prevent multiple initializations
     if (isInitializedRef.current) {
       return;
     }
 
-    if (useRawHTML) {
-      const initializePayPal = async () => {
-        try {
-          console.log('Initializing PayPal with order data:', orderData);
+    const initializePayPal = async () => {
+      try {
+        console.log('Initializing PayPal with order data:', orderData);
+        
+        // Clean up any existing PayPal instances
+        if (paypalContainerRef.current) {
+          paypalContainerRef.current.innerHTML = '';
+        }
+
+        // Remove existing PayPal script if any
+        const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
+        if (existingScript) {
+          existingScript.remove();
+        }
+
+        // Wait a bit for cleanup
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Get PayPal Client ID
+        const clientId = "ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2";
+        
+        // Create and inject PayPal SDK script
+        const script = document.createElement('script');
+        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${orderData.currency}&components=buttons&disable-funding=venmo,paylater`;
+        script.async = true;
+        
+        script.onload = () => {
+          console.log('PayPal SDK loaded successfully');
           
-          // Remove existing PayPal script if any
-          const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
-          if (existingScript) {
-            existingScript.remove();
+          // Ensure container is available
+          if (!paypalContainerRef.current) {
+            console.error('PayPal container not available');
+            return;
           }
 
-          // Get PayPal Client ID - using sandbox client ID that works
-          const clientId = "ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2";
+          // Clear any existing content
+          paypalContainerRef.current.innerHTML = '';
           
-          // Create and inject PayPal SDK script with credit card support
-          const script = document.createElement('script');
-          script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${orderData.currency}&components=buttons`;
-          script.async = true;
-          
-          script.onload = () => {
-            console.log('PayPal SDK loaded successfully');
-            
-            // Ensure container is available
-            if (!paypalContainerRef.current) {
-              console.error('PayPal container not available');
-              return;
-            }
-
-            // Clear any existing content
-            paypalContainerRef.current.innerHTML = '';
-            
-            // Initialize PayPal buttons
-            if ((window as any).paypal) {
+          // Initialize PayPal buttons
+          if ((window as any).paypal) {
+            try {
               (window as any).paypal.Buttons({
                 style: {
                   layout: 'vertical',
-                  color: 'blue',
+                  color: 'gold',
                   shape: 'rect',
                   label: 'paypal',
-                  height: 40
+                  height: 45,
+                  tagline: false
                 },
-                createOrder: async function (data: any, actions: any) {
-                  try {
-                    console.log('Creating PayPal order directly with PayPal API');
-                    
-                    // Create order directly with PayPal API instead of edge function
-                    return actions.order.create({
-                      purchase_units: [{
-                        amount: {
-                          currency_code: orderData.currency,
-                          value: orderData.amount
-                        },
-                        description: orderData.description || `${orderData.tier} Plan`,
-                        custom_id: orderData.tier
-                      }],
-                      application_context: {
-                        brand_name: 'Resume Builder',
-                        landing_page: 'NO_PREFERENCE',
-                        user_action: 'PAY_NOW'
-                      }
-                    });
-                  } catch (error) {
-                    console.error('Failed to create PayPal order:', error);
-                    if (onError) {
-                      onError(error);
+                createOrder: function (data: any, actions: any) {
+                  console.log('Creating PayPal order');
+                  
+                  return actions.order.create({
+                    purchase_units: [{
+                      amount: {
+                        currency_code: orderData.currency,
+                        value: orderData.amount
+                      },
+                      description: orderData.description || `${orderData.tier} Plan`,
+                      custom_id: orderData.tier
+                    }],
+                    application_context: {
+                      brand_name: 'Resume Builder',
+                      landing_page: 'LOGIN',
+                      user_action: 'PAY_NOW',
+                      return_url: window.location.origin + '/subscription',
+                      cancel_url: window.location.origin + '/subscription'
                     }
-                    throw error;
-                  }
+                  });
                 },
-                onApprove: async function (data: any, actions: any) {
-                  try {
-                    console.log('PayPal payment approved:', data);
-                    
-                    // Capture the payment directly with PayPal
-                    const details = await actions.order.capture();
+                onApprove: function (data: any, actions: any) {
+                  console.log('PayPal payment approved:', data);
+                  setIsProcessing(true);
+                  
+                  return actions.order.capture().then(function(details: any) {
                     console.log('PayPal payment captured successfully:', details);
                     
-                    // Process the successful payment
                     const paymentResult = {
                       id: details.id,
                       status: details.status,
@@ -127,75 +122,66 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
                       payment_method: 'paypal'
                     };
                     
-                    if (onSuccess) {
-                      onSuccess(paymentResult);
-                    }
-                  } catch (error) {
+                    setIsProcessing(false);
+                    onSuccess(paymentResult);
+                  }).catch(function(error: any) {
                     console.error('Error capturing PayPal payment:', error);
-                    if (onError) {
-                      onError(error);
-                    }
-                  }
+                    setIsProcessing(false);
+                    onError(error);
+                  });
                 },
                 onError: function(err: any) {
                   console.error('PayPal error:', err);
-                  if (onError) {
-                    onError(err);
-                  }
+                  setIsProcessing(false);
+                  setPaypalError('PayPal payment failed. Please try again.');
+                  onError(err);
                 },
                 onCancel: function(data: any) {
                   console.log('PayPal payment cancelled:', data);
-                  if (onCancel) {
-                    onCancel();
-                  }
+                  setIsProcessing(false);
+                  onCancel();
                 }
               }).render(paypalContainerRef.current);
 
               isInitializedRef.current = true;
+              setPaypalError(null);
+            } catch (renderError) {
+              console.error('Error rendering PayPal buttons:', renderError);
+              setPaypalError('Failed to load PayPal. Please refresh and try again.');
             }
-          };
-
-          script.onerror = () => {
-            console.error('Failed to load PayPal SDK');
-            if (onError) {
-              onError(new Error('Failed to load PayPal SDK'));
-            }
-          };
-
-          document.head.appendChild(script);
-        } catch (error) {
-          console.error('Error initializing PayPal:', error);
-          if (onError) {
-            onError(error);
           }
-        }
-      };
+        };
 
-      initializePayPal();
+        script.onerror = () => {
+          console.error('Failed to load PayPal SDK');
+          setPaypalError('Failed to load PayPal. Please check your internet connection.');
+          onError(new Error('Failed to load PayPal SDK'));
+        };
 
-      // Cleanup function
-      return () => {
-        const scriptToRemove = document.querySelector('script[src*="paypal.com/sdk/js"]');
-        if (scriptToRemove) {
-          scriptToRemove.remove();
-        }
-        isInitializedRef.current = false;
-      };
-    }
-  }, [useRawHTML, paymentMethod, orderData, onSuccess, onError, onCancel]);
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Error initializing PayPal:', error);
+        setPaypalError('Failed to initialize PayPal payment.');
+        onError(error);
+      }
+    };
 
-  // Reset PayPal initialization when switching payment methods
-  useEffect(() => {
-    isInitializedRef.current = false;
-  }, [paymentMethod]);
+    initializePayPal();
+
+    // Cleanup function
+    return () => {
+      const scriptToRemove = document.querySelector('script[src*="paypal.com/sdk/js"]');
+      if (scriptToRemove) {
+        scriptToRemove.remove();
+      }
+      isInitializedRef.current = false;
+    };
+  }, [orderData, onSuccess, onError, onCancel]);
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
-        <CardTitle className="text-lg">Secure Payment</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Choose your payment method
-        </p>
+        <CardTitle className="text-lg">Complete Your Payment</CardTitle>
         <div className="bg-muted p-3 rounded-lg mt-4">
           <div className="flex justify-between items-center">
             <span className="font-medium">Amount:</span>
@@ -209,55 +195,61 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="w-full">
-          {/* Payment Method Selection */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <Button
-              variant={paymentMethod === 'paypal' ? 'default' : 'outline'}
-              onClick={() => setPaymentMethod('paypal')}
-              className="flex items-center justify-center h-12"
-              disabled={isProcessing}
-            >
-              <Wallet className="h-4 w-4 mr-2" />
-              PayPal
-            </Button>
-            <Button
-              variant={paymentMethod === 'card' ? 'default' : 'outline'}
-              onClick={() => setPaymentMethod('card')}
-              className="flex items-center justify-center h-12"
-              disabled={isProcessing}
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Card
-            </Button>
-          </div>
-
-          {/* Payment Method Content */}
-          {paymentMethod === 'paypal' ? (
-            <div>
-              <div 
-                id="paypal-button-container" 
-                ref={paypalContainerRef}
-                className="min-h-[50px]"
-              />
-              <p className="text-xs text-center text-gray-500 mt-2">
-                Secure payment powered by PayPal
-              </p>
+      <CardContent className="space-y-6">
+        {/* PayPal Payment Option */}
+        <div>
+          <h3 className="text-sm font-medium mb-3 text-center">Pay with PayPal</h3>
+          {paypalError ? (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-center">
+              <p className="text-red-600 text-sm">{paypalError}</p>
+              <Button
+                onClick={() => {
+                  setPaypalError(null);
+                  isInitializedRef.current = false;
+                  window.location.reload();
+                }}
+                variant="outline"
+                size="sm"
+                className="mt-2"
+              >
+                Retry PayPal
+              </Button>
             </div>
           ) : (
-            <CreditCardForm
-              onSuccess={onSuccess}
-              onError={onError}
-              onCancel={onCancel}
-              amount={parseFloat(orderData.amount)}
-              currency={orderData.currency}
-              symbol={orderData.currency === 'EGP' ? 'EGP' : '$'}
-              selectedTier={orderData.tier}
-              isProcessing={isProcessing}
-              setIsProcessing={setIsProcessing}
+            <div 
+              id="paypal-button-container" 
+              ref={paypalContainerRef}
+              className="min-h-[50px]"
             />
           )}
+          {isProcessing && (
+            <div className="text-center text-sm text-muted-foreground mt-2">
+              Processing your PayPal payment...
+            </div>
+          )}
+        </div>
+
+        <div className="relative">
+          <Separator />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="bg-background px-2 text-xs text-muted-foreground">OR</span>
+          </div>
+        </div>
+
+        {/* Credit Card Payment Option */}
+        <div>
+          <h3 className="text-sm font-medium mb-3 text-center">Pay with Credit Card</h3>
+          <CreditCardForm
+            onSuccess={onSuccess}
+            onError={onError}
+            onCancel={onCancel}
+            amount={parseFloat(orderData.amount)}
+            currency={orderData.currency}
+            symbol={orderData.currency === 'EGP' ? 'EGP' : '$'}
+            selectedTier={orderData.tier}
+            isProcessing={isProcessing}
+            setIsProcessing={setIsProcessing}
+          />
         </div>
       </CardContent>
     </Card>
