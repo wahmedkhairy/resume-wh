@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -61,9 +61,9 @@ const Index = () => {
     canExport,
   } = useSubscription(currentUserId);
 
-  // Optimize user authentication check
+  // Initialize user authentication
   useEffect(() => {
-    const checkUser = async () => {
+    const initializeUser = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -76,12 +76,12 @@ const Index = () => {
       }
     };
     
-    checkUser();
+    initializeUser();
   }, []);
 
-  // Create properly structured resume data object
-  const currentResumeData = useMemo(() => {
-    const resumeData = tailoredResumeData || {
+  // Create current resume data object
+  const getCurrentResumeData = () => {
+    return tailoredResumeData || {
       personalInfo,
       summary: resumeState.summary,
       workExperience,
@@ -89,10 +89,7 @@ const Index = () => {
       skills,
       coursesAndCertifications
     };
-    
-    console.log('Index.tsx - currentResumeData created:', resumeData);
-    return resumeData;
-  }, [tailoredResumeData, personalInfo, resumeState.summary, workExperience, education, skills, coursesAndCertifications]);
+  };
 
   const handlePersonalInfoChange = (info: any) => {
     setPersonalInfo(info);
@@ -122,10 +119,8 @@ const Index = () => {
   };
 
   const handleExportResume = async () => {
-    console.log('=== handleExportResume called ===');
-    
     try {
-      await handleExport(currentResumeData);
+      await handleExport(getCurrentResumeData());
     } catch (error) {
       console.error('Export failed:', error);
       toast({
@@ -137,10 +132,8 @@ const Index = () => {
   };
 
   const handleExportResumeAsWord = async () => {
-    console.log('=== handleExportResumeAsWord called ===');
-    
     try {
-      await handleWordExport(currentResumeData);
+      await handleWordExport(getCurrentResumeData());
     } catch (error) {
       console.error('Word export failed:', error);
       toast({
@@ -153,7 +146,6 @@ const Index = () => {
 
   const handleSectionChange = (section: string) => {
     setCurrentSection(section);
-    // Clear targeted resume data when switching sections
     if (section !== "editor") {
       setTailoredResumeData(null);
     }
@@ -171,7 +163,6 @@ const Index = () => {
     setTailoredResumeData(null);
   };
 
-  // Show loading skeleton while page is initializing
   if (isPageLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -193,7 +184,6 @@ const Index = () => {
       
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Only show title and subtitle in Resume Editor section */}
           {currentSection === "editor" && (
             <div className="mb-8 text-center">
               <h1 className="text-3xl font-bold mb-2">Professional Resume Builder</h1>
@@ -229,7 +219,7 @@ const Index = () => {
             onExport={handleExportResume}
             onExportWord={handleExportResumeAsWord}
             canExport={canExport}
-            getCurrentResumeData={currentResumeData}
+            getCurrentResumeData={getCurrentResumeData()}
           />
         </div>
       </main>
