@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PayPalCheckout from "./PayPalCheckout";
 import { PayPalOrderData } from "@/services/paypalService";
 
@@ -18,13 +18,26 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   onCancel
 }) => {
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="text-center mb-4">
-          <h4 className="font-medium">Pay with PayPal or Credit Card</h4>
-          <p className="text-sm text-muted-foreground">Secure payment processing</p>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="text-center">
+        <CardTitle className="text-lg">Secure Payment</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Complete your purchase with PayPal or Credit Card
+        </p>
+        <div className="bg-muted p-3 rounded-lg mt-4">
+          <div className="flex justify-between items-center">
+            <span className="font-medium">Amount:</span>
+            <span className="text-lg font-bold">
+              ${orderData.amount} {orderData.currency}
+            </span>
+          </div>
+          <div className="flex justify-between items-center mt-2">
+            <span className="text-sm text-muted-foreground">Plan:</span>
+            <span className="text-sm capitalize">{orderData.tier}</span>
+          </div>
         </div>
-        
+      </CardHeader>
+      <CardContent>
         <PayPalCheckout
           orderData={orderData}
           onSuccess={onSuccess}
