@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -119,26 +118,24 @@ const Subscription = () => {
   const handlePaymentSuccess = (details: any) => {
     console.log('Payment successful on subscription page:', details);
     
-    toast({
-      title: "Payment Successful!",
-      description: `Welcome to ${getTierDetails(selectedTier!)?.name} plan!`,
-    });
-
-    // Don't navigate here - let CreditCardForm handle navigation
-    // The form will navigate to /payment-success after a short delay
+    // Refresh subscription data
+    handleSubscriptionUpdate();
+    
+    // The CreditCardForm component will handle navigation to success page
+    console.log('Payment success handled, navigation will be done by CreditCardForm');
   };
 
   const handlePaymentError = (error: any) => {
     console.error('Payment error on subscription page:', error);
+    
+    // Don't redirect back to plans on error - let user try again
     toast({
       title: "Payment Failed",
-      description: "There was an issue processing your payment. Please try again.",
+      description: "There was an issue processing your payment. Please check your details and try again.",
       variant: "destructive",
     });
     
-    // Reset to plan selection
-    setShowPayment(false);
-    setSelectedTier(null);
+    // Keep the payment form open so user can retry
     setIsProcessing(false);
   };
 
