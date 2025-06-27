@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PayPalCheckout from "./PayPalCheckout";
 import PayPalSmartButtons from "./PayPalSmartButtons";
+import PayPalButton from "./PayPalButton";
 import { PayPalOrderData } from "@/services/paypalService";
 
 interface PaymentSectionProps {
@@ -10,7 +11,8 @@ interface PaymentSectionProps {
   onSuccess: (details: any) => void;
   onError: (error: any) => void;
   onCancel: () => void;
-  useSmartButtons?: boolean; // New prop to choose between implementations
+  useSmartButtons?: boolean;
+  useNewButton?: boolean; // New prop to use the new PayPalButton component
 }
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
@@ -18,7 +20,8 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   onSuccess,
   onError,
   onCancel,
-  useSmartButtons = false
+  useSmartButtons = false,
+  useNewButton = true // Default to new button
 }) => {
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -44,7 +47,13 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         </div>
       </CardHeader>
       <CardContent>
-        {useSmartButtons ? (
+        {useNewButton ? (
+          <PayPalButton
+            amount={orderData.amount}
+            onSuccess={onSuccess}
+            onError={onError}
+          />
+        ) : useSmartButtons ? (
           <PayPalSmartButtons
             amount={orderData.amount}
             onSuccess={onSuccess}
