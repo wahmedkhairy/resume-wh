@@ -1,14 +1,16 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import SubscriptionTiers from "@/components/SubscriptionTiers";
-import CreditCardForm from "@/components/CreditCardForm";
+import PaymentSection from "@/components/PaymentSection";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { detectUserLocation, formatCurrency } from "@/utils/currencyUtils";
 import { supabase } from "@/integrations/supabase/client";
+import { PayPalOrderData } from "@/services/paypalService";
 
 const Subscription = () => {
   const navigate = useNavigate();
@@ -115,32 +117,102 @@ const Subscription = () => {
     }
   };
 
-  const handlePaymentSuccess = (details: any) => {
-    console.log('Payment successful on subscription page:', details);
+  const createSubscription = async (paymentDetails: any) => {
+    try {
+      console.log('🔄 Creating subscription for user...');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error("User not authenticated");
+      }
+
+      console.log('✅ User authenticated:', user.id);
+
+      // Calculate export credits based on tier
+      let exportCredits = 0;
+      switch (selectedTier) {
+        case 'basic':
+          exportCredits = 2;
+          break;
+        case 'premium':
+          exportCredits = 6;
+          break;
+        case 'unlimited':
+          exportCredits = 999;
+          break;
+        default:
+          exportCredits = 2;
+      }
+
+      console.log('📊 Creating subscription with credits:', exportCredits, 'for tier:', selectedTier);
+
+      const { data: subscription, error } = await supabase
+        .from('subscriptions')
+        .upsert({
+          user_id: user.id,
+          tier: selectedTier,
+          scan_count: exportCredits,
+          max_scans: exportCredits,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Subscription creation error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      console.log('✅ Subscription created successfully:', subscription);
+      return subscription;
+    } catch (error) {
+      console.error('❌ Error in createSubscription:', error);
+      throw error;
+    }
+  };
+
+  const handlePaymentSuccess = async (details: any) => {
+    console.log('PayPal payment successful:', details);
+    setIsProcessing(true);
     
-    // Refresh subscription data
-    handleSubscriptionUpdate();
-    
-    // The CreditCardForm component will handle navigation to success page
-    console.log('Payment success handled, navigation will be done by CreditCardForm');
+    try {
+      const subscription = await createSubscription(details);
+      
+      toast({
+        title: "Payment Successful!",
+        description: `Your ${selectedTier} plan has been activated with ${subscription.scan_count} export credits.`,
+      });
+
+      handleSubscriptionUpdate();
+      navigate(`/payment-success?session_id=${details.id}&tier=${selectedTier}&amount=${getTierDetails(selectedTier!)?.price}`);
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+      toast({
+        title: "Payment Processed, but...",
+        description: "Payment was successful but there was an issue updating your account. Please contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handlePaymentError = (error: any) => {
-    console.error('Payment error on subscription page:', error);
-    
-    // Don't redirect back to plans on error - let user try again
+    console.error('PayPal payment error:', error);
     toast({
       title: "Payment Failed",
-      description: "There was an issue processing your payment. Please check your details and try again.",
+      description: "There was an error processing your payment. Please try again.",
       variant: "destructive",
     });
-    
-    // Keep the payment form open so user can retry
     setIsProcessing(false);
   };
 
   const handlePaymentCancel = () => {
-    console.log('Payment cancelled on subscription page');
+    console.log('PayPal payment cancelled');
     setShowPayment(false);
     setSelectedTier(null);
     setIsProcessing(false);
@@ -153,6 +225,16 @@ const Subscription = () => {
       </div>
     );
   }
+
+  const getPayPalOrderData = (): PayPalOrderData => {
+    const tierDetails = getTierDetails(selectedTier!);
+    return {
+      amount: tierDetails.price.toString(),
+      currency: "USD", // PayPal integration uses USD
+      description: `${tierDetails.name} Plan - ${tierDetails.exports} exports`,
+      tier: selectedTier!
+    };
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -185,7 +267,7 @@ const Subscription = () => {
                   Complete Your Purchase
                 </h1>
                 <p className="text-muted-foreground">
-                  You're purchasing the {getTierDetails(selectedTier!)?.name} plan for {formatCurrency(getTierDetails(selectedTier!)?.price, locationData.currency)}
+                  You're purchasing the {getTierDetails(selectedTier!)?.name} plan for ${getTierDetails(selectedTier!)?.price}
                 </p>
                 <Button
                   variant="outline"
@@ -254,16 +336,11 @@ const Subscription = () => {
             </>
           ) : (
             <div className="max-w-md mx-auto">
-              <CreditCardForm
+              <PaymentSection
+                orderData={getPayPalOrderData()}
                 onSuccess={handlePaymentSuccess}
                 onError={handlePaymentError}
                 onCancel={handlePaymentCancel}
-                amount={getTierDetails(selectedTier!)?.price}
-                currency={locationData.currency.code}
-                symbol={locationData.currency.symbol}
-                selectedTier={selectedTier!}
-                isProcessing={isProcessing}
-                setIsProcessing={setIsProcessing}
               />
             </div>
           )}
