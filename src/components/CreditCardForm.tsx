@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -164,7 +163,7 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
 
       console.log('📊 Creating subscription with credits:', exportCredits, 'for tier:', selectedTier);
 
-      // Create subscription record
+      // Create subscription record with only the columns that exist in the table
       const { data: subscription, error } = await supabase
         .from('subscriptions')
         .upsert({
@@ -173,10 +172,6 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({
           scan_count: exportCredits,
           max_scans: exportCredits,
           status: 'active',
-          payment_method: 'credit_card',
-          amount: amount,
-          currency: currency,
-          payment_id: paymentDetails.id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }, {
