@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PayPalOrderData } from "@/services/paypalService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentSectionProps {
   orderData: PayPalOrderData;
@@ -61,26 +62,60 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
             // Initialize PayPal buttons
             if ((window as any).paypal) {
               (window as any).paypal.Buttons({
-                createOrder: function (data: any, actions: any) {
-                  console.log('Creating PayPal order for:', orderData);
-                  return actions.order.create({
-                    purchase_units: [{
-                      amount: { 
-                        value: orderData.amount,
-                        currency_code: orderData.currency
-                      },
-                      description: orderData.description || `${orderData.tier} Plan`
-                    }]
-                  });
-                },
-                onApprove: function (data: any, actions: any) {
-                  console.log('PayPal payment approved:', data);
-                  return actions.order.capture().then(function (details: any) {
-                    console.log('PayPal payment completed:', details);
-                    if (onSuccess) {
-                      onSuccess(details);
+                createOrder: async function (data: any, actions: any) {
+                  try {
+                    console.log('Creating PayPal order via Supabase edge function:', orderData);
+                    
+                    // Use our Supabase edge function to create the order
+                    const { data: orderResponse, error } = await supabase.functions.invoke('create-paypal-order', {
+                      body: {
+                        amount: orderData.amount,
+                        currency: orderData.currency,
+                        description: orderData.description || `${orderData.tier} Plan`,
+                        tier: orderData.tier
+                      }
+                    });
+
+                    if (error) {
+                      console.error('Error creating PayPal order:', error);
+                      throw error;
                     }
-                  });
+
+                    console.log('PayPal order created successfully:', orderResponse.orderId);
+                    return orderResponse.orderId;
+                  } catch (error) {
+                    console.error('Failed to create PayPal order:', error);
+                    if (onError) {
+                      onError(error);
+                    }
+                    throw error;
+                  }
+                },
+                onApprove: async function (data: any, actions: any) {
+                  try {
+                    console.log('PayPal payment approved:', data);
+                    
+                    // Capture the payment via our Supabase edge function
+                    const { data: captureResponse, error } = await supabase.functions.invoke('capture-paypal-order', {
+                      body: { orderId: data.orderID }
+                    });
+
+                    if (error) {
+                      console.error('Error capturing PayPal payment:', error);
+                      throw error;
+                    }
+
+                    console.log('PayPal payment captured successfully:', captureResponse);
+                    
+                    if (onSuccess) {
+                      onSuccess(captureResponse);
+                    }
+                  } catch (error) {
+                    console.error('Error capturing PayPal payment:', error);
+                    if (onError) {
+                      onError(error);
+                    }
+                  }
                 },
                 onError: function(err: any) {
                   console.error('PayPal error:', err);
