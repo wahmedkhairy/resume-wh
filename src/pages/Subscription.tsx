@@ -1,9 +1,12 @@
 
+
 import { useEffect, useState } from "react";
 
 type Country = {
   country_code: string;
 };
+
+type PlanId = "basic" | "premium" | "unlimited";
 
 export default function SubscriptionPage() {
   const [isEgypt, setIsEgypt] = useState(false);
@@ -66,21 +69,23 @@ export default function SubscriptionPage() {
     };
   }, [isEgypt]);
 
+  const planPricing = {
+    basic: isEgypt ? "99 EGP" : "$2.00",
+    premium: isEgypt ? "149 EGP" : "$3.00", 
+    unlimited: isEgypt ? "249 EGP" : "$4.99"
+  };
+
   return (
     <div className="subscription-page">
       <h2>Choose Your Plan</h2>
       <p>You're browsing from {isEgypt ? "Egypt (EGP pricing)" : "outside Egypt (USD pricing)"}</p>
 
       <div style={{ marginTop: "30px" }}>
-        {["basic", "premium", "unlimited"].map(planId => (
+        {(["basic", "premium", "unlimited"] as PlanId[]).map(planId => (
           <div key={planId} style={{ marginTop: planId !== "basic" ? "40px" : "0" }}>
             <h3>
               {planId.charAt(0).toUpperCase() + planId.slice(1)} Plan – 
-              {isEgypt ? {
-                basic: "99 EGP", premium: "149 EGP", unlimited: "249 EGP"
-              }[planId as keyof typeof plans] : {
-                basic: "$2.00", premium: "$3.00", unlimited: "$4.99"
-              }[planId as keyof typeof plans]}
+              {planPricing[planId]}
             </h3>
             <div id={`paypal-button-container-${planId}`}></div>
           </div>
@@ -89,3 +94,4 @@ export default function SubscriptionPage() {
     </div>
   );
 }
+
