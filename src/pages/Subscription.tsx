@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 type Country = {
@@ -22,9 +23,9 @@ export default function SubscriptionPage() {
     const clientId = "ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2";
     const currency = isEgypt ? "EGP" : "USD";
 
-    sdk.src = https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency};
+    sdk.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}`;
     sdk.onload = () => {
-      if (window.paypal) {
+      if ((window as any).paypal) {
         const plans = [
           { id: "basic", amount: isEgypt ? "99" : "2.00", label: "Basic" },
           { id: "premium", amount: isEgypt ? "149" : "3.00", label: "Premium" },
@@ -32,22 +33,22 @@ export default function SubscriptionPage() {
         ];
 
         plans.forEach(plan => {
-          window.paypal.Buttons({
-            createOrder: (_, actions) => {
+          (window as any).paypal.Buttons({
+            createOrder: (_: any, actions: any) => {
               return actions.order.create({
                 purchase_units: [{
                   amount: { value: plan.amount },
                   currency_code: currency,
-                  description: ${plan.label} Plan
+                  description: `${plan.label} Plan`
                 }]
               });
             },
-            onApprove: (_, actions) => {
-              return actions.order.capture().then(details => {
+            onApprove: (_: any, actions: any) => {
+              return actions.order.capture().then((details: any) => {
                 alert(`Payment successful for ${plan.label} (${currency} ${plan.amount}). Thank you, ${details.payer.name.given_name}!`);
               });
             },
-            onError: err => {
+            onError: (err: any) => {
               console.error(`PayPal error on ${plan.label}:`, err);
               alert(`Payment failed for ${plan.label}; please try again.`);
             }
@@ -77,9 +78,9 @@ export default function SubscriptionPage() {
               {planId.charAt(0).toUpperCase() + planId.slice(1)} Plan – 
               {isEgypt ? {
                 basic: "99 EGP", premium: "149 EGP", unlimited: "249 EGP"
-              }[planId] : {
+              }[planId as keyof typeof plans] : {
                 basic: "$2.00", premium: "$3.00", unlimited: "$4.99"
-              }[planId]}
+              }[planId as keyof typeof plans]}
             </h3>
             <div id={`paypal-button-container-${planId}`}></div>
           </div>
