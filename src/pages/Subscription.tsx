@@ -83,6 +83,18 @@ const Subscription = () => {
     loadLocationData();
   }, []);
 
+  React.useEffect(() => {
+    // Check if PayPal Live Client ID is set in localStorage
+    const liveClientId = localStorage.getItem('paypal_live_client_id');
+    if (!liveClientId && showPayment) {
+      toast({
+        title: "PayPal Configuration Missing",
+        description: "Please configure your PayPal Live Client ID in the admin settings.",
+        variant: "destructive"
+      });
+    }
+  }, [showPayment, toast]);
+
   const getTierDetails = (tier: string) => {
     if (!locationData) return { name: "Basic", price: 2.00, exports: 2, targetedResumes: 1 };
     
@@ -382,6 +394,7 @@ const Subscription = () => {
                 onSuccess={handlePaymentSuccess}
                 onError={handlePaymentError}
                 onCancel={handlePaymentCancel}
+                useRawHTML={true}
               />
             </div>
           )}
