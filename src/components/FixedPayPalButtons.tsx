@@ -5,13 +5,12 @@ import { useToast } from '@/hooks/use-toast';
 interface Plan {
   name: string;
   priceUSD: number;
-  priceEGP: number;
 }
 
 const plans: Plan[] = [
-  { name: 'basic', priceUSD: 2.00, priceEGP: 99 },
-  { name: 'premium', priceUSD: 3.00, priceEGP: 149 },
-  { name: 'unlimited', priceUSD: 4.99, priceEGP: 249 }
+  { name: 'basic', priceUSD: 2.00 },
+  { name: 'premium', priceUSD: 3.00 },
+  { name: 'unlimited', priceUSD: 4.99 }
 ];
 
 interface FixedPayPalButtonsProps {
@@ -27,7 +26,6 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
   onError,
   onCancel
 }) => {
-  const [localCurrency, setLocalCurrency] = useState('USD');
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,35 +36,13 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
   const selectedPlan = plans.find(plan => plan.name === selectedTier) || plans[0];
 
   useEffect(() => {
-    console.log('Starting currency detection...');
-    // Determine user country via IP and set local currency
-    fetch('https://ipapi.co/json/')
-      .then(response => response.json())
-      .then(data => {
-        console.log('Location data received:', data);
-        if (data.country === 'EG' || data.country_code === 'EG') {
-          setLocalCurrency('EGP');
-          console.log('Set currency to EGP for Egypt');
-        } else {
-          setLocalCurrency('USD');
-          console.log('Set currency to USD for other countries');
-        }
-      })
-      .catch(error => {
-        console.error('Currency detection failed, using USD:', error);
-        // Fallback if geolocation fails
-        setLocalCurrency('USD');
-      });
-  }, []);
-
-  useEffect(() => {
     console.log('Loading PayPal SDK...');
     // Load PayPal JS SDK script once
     const existingScript = document.getElementById('paypal-js-sdk');
     if (!existingScript) {
       const script = document.createElement('script');
       script.id = 'paypal-js-sdk';
-      // Always use USD for PayPal (EGP not supported), allow default funding sources
+      // Always use USD for PayPal
       script.src = `https://www.paypal.com/sdk/js?client-id=ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2&currency=USD`;
       script.addEventListener('load', () => {
         console.log('PayPal SDK loaded successfully');
@@ -97,7 +73,6 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
         (window as any).paypal.Buttons({
           createOrder: (data: any, actions: any) => {
             console.log('Creating PayPal order for plan:', selectedPlan.name);
-            // Always use USD for the transaction
             const amount = selectedPlan.priceUSD.toFixed(2);
             return actions.order.create({
               purchase_units: [{
@@ -180,14 +155,8 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
     <div className="w-full">
       <div className="mb-4 p-3 bg-blue-50 rounded-lg text-center">
         <p className="text-sm font-medium">
-          {selectedPlan.name.charAt(0).toUpperCase() + selectedPlan.name.slice(1)} Plan - {' '}
-          {localCurrency === 'EGP' ? `${selectedPlan.priceEGP} EGP` : `$${selectedPlan.priceUSD.toFixed(2)}`}
+          {selectedPlan.name.charAt(0).toUpperCase() + selectedPlan.name.slice(1)} Plan - ${selectedPlan.priceUSD.toFixed(2)} USD
         </p>
-        {localCurrency === 'EGP' && (
-          <p className="text-xs text-gray-600 mt-1">
-            Processing in USD: ${selectedPlan.priceUSD.toFixed(2)}
-          </p>
-        )}
       </div>
       
       <div ref={paypalRef} className="w-full min-h-[60px]" />

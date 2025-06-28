@@ -42,20 +42,20 @@ const Subscription = () => {
         }
         setCurrentUserId(user.id);
 
-        // Fetch location data for pricing
+        // Fetch location data for display purposes (but always use USD pricing)
         try {
           const response = await fetch('https://ipapi.co/json/');
           const data = await response.json();
           
-          const isEgypt = data.country_code === 'EG';
+          // Always use USD pricing regardless of location
           setLocationData({
             country: data.country_name || 'Unknown',
             currency: {
-              symbol: isEgypt ? 'EGP' : '$',
-              code: isEgypt ? 'EGP' : 'USD',
-              basicPrice: isEgypt ? 99 : 2.00,
-              premiumPrice: isEgypt ? 149 : 3.00,
-              unlimitedPrice: isEgypt ? 249 : 4.99
+              symbol: '$',
+              code: 'USD',
+              basicPrice: 2.00,
+              premiumPrice: 3.00,
+              unlimitedPrice: 4.99
             }
           });
         } catch (error) {
@@ -237,7 +237,7 @@ const Subscription = () => {
               </p>
               {locationData && (
                 <p className="text-sm text-muted-foreground">
-                  Pricing for {locationData.country} ({locationData.currency.code})
+                  Pricing in USD ({locationData.currency.code}) - Available worldwide
                 </p>
               )}
             </div>

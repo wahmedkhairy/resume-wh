@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { detectUserLocation, formatCurrency } from "@/utils/currencyUtils";
 
 interface SubscriptionOverlayProps {
   onClose: () => void;
@@ -44,29 +43,32 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
     const loadLocationData = async () => {
       try {
         setIsLoading(true);
-        const data = await detectUserLocation();
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        
+        // Always use USD pricing regardless of location
         setLocationData({
-          country: data.country,
+          country: data.country_name || 'Unknown',
           currency: {
-            symbol: data.currency.symbol,
-            code: data.currency.code,
-            basicPrice: data.currency.basicPrice,
-            premiumPrice: data.currency.premiumPrice,
-            unlimitedPrice: data.currency.unlimitedPrice
+            symbol: '$',
+            code: 'USD',
+            basicPrice: 2,
+            premiumPrice: 3,
+            unlimitedPrice: 4.99
           }
         });
-        console.log('SubscriptionOverlay: Location data loaded', data);
+        console.log('SubscriptionOverlay: Location data loaded with USD pricing');
       } catch (error) {
         console.error("SubscriptionOverlay: Error loading location data:", error);
-        // Set default values on error
+        // Set default USD values on error
         setLocationData({
-          country: "United States",
+          country: "Unknown",
           currency: {
             symbol: "$",
             code: "USD",
             basicPrice: 2,
             premiumPrice: 3,
-            unlimitedPrice: 9.9
+            unlimitedPrice: 4.99
           }
         });
       } finally {
@@ -187,6 +189,10 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
     }
   };
 
+  const formatCurrency = (amount: number): string => {
+    return `$${amount.toFixed(2)}`;
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -209,10 +215,10 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
               {/* Plan Summary */}
               <div className="border rounded-lg p-4 bg-muted">
                 <h3 className="text-lg font-bold mb-2">
-                  Premium Plan - {formatCurrency(locationData.currency.premiumPrice, locationData.currency)}/month
+                  Premium Plan - {formatCurrency(locationData.currency.premiumPrice)}/month
                 </h3>
                 <p className="text-sm text-gray-600 mb-3">
-                  Pricing for {locationData.country}: {formatCurrency(locationData.currency.premiumPrice, locationData.currency)} {locationData.currency.code}
+                  Pricing in USD - Available worldwide
                 </p>
                 <ul className="text-sm space-y-1">
                   <li className="flex items-center">
@@ -314,7 +320,7 @@ const SubscriptionOverlay: React.FC<SubscriptionOverlayProps> = ({ onClose, onSu
             className="flex-1"
             disabled={isProcessing || isLoading || !locationData}
           >
-            {isProcessing ? "Processing..." : locationData ? `Subscribe ${formatCurrency(locationData.currency.premiumPrice, locationData.currency)}` : "Subscribe"}
+            {isProcessing ? "Processing..." : locationData ? `Subscribe ${formatCurrency(locationData.currency.premiumPrice)}` : "Subscribe"}
           </Button>
         </CardFooter>
       </Card>
