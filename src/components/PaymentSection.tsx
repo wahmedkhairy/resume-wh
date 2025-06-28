@@ -29,7 +29,6 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
 
   useEffect(() => {
     let isMounted = true;
-    let paypalScript: HTMLScriptElement | null = null;
 
     const initializePayPal = async () => {
       try {
@@ -44,11 +43,17 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
           paypalContainerRef.current.innerHTML = '';
         }
 
-        // Remove existing PayPal script if any
-        const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
-        if (existingScript) {
-          existingScript.remove();
-        }
+        // Remove existing PayPal script if any (safely)
+        const existingScripts = document.querySelectorAll('script[src*="paypal.com/sdk/js"]');
+        existingScripts.forEach(script => {
+          try {
+            if (script.parentNode) {
+              script.parentNode.removeChild(script);
+            }
+          } catch (error) {
+            console.warn('Could not remove existing PayPal script:', error);
+          }
+        });
 
         // Clear any existing PayPal global object
         if ((window as any).paypal) {
@@ -56,7 +61,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         }
 
         // Wait for cleanup
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         if (!isMounted) return;
 
@@ -64,7 +69,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         const clientId = "ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2";
         
         // Create and inject PayPal SDK script
-        paypalScript = document.createElement('script');
+        const paypalScript = document.createElement('script');
         paypalScript.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${orderData.currency}&components=buttons&disable-funding=venmo,paylater&intent=capture`;
         paypalScript.async = true;
         
@@ -76,7 +81,6 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
             return;
           }
 
-          // Double-check container is still available
           const container = paypalContainerRef.current;
           if (!container) {
             console.error('PayPal container reference lost');
@@ -199,13 +203,13 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       isMounted = false;
       clearTimeout(timer);
       
-      if (paypalScript && paypalScript.parentNode) {
-        paypalScript.parentNode.removeChild(paypalScript);
-      }
-      
-      // Clean up PayPal container
+      // Safe cleanup of PayPal container
       if (paypalContainerRef.current) {
-        paypalContainerRef.current.innerHTML = '';
+        try {
+          paypalContainerRef.current.innerHTML = '';
+        } catch (error) {
+          console.warn('Error cleaning up PayPal container:', error);
+        }
       }
     };
   }, [orderData.amount, orderData.currency, orderData.tier, orderData.description]);
