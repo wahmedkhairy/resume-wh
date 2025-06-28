@@ -81,7 +81,7 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
     };
 
     loadPayPalScript();
-  }, []); // Only run once
+  }, []);
 
   // Render PayPal Buttons when script is loaded
   useEffect(() => {
@@ -99,17 +99,21 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
           throw new Error('PayPal SDK not available');
         }
         
-        // Clear any existing content
-        if (paypalRef.current) {
-          paypalRef.current.innerHTML = '';
+        // Ensure container exists
+        if (!paypalRef.current) {
+          throw new Error('PayPal container not found');
         }
+        
+        // Clear any existing content
+        paypalRef.current.innerHTML = '';
         
         const amount = selectedPlan.priceUSD.toFixed(2);
         console.log('Creating PayPal order with amount:', amount);
         
-        await (window as any).paypal.Buttons({
+        const paypalButtons = (window as any).paypal.Buttons({
           createOrder: (data: any, actions: any) => {
             console.log('PayPal createOrder called with amount:', amount);
+            // Explicitly return the promise from actions.order.create
             return actions.order.create({
               purchase_units: [{
                 description: `${selectedPlan.name.charAt(0).toUpperCase() + selectedPlan.name.slice(1)} Plan`,
@@ -150,7 +154,10 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
             height: 45,
             label: 'paypal'
           }
-        }).render(paypalRef.current);
+        });
+        
+        // Render into the specific container
+        await paypalButtons.render(paypalRef.current);
         
         console.log('PayPal buttons rendered successfully');
         setButtonsRendered(true);
@@ -204,7 +211,7 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
         </p>
       </div>
       
-      <div ref={paypalRef} className="w-full min-h-[60px]" />
+      <div ref={paypalRef} id="paypal-button-container" className="w-full min-h-[60px]" />
       
       <p className="text-xs text-center text-gray-500 mt-3">
         Secure payment powered by PayPal
