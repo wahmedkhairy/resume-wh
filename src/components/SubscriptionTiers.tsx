@@ -30,78 +30,20 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
   locationData,
 }) => {
   const getTiers = () => {
-    if (!locationData) {
-      return [
-        {
-          id: "basic",
-          name: "Basic",
-          price: "$2.00",
-          period: "one-time payment",
-          description: "Perfect for job seekers starting their career",
-          features: [
-            "2 Professional resume exports",
-            "Basic ATS optimization",
-            "PDF export",
-            "1 Targeted resume per month",
-            "Email support"
-          ],
-          icon: <Zap className="h-6 w-6" />,
-          popular: false,
-          buttonText: "Get Basic"
-        },
-        {
-          id: "premium",
-          name: "Premium",
-          price: "$3.00",
-          period: "one-time payment",
-          description: "Most popular choice for serious job seekers",
-          features: [
-            "All Basic features",
-            "6 Professional resume exports",
-            "Advanced ATS analysis",
-            "PDF & Word export",
-            "3 Targeted resumes per month",
-            "Priority support",
-            "Interview preparation tips"
-          ],
-          icon: <Star className="h-6 w-6" />,
-          popular: true,
-          buttonText: "Get Premium"
-        },
-        {
-          id: "unlimited",
-          name: "Unlimited",
-          price: "$4.99",
-          period: "one-time payment",
-          description: "For professionals who need maximum flexibility",
-          features: [
-            "All Premium features",
-            "Unlimited resume exports",
-            "Unlimited targeted resumes",
-            "Advanced career insights",
-            "1-on-1 career consultation",
-            "Priority queue processing",
-            "White-label resume exports"
-          ],
-          icon: <Crown className="h-6 w-6" />,
-          popular: false,
-          buttonText: "Get Unlimited"
-        }
-      ];
-    }
-
-    const formatPrice = (amount: number) => {
-      if (locationData.currency.code === 'EGP') {
-        return `${locationData.currency.symbol} ${amount}`;
-      }
-      return `${locationData.currency.symbol}${amount.toFixed(2)}`;
+    // Always use USD pricing
+    const currency = locationData?.currency || {
+      symbol: '$',
+      code: 'USD',
+      basicPrice: 2.00,
+      premiumPrice: 3.00,
+      unlimitedPrice: 4.99
     };
 
     return [
       {
         id: "basic",
         name: "Basic",
-        price: formatPrice(locationData.currency.basicPrice),
+        price: `${currency.symbol}${currency.basicPrice.toFixed(2)}`,
         period: "one-time payment",
         description: "Perfect for job seekers starting their career",
         features: [
@@ -118,7 +60,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
       {
         id: "premium",
         name: "Premium",
-        price: formatPrice(locationData.currency.premiumPrice),
+        price: `${currency.symbol}${currency.premiumPrice.toFixed(2)}`,
         period: "one-time payment",
         description: "Most popular choice for serious job seekers",
         features: [
@@ -137,7 +79,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
       {
         id: "unlimited",
         name: "Unlimited",
-        price: formatPrice(locationData.currency.unlimitedPrice),
+        price: `${currency.symbol}${currency.unlimitedPrice.toFixed(2)}`,
         period: "one-time payment",
         description: "For professionals who need maximum flexibility",
         features: [
@@ -163,16 +105,11 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
   };
 
   const canResubscribe = (tierId: string) => {
-    // Allow subscription if:
-    // 1. User has no active subscription
-    // 2. Or user has an active subscription but no remaining exports (can subscribe to any plan)
-    // 3. Or user has inactive subscription
     if (!currentSubscription) return true;
     
     const noRemainingExports = currentSubscription.scan_count <= 0;
     const isInactive = currentSubscription.status !== 'active';
     
-    // If user has no remaining exports, they can subscribe to any plan (including upgrading/downgrading)
     return isInactive || noRemainingExports;
   };
 
@@ -181,7 +118,6 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
       return "Current Plan";
     }
     
-    // If user has no remaining exports, show appropriate text
     if (currentSubscription?.scan_count <= 0) {
       if (currentSubscription?.tier === tier.id) {
         return `Renew ${tier.name}`;

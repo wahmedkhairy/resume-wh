@@ -11,31 +11,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-interface LocationData {
-  country: string;
-  currency: {
-    symbol: string;
-    code: string;
-    basicPrice: number;
-    premiumPrice: number;
-    unlimitedPrice: number;
-  };
-}
-
 const Subscription = () => {
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
-  const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // USD pricing only
+  const usdPricing = {
+    symbol: '$',
+    code: 'USD',
+    basicPrice: 2.00,
+    premiumPrice: 3.00,
+    unlimitedPrice: 4.99
+  };
+
   useEffect(() => {
     const initializeSubscription = async () => {
       try {
-        // Get current user
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           navigate('/auth');
@@ -43,38 +39,6 @@ const Subscription = () => {
         }
         setCurrentUserId(user.id);
 
-        // Fetch location data for display purposes (but always use USD pricing)
-        try {
-          const response = await fetch('https://ipapi.co/json/');
-          const data = await response.json();
-          
-          // Always use USD pricing regardless of location
-          setLocationData({
-            country: data.country_name || 'Unknown',
-            currency: {
-              symbol: '$',
-              code: 'USD',
-              basicPrice: 2.00,
-              premiumPrice: 3.00,
-              unlimitedPrice: 4.99
-            }
-          });
-        } catch (error) {
-          console.error('Error fetching location:', error);
-          // Default to USD pricing
-          setLocationData({
-            country: 'Unknown',
-            currency: {
-              symbol: '$',
-              code: 'USD',
-              basicPrice: 2.00,
-              premiumPrice: 3.00,
-              unlimitedPrice: 4.99
-            }
-          });
-        }
-
-        // Fetch current subscription
         const { data: subscription } = await supabase
           .from('subscriptions')
           .select('*')
@@ -116,7 +80,6 @@ const Subscription = () => {
       const tierData = tierPricing[selectedTier as keyof typeof tierPricing];
       
       if (currentSubscription) {
-        // Update existing subscription
         const { error } = await supabase
           .from('subscriptions')
           .update({
@@ -130,7 +93,6 @@ const Subscription = () => {
 
         if (error) throw error;
       } else {
-        // Create new subscription
         const { error } = await supabase
           .from('subscriptions')
           .insert({
@@ -144,13 +106,11 @@ const Subscription = () => {
         if (error) throw error;
       }
 
-      // Show success message
       toast({
         title: "Payment Successful!",
         description: `Your ${selectedTier} plan is now active.`,
       });
 
-      // Navigate to payment success page with details
       const successUrl = `/payment-success?session_id=${details.id}&tier=${selectedTier}&amount=${details.amount}&currency=${details.currency}`;
       console.log('Navigating to:', successUrl);
       navigate(successUrl);
@@ -185,17 +145,17 @@ const Subscription = () => {
   };
 
   const getOrderData = () => {
-    if (!selectedTier || !locationData) return null;
+    if (!selectedTier) return null;
 
     const prices = {
-      basic: locationData.currency.basicPrice,
-      premium: locationData.currency.premiumPrice,
-      unlimited: locationData.currency.unlimitedPrice
+      basic: usdPricing.basicPrice,
+      premium: usdPricing.premiumPrice,
+      unlimited: usdPricing.unlimitedPrice
     };
 
     return {
-      amount: prices[selectedTier as keyof typeof prices].toString(),
-      currency: locationData.currency.code,
+      amount: prices[selectedTier as keyof typeof prices].toFixed(2),
+      currency: usdPricing.code,
       description: `${selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} Plan`,
       tier: selectedTier
     };
@@ -236,11 +196,9 @@ const Subscription = () => {
               <p className="text-xl text-muted-foreground mb-2">
                 Unlock the full potential of your resume
               </p>
-              {locationData && (
-                <p className="text-sm text-muted-foreground">
-                  Pricing in USD ({locationData.currency.code}) - Available worldwide
-                </p>
-              )}
+              <p className="text-sm text-muted-foreground">
+                All prices in USD - Available worldwide
+              </p>
             </div>
           </div>
 
@@ -249,11 +207,13 @@ const Subscription = () => {
               currentUserId={currentUserId}
               currentSubscription={currentSubscription}
               onSubscriptionUpdate={() => {
-                // Refresh subscription data
                 window.location.reload();
               }}
               onSubscriptionSelect={handleSubscriptionSelect}
-              locationData={locationData || undefined}
+              locationData={{
+                country: 'United States',
+                currency: usdPricing
+              }}
             />
           ) : (
             <div className="max-w-2xl mx-auto">

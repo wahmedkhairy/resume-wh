@@ -1,11 +1,15 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PayPalOrderData } from "@/services/paypalService";
-import FixedPayPalButtons from "./FixedPayPalButtons";
+import SimplePayPalButtons from "./SimplePayPalButtons";
 
 interface PaymentSectionProps {
-  orderData: PayPalOrderData;
+  orderData: {
+    amount: string;
+    currency: string;
+    description: string;
+    tier: string;
+  };
   onSuccess: (details: any) => void;
   onError: (error: any) => void;
   onCancel: () => void;
@@ -19,8 +23,6 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   onCancel
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
-
-  console.log('PaymentSection rendered with orderData:', orderData);
 
   const handlePayPalSuccess = (details: any) => {
     console.log('PaymentSection: PayPal payment successful:', details);
@@ -49,18 +51,18 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* PayPal Payment Option */}
         <div>
           <h3 className="text-sm font-medium mb-3 text-center">Pay with PayPal</h3>
-          <FixedPayPalButtons
-            selectedTier={orderData.tier}
+          <SimplePayPalButtons
+            amount={orderData.amount}
+            tier={orderData.tier}
             onSuccess={handlePayPalSuccess}
             onError={handlePayPalError}
             onCancel={handlePayPalCancel}
           />
           {isProcessing && (
             <div className="text-center text-sm text-muted-foreground mt-2">
-              Processing your PayPal payment...
+              Processing your payment...
             </div>
           )}
         </div>
