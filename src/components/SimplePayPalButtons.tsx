@@ -26,6 +26,15 @@ const SimplePayPalButtons: React.FC<SimplePayPalButtonsProps> = ({
 
   useEffect(() => {
     const initializePayPal = async () => {
+      console.log('Starting PayPal initialization...');
+      
+      // Ensure DOM element is available before proceeding
+      if (!paypalRef.current) {
+        console.log('PayPal container not ready, waiting...');
+        setTimeout(initializePayPal, 100);
+        return;
+      }
+
       try {
         console.log('Initializing PayPal for currency:', currency);
         setIsLoading(true);
@@ -34,16 +43,14 @@ const SimplePayPalButtons: React.FC<SimplePayPalButtonsProps> = ({
         // Use sandbox client ID
         const clientId = "ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2";
         
-        // Check if PayPal script already exists and is loaded
-        const existingScript = document.querySelector('#paypal-sdk');
-        if (existingScript && (window as any).paypal) {
-          console.log('PayPal SDK already loaded, rendering buttons...');
-          await renderPayPalButtons();
-          return;
-        }
+        // Clean up any existing PayPal scripts
+        const existingScripts = document.querySelectorAll('script[src*="paypal.com"]');
+        existingScripts.forEach(script => script.remove());
 
-        // Remove any existing PayPal scripts
-        document.querySelectorAll('script[src*="paypal.com"]').forEach(script => script.remove());
+        // Remove any existing PayPal buttons
+        if (paypalRef.current) {
+          paypalRef.current.innerHTML = '';
+        }
 
         // Load PayPal SDK
         console.log('Loading PayPal SDK...');
@@ -57,16 +64,17 @@ const SimplePayPalButtons: React.FC<SimplePayPalButtonsProps> = ({
             console.log('PayPal SDK loaded successfully');
             resolve();
           };
-          script.onerror = () => {
-            console.error('Failed to load PayPal SDK');
+          script.onerror = (error) => {
+            console.error('Failed to load PayPal SDK:', error);
             reject(new Error('Failed to load PayPal SDK'));
           };
           document.head.appendChild(script);
         });
 
-        // Wait for PayPal to be available
+        // Wait for PayPal to be available with timeout
         let attempts = 0;
-        while (!(window as any).paypal && attempts < 10) {
+        const maxAttempts = 50; // 5 seconds max
+        while (!(window as any).paypal && attempts < maxAttempts) {
           await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
         }
@@ -75,6 +83,7 @@ const SimplePayPalButtons: React.FC<SimplePayPalButtonsProps> = ({
           throw new Error('PayPal SDK not available after loading');
         }
 
+        console.log('PayPal SDK is ready, rendering buttons...');
         await renderPayPalButtons();
 
       } catch (error) {
@@ -85,16 +94,17 @@ const SimplePayPalButtons: React.FC<SimplePayPalButtonsProps> = ({
     };
 
     const renderPayPalButtons = async () => {
+      // Double-check container is still available
       if (!paypalRef.current) {
-        throw new Error('PayPal container not found');
+        throw new Error('PayPal container not found during render');
       }
 
       console.log('Rendering PayPal buttons...');
-      paypalRef.current.innerHTML = '';
-
+      
       try {
-        await (window as any).paypal.Buttons({
+        const paypalButtons = (window as any).paypal.Buttons({
           createOrder: (data: any, actions: any) => {
+            console.log('Creating PayPal order...');
             return actions.order.create({
               purchase_units: [{
                 amount: {
@@ -107,6 +117,7 @@ const SimplePayPalButtons: React.FC<SimplePayPalButtonsProps> = ({
           },
           onApprove: async (data: any, actions: any) => {
             try {
+              console.log('Payment approved, capturing order...');
               const details = await actions.order.capture();
               console.log('Payment successful:', details);
               onSuccess({
@@ -134,10 +145,12 @@ const SimplePayPalButtons: React.FC<SimplePayPalButtonsProps> = ({
             layout: 'vertical',
             color: 'gold',
             shape: 'rect',
-            height: 45
+            height: 45,
+            label: 'paypal'
           }
-        }).render(paypalRef.current);
+        });
 
+        await paypalButtons.render(paypalRef.current);
         console.log('PayPal buttons rendered successfully');
         setIsLoading(false);
       } catch (renderError) {
@@ -146,6 +159,7 @@ const SimplePayPalButtons: React.FC<SimplePayPalButtonsProps> = ({
       }
     };
 
+    // Start initialization
     initializePayPal();
 
     return () => {
