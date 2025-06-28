@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 declare global {
@@ -21,6 +21,7 @@ const DynamicPayPalButtons: React.FC<DynamicPayPalButtonsProps> = ({
   onError,
   onCancel
 }) => {
+  const [scriptLoaded, setScriptLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currency, setCurrency] = useState('USD');
@@ -29,8 +30,10 @@ const DynamicPayPalButtons: React.FC<DynamicPayPalButtonsProps> = ({
     premium: '3.00',
     unlimited: '4.99'
   });
+  const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Load PayPal SDK script once
   useEffect(() => {
     const initializePayPal = async () => {
       try {
@@ -59,28 +62,31 @@ const DynamicPayPalButtons: React.FC<DynamicPayPalButtonsProps> = ({
         console.log('Currency set to:', detectedCurrency);
         console.log('Prices set to:', detectedPrices);
 
-        // Remove any existing PayPal scripts
-        const existingScripts = document.querySelectorAll('script[src*="paypal.com"]');
-        existingScripts.forEach(script => script.remove());
-
-        // Load PayPal SDK with client-id and currency
-        console.log('Loading PayPal SDK...');
-        const script = document.createElement('script');
-        script.src = `https://www.paypal.com/sdk/js?client-id=ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2&currency=${detectedCurrency}`;
-        script.async = true;
-        
-        script.onload = () => {
-          console.log('PayPal SDK loaded successfully');
-          renderPayPalButton();
-        };
-        
-        script.onerror = (error) => {
-          console.error('Failed to load PayPal SDK:', error);
-          setError('Failed to load PayPal. Please refresh the page.');
-          setIsLoading(false);
-        };
-        
-        document.head.appendChild(script);
+        // Load PayPal SDK
+        const paypalScriptId = 'paypal-sdk';
+        if (!document.getElementById(paypalScriptId)) {
+          console.log('Loading PayPal SDK...');
+          const script = document.createElement('script');
+          script.id = paypalScriptId;
+          script.src = `https://www.paypal.com/sdk/js?client-id=ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2&currency=${detectedCurrency}`;
+          script.async = true;
+          
+          script.onload = () => {
+            console.log('PayPal SDK loaded successfully');
+            setScriptLoaded(true);
+          };
+          
+          script.onerror = (error) => {
+            console.error('Failed to load PayPal SDK:', error);
+            setError('Failed to load PayPal. Please refresh the page.');
+            setIsLoading(false);
+          };
+          
+          document.body.appendChild(script);
+        } else {
+          console.log('PayPal SDK already loaded');
+          setScriptLoaded(true);
+        }
 
       } catch (err) {
         console.error('Location fetch error:', err);
@@ -91,51 +97,52 @@ const DynamicPayPalButtons: React.FC<DynamicPayPalButtonsProps> = ({
           premium: '3.00',
           unlimited: '4.99'
         });
-        loadPayPalWithFallback();
+        
+        // Still load PayPal with fallback
+        const paypalScriptId = 'paypal-sdk';
+        if (!document.getElementById(paypalScriptId)) {
+          const script = document.createElement('script');
+          script.id = paypalScriptId;
+          script.src = `https://www.paypal.com/sdk/js?client-id=ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2&currency=USD`;
+          script.async = true;
+          
+          script.onload = () => {
+            console.log('PayPal SDK loaded with fallback');
+            setScriptLoaded(true);
+          };
+          
+          script.onerror = (error) => {
+            console.error('Failed to load PayPal SDK with fallback:', error);
+            setError('Failed to load PayPal. Please refresh the page.');
+            setIsLoading(false);
+          };
+          
+          document.body.appendChild(script);
+        } else {
+          setScriptLoaded(true);
+        }
       }
     };
 
-    const loadPayPalWithFallback = () => {
-      console.log('Loading PayPal with USD fallback...');
-      const script = document.createElement('script');
-      script.src = `https://www.paypal.com/sdk/js?client-id=ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2&currency=USD`;
-      script.async = true;
-      
-      script.onload = () => {
-        console.log('PayPal SDK loaded with fallback');
-        renderPayPalButton();
-      };
-      
-      script.onerror = (error) => {
-        console.error('Failed to load PayPal SDK with fallback:', error);
-        setError('Failed to load PayPal. Please refresh the page.');
-        setIsLoading(false);
-      };
-      
-      document.head.appendChild(script);
-    };
+    initializePayPal();
+  }, []);
 
-    const renderPayPalButton = () => {
+  // Initialize PayPal Buttons after SDK is ready and container is mounted
+  useEffect(() => {
+    if (scriptLoaded && window.paypal && containerRef.current) {
       console.log('Rendering PayPal button for tier:', selectedTier);
       
-      const containerId = `paypal-button-container-${selectedTier}`;
-      const container = document.getElementById(containerId);
-      
-      if (!container) {
-        console.error('PayPal container not found:', containerId);
-        setError('PayPal container not found. Please refresh the page.');
-        setIsLoading(false);
-        return;
+      // Clear existing content
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
       }
 
-      // Clear existing content
-      container.innerHTML = '';
-
       try {
+        const price = prices[selectedTier as keyof typeof prices];
+        
         window.paypal.Buttons({
           createOrder: (data: any, actions: any) => {
             console.log('Creating PayPal order for', selectedTier, 'plan');
-            const price = prices[selectedTier as keyof typeof prices];
             return actions.order.create({
               purchase_units: [{
                 amount: { 
@@ -150,7 +157,6 @@ const DynamicPayPalButtons: React.FC<DynamicPayPalButtonsProps> = ({
             console.log('Payment approved, capturing order...');
             return actions.order.capture().then((details: any) => {
               console.log('Payment successful:', details);
-              const price = prices[selectedTier as keyof typeof prices];
               onSuccess({
                 id: details.id,
                 status: details.status,
@@ -177,28 +183,22 @@ const DynamicPayPalButtons: React.FC<DynamicPayPalButtonsProps> = ({
             height: 45,
             label: 'paypal'
           }
-        }).render(`#${containerId}`);
-
-        console.log('PayPal button rendered successfully');
-        setIsLoading(false);
+        }).render(containerRef.current).then(() => {
+          console.log('PayPal button rendered successfully');
+          setIsLoading(false);
+        }).catch((renderError: any) => {
+          console.error('Error rendering PayPal button:', renderError);
+          setError('Failed to render PayPal button. Please refresh the page.');
+          setIsLoading(false);
+        });
         
       } catch (renderError) {
         console.error('Error rendering PayPal button:', renderError);
         setError('Failed to render PayPal button. Please refresh the page.');
         setIsLoading(false);
       }
-    };
-
-    initializePayPal();
-
-    return () => {
-      // Cleanup
-      const script = document.querySelector('script[src*="paypal.com"]');
-      if (script) {
-        script.remove();
-      }
-    };
-  }, [selectedTier, onSuccess, onError, onCancel]);
+    }
+  }, [scriptLoaded, selectedTier, currency, prices, onSuccess, onError, onCancel]);
 
   if (error) {
     return (
@@ -226,7 +226,7 @@ const DynamicPayPalButtons: React.FC<DynamicPayPalButtonsProps> = ({
   return (
     <div className="w-full">
       <div 
-        id={`paypal-button-container-${selectedTier}`} 
+        ref={containerRef}
         className="w-full min-h-[60px]"
       />
       <p className="text-xs text-center text-gray-500 mt-3">
