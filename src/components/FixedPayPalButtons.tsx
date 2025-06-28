@@ -26,92 +26,42 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
   onError,
   onCancel
 }) => {
-  const [scriptLoaded, setScriptLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [renderKey, setRenderKey] = useState(0);
   const paypalRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Get selected plan data
   const selectedPlan = plans.find(plan => plan.name === selectedTier) || plans[0];
 
-  // Load PayPal SDK script once
   useEffect(() => {
-    const loadPayPalScript = () => {
-      console.log('Checking PayPal SDK...');
-      
-      // Check if PayPal is already available
-      if ((window as any).paypal) {
-        console.log('PayPal SDK already available');
-        setScriptLoaded(true);
-        return;
-      }
-
-      // Check if script is already loading
-      const existingScript = document.getElementById('paypal-js-sdk');
-      if (existingScript) {
-        console.log('PayPal script already exists, waiting for load...');
-        existingScript.addEventListener('load', () => {
-          console.log('Existing PayPal SDK loaded');
-          setScriptLoaded(true);
-        });
-        return;
-      }
-
-      // Create new script
-      console.log('Loading new PayPal SDK...');
-      const script = document.createElement('script');
-      script.id = 'paypal-js-sdk';
-      script.src = `https://www.paypal.com/sdk/js?client-id=ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2&currency=USD`;
-      
-      script.onload = () => {
-        console.log('PayPal SDK loaded successfully');
-        setScriptLoaded(true);
-        setError(null);
-      };
-      
-      script.onerror = (error) => {
-        console.error('PayPal SDK failed to load:', error);
-        setError('Failed to load PayPal. Please refresh the page.');
-        setIsLoading(false);
-      };
-      
-      document.head.appendChild(script);
-    };
-
-    loadPayPalScript();
-  }, []);
-
-  // Render PayPal Buttons when script is loaded or tier changes
-  useEffect(() => {
-    if (!scriptLoaded || !paypalRef.current) {
-      console.log('PayPal script not loaded or container not ready');
-      return;
-    }
-
-    const renderButtons = async () => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const initializePayPal = async () => {
       try {
-        console.log('Starting PayPal buttons render for:', selectedPlan.name);
+        console.log('Initializing PayPal for tier:', selectedTier);
         setIsLoading(true);
         setError(null);
-        
-        // Ensure PayPal is available
+
+        // Ensure PayPal SDK is loaded
         if (!(window as any).paypal) {
-          throw new Error('PayPal SDK not available');
+          console.log('PayPal SDK not found, loading...');
+          await loadPayPalSDK();
         }
-        
-        // Ensure container exists and is empty
+
+        // Wait a bit for DOM to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         if (!paypalRef.current) {
-          throw new Error('PayPal container not found');
+          throw new Error('PayPal container not available');
         }
-        
-        // Clear any existing content
+
+        // Clear container
         paypalRef.current.innerHTML = '';
-        
+
         const amount = selectedPlan.priceUSD.toFixed(2);
         console.log('Creating PayPal buttons with amount:', amount);
-        
+
         const paypalButtons = (window as any).paypal.Buttons({
           createOrder: (data: any, actions: any) => {
             console.log('PayPal createOrder called with amount:', amount);
@@ -156,49 +106,62 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
             label: 'paypal'
           }
         });
-        
-        // Render the buttons
+
         await paypalButtons.render(paypalRef.current);
-        
         console.log('PayPal buttons rendered successfully');
         setIsLoading(false);
         setError(null);
-        
+
       } catch (renderError) {
-        console.error('Error rendering PayPal buttons:', renderError);
-        setError(`Failed to render PayPal buttons: ${renderError.message}`);
+        console.error('Error initializing PayPal:', renderError);
+        setError(`Failed to load PayPal: ${renderError.message}`);
         setIsLoading(false);
       }
     };
 
-    // Add a small delay to ensure DOM is ready
-    const timeoutId = setTimeout(() => {
-      renderButtons();
-    }, 100);
-
-    return () => clearTimeout(timeoutId);
-  }, [scriptLoaded, selectedTier, selectedPlan.name, selectedPlan.priceUSD, onSuccess, onError, onCancel, renderKey]);
-
-  // Reset when tier changes
-  useEffect(() => {
-    console.log('Tier changed to:', selectedTier);
-    setIsLoading(true);
-    setError(null);
-    setRenderKey(prev => prev + 1);
-  }, [selectedTier]);
-
-  // Add timeout to prevent infinite loading
-  useEffect(() => {
-    if (isLoading && scriptLoaded) {
-      const timeoutId = setTimeout(() => {
-        console.log('PayPal render timeout reached');
-        setError('PayPal buttons failed to load. Please refresh the page.');
+    // Set timeout for loading
+    timeoutId = setTimeout(() => {
+      if (isLoading) {
+        console.log('PayPal initialization timeout');
+        setError('PayPal failed to load. Please refresh the page.');
         setIsLoading(false);
-      }, 10000); // 10 second timeout
+      }
+    }, 15000);
 
-      return () => clearTimeout(timeoutId);
-    }
-  }, [isLoading, scriptLoaded]);
+    initializePayPal();
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [selectedTier, selectedPlan.name, selectedPlan.priceUSD, onSuccess, onError, onCancel]);
+
+  const loadPayPalSDK = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      // Check if already exists
+      const existingScript = document.getElementById('paypal-js-sdk');
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      const script = document.createElement('script');
+      script.id = 'paypal-js-sdk';
+      script.src = `https://www.paypal.com/sdk/js?client-id=ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2&currency=USD`;
+      
+      script.onload = () => {
+        console.log('PayPal SDK loaded successfully');
+        resolve();
+      };
+      
+      script.onerror = () => {
+        console.error('PayPal SDK failed to load');
+        reject(new Error('PayPal SDK failed to load'));
+      };
+      
+      document.head.appendChild(script);
+    });
+  };
 
   if (error) {
     return (
@@ -233,7 +196,6 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
       
       <div 
         ref={paypalRef} 
-        key={renderKey}
         id="paypal-button-container" 
         className="w-full min-h-[60px]" 
       />
