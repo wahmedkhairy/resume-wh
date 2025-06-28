@@ -3,71 +3,84 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
 const MobileNotification: React.FC = () => {
-  const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => {
-      // Check for mobile devices using user agent and screen size
+    const checkAndShowMobileNotification = () => {
+      // Check for mobile devices using multiple methods
       const userAgent = navigator.userAgent.toLowerCase();
       const mobileKeywords = ['mobile', 'android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
       const isMobileUserAgent = mobileKeywords.some(keyword => userAgent.includes(keyword));
       const isMobileScreen = window.innerWidth <= 768;
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       
-      return isMobileUserAgent || isMobileScreen;
+      const isMobile = isMobileUserAgent || (isMobileScreen && isTouchDevice);
+      
+      console.log('Mobile detection:', {
+        userAgent: userAgent,
+        isMobileUserAgent,
+        isMobileScreen,
+        isTouchDevice,
+        finalIsMobile: isMobile,
+        screenWidth: window.innerWidth
+      });
+      
+      // Check if notification was already shown in this session
+      const notificationShown = sessionStorage.getItem('mobileNotificationShown');
+      
+      if (isMobile && !notificationShown) {
+        console.log('Showing mobile notification');
+        setIsVisible(true);
+        sessionStorage.setItem('mobileNotificationShown', 'true');
+        
+        // Auto-hide after 6 seconds
+        setTimeout(() => {
+          setIsVisible(false);
+        }, 6000);
+      }
     };
 
+    // Initial check with a small delay to ensure DOM is ready
+    const timer = setTimeout(checkAndShowMobileNotification, 500);
+
+    // Listen for resize events to handle orientation changes
     const handleResize = () => {
-      const mobileStatus = checkMobile();
-      setIsMobile(mobileStatus);
+      // Only check if notification isn't already visible
+      if (!isVisible) {
+        const notificationShown = sessionStorage.getItem('mobileNotificationShown');
+        if (!notificationShown && window.innerWidth <= 768) {
+          checkAndShowMobileNotification();
+        }
+      }
     };
 
-    // Initial check
-    const mobileStatus = checkMobile();
-    setIsMobile(mobileStatus);
-    
-    // Check if notification was already shown in this session
-    const notificationShown = sessionStorage.getItem('mobileNotificationShown');
-    
-    if (mobileStatus && !notificationShown) {
-      setIsVisible(true);
-      sessionStorage.setItem('mobileNotificationShown', 'true');
-    }
-    
-    // Listen for resize events but don't affect visibility
     window.addEventListener('resize', handleResize);
     
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('resize', handleResize);
     };
   }, []);
 
-  // Separate useEffect for auto-hide timer
-  useEffect(() => {
-    if (isMobile && isVisible) {
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isMobile, isVisible]);
-
   const handleClose = () => {
+    console.log('Mobile notification closed by user');
     setIsVisible(false);
   };
 
-  if (!isMobile || !isVisible) return null;
+  if (!isVisible) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-blue-600 text-white p-3 shadow-lg">
-      <div className="flex items-center justify-between max-w-md mx-auto">
-        <p className="text-sm font-medium">
-          Better on big screens. Use a laptop or PC for a better experience.
-        </p>
+    <div className="fixed top-0 left-0 right-0 z-50 bg-blue-600 text-white p-3 shadow-lg animate-in slide-in-from-top duration-300">
+      <div className="flex items-center justify-between max-w-4xl mx-auto">
+        <div className="flex items-center space-x-2">
+          <div className="text-sm font-medium">
+            📱 Better on big screens. Use a laptop or PC for a better experience.
+          </div>
+        </div>
         <button
           onClick={handleClose}
-          className="ml-2 p-1 hover:bg-blue-700 rounded"
+          className="ml-2 p-1 hover:bg-blue-700 rounded transition-colors"
+          aria-label="Close notification"
         >
           <X className="h-4 w-4" />
         </button>
