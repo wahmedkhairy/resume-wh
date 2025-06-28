@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PayPalOrderData } from "@/services/paypalService";
-import SimplePayPalButtons from "./SimplePayPalButtons";
+import DynamicPayPalButtons from "./DynamicPayPalButtons";
 
 interface PaymentSectionProps {
   orderData: PayPalOrderData;
@@ -22,16 +22,19 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
 
   const handlePayPalSuccess = (details: any) => {
     console.log('PayPal payment successful:', details);
+    setIsProcessing(true);
     onSuccess(details);
   };
 
   const handlePayPalError = (error: any) => {
     console.error('PayPal payment error:', error);
+    setIsProcessing(false);
     onError(error);
   };
 
   const handlePayPalCancel = () => {
     console.log('PayPal payment cancelled');
+    setIsProcessing(false);
     onCancel();
   };
 
@@ -41,14 +44,12 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         <CardTitle className="text-lg">Complete Your Payment</CardTitle>
         <div className="bg-muted p-3 rounded-lg mt-4">
           <div className="flex justify-between items-center">
-            <span className="font-medium">Amount:</span>
-            <span className="text-lg font-bold">
-              {orderData.currency === 'EGP' ? 'EGP' : '$'} {orderData.amount}
-            </span>
+            <span className="font-medium">Plan:</span>
+            <span className="text-lg font-bold capitalize">{orderData.tier}</span>
           </div>
           <div className="flex justify-between items-center mt-2">
-            <span className="text-sm text-muted-foreground">Plan:</span>
-            <span className="text-sm capitalize">{orderData.tier}</span>
+            <span className="text-sm text-muted-foreground">Currency:</span>
+            <span className="text-sm">{orderData.currency}</span>
           </div>
         </div>
       </CardHeader>
@@ -56,10 +57,8 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         {/* PayPal Payment Option */}
         <div>
           <h3 className="text-sm font-medium mb-3 text-center">Pay with PayPal</h3>
-          <SimplePayPalButtons
-            amount={orderData.amount}
-            currency={orderData.currency}
-            tier={orderData.tier}
+          <DynamicPayPalButtons
+            selectedTier={orderData.tier}
             onSuccess={handlePayPalSuccess}
             onError={handlePayPalError}
             onCancel={handlePayPalCancel}
