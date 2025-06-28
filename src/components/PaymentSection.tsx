@@ -1,10 +1,7 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { PayPalOrderData } from "@/services/paypalService";
-import CreditCardForm from "./CreditCardForm";
-import { Separator } from "@/components/ui/separator";
 import SimplePayPalButtons from "./SimplePayPalButtons";
 
 interface PaymentSectionProps {
@@ -72,29 +69,6 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
               Processing your PayPal payment...
             </div>
           )}
-        </div>
-
-        <div className="relative">
-          <Separator />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="bg-background px-2 text-xs text-muted-foreground">OR</span>
-          </div>
-        </div>
-
-        {/* Credit Card Payment Option */}
-        <div>
-          <h3 className="text-sm font-medium mb-3 text-center">Pay with Credit Card</h3>
-          <CreditCardForm
-            onSuccess={onSuccess}
-            onError={onError}
-            onCancel={onCancel}
-            amount={parseFloat(orderData.amount)}
-            currency={orderData.currency}
-            symbol={orderData.currency === 'EGP' ? 'EGP' : '$'}
-            selectedTier={orderData.tier}
-            isProcessing={isProcessing}
-            setIsProcessing={setIsProcessing}
-          />
         </div>
       </CardContent>
     </Card>
