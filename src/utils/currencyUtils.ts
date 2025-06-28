@@ -48,7 +48,7 @@ export const detectUserLocation = async (): Promise<LocationData> => {
     const locationData: LocationData = {
       country: data.country_name || "Unknown",
       countryCode: data.country_code || "US",
-      currency: getCurrencyForCountry("US") // Always use USD now
+      currency: getUSDCurrency() // Always use USD for consistency
     };
 
     cachedLocationData = locationData;
@@ -64,8 +64,7 @@ export const detectUserLocation = async (): Promise<LocationData> => {
   }
 };
 
-const getCurrencyForCountry = (countryCode: string): CurrencyConfig => {
-  // Always return USD pricing regardless of country
+const getUSDCurrency = (): CurrencyConfig => {
   return {
     symbol: '$',
     code: 'USD',
@@ -78,7 +77,7 @@ const getCurrencyForCountry = (countryCode: string): CurrencyConfig => {
 const getDefaultLocationData = (): LocationData => ({
   country: "United States",
   countryCode: "US",
-  currency: getCurrencyForCountry("US")
+  currency: getUSDCurrency()
 });
 
 export const formatCurrency = (amount: number, currencyConfig: CurrencyConfig): string => {
@@ -87,6 +86,5 @@ export const formatCurrency = (amount: number, currencyConfig: CurrencyConfig): 
 
 // Legacy function for backward compatibility
 export const detectUserCurrency = (): CurrencyConfig => {
-  // Always return USD pricing
-  return getCurrencyForCountry('US');
+  return getUSDCurrency();
 };

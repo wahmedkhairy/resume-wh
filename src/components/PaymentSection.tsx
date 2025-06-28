@@ -20,20 +20,22 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
+  console.log('PaymentSection rendered with orderData:', orderData);
+
   const handlePayPalSuccess = (details: any) => {
-    console.log('PayPal payment successful:', details);
+    console.log('PaymentSection: PayPal payment successful:', details);
     setIsProcessing(true);
     onSuccess(details);
   };
 
   const handlePayPalError = (error: any) => {
-    console.error('PayPal payment error:', error);
+    console.error('PaymentSection: PayPal payment error:', error);
     setIsProcessing(false);
     onError(error);
   };
 
   const handlePayPalCancel = () => {
-    console.log('PayPal payment cancelled');
+    console.log('PaymentSection: PayPal payment cancelled');
     setIsProcessing(false);
     onCancel();
   };
@@ -42,6 +44,9 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
         <CardTitle className="text-lg">Complete Your Payment</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {orderData.tier.charAt(0).toUpperCase() + orderData.tier.slice(1)} Plan - ${orderData.amount} USD
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* PayPal Payment Option */}
