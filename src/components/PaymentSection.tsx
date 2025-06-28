@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PayPalOrderData } from "@/services/paypalService";
-import DynamicPayPalButtons from "./DynamicPayPalButtons";
+import FixedPayPalButtons from "./FixedPayPalButtons";
 
 interface PaymentSectionProps {
   orderData: PayPalOrderData;
@@ -42,22 +42,12 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
         <CardTitle className="text-lg">Complete Your Payment</CardTitle>
-        <div className="bg-muted p-3 rounded-lg mt-4">
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Plan:</span>
-            <span className="text-lg font-bold capitalize">{orderData.tier}</span>
-          </div>
-          <div className="flex justify-between items-center mt-2">
-            <span className="text-sm text-muted-foreground">Currency:</span>
-            <span className="text-sm">{orderData.currency}</span>
-          </div>
-        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* PayPal Payment Option */}
         <div>
           <h3 className="text-sm font-medium mb-3 text-center">Pay with PayPal</h3>
-          <DynamicPayPalButtons
+          <FixedPayPalButtons
             selectedTier={orderData.tier}
             onSuccess={handlePayPalSuccess}
             onError={handlePayPalError}
