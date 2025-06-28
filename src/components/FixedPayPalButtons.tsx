@@ -29,7 +29,7 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [buttonsRendered, setButtonsRendered] = useState(false);
+  const [renderKey, setRenderKey] = useState(0);
   const paypalRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -83,23 +83,25 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
     loadPayPalScript();
   }, []);
 
-  // Render PayPal Buttons when script is loaded
+  // Render PayPal Buttons when script is loaded or tier changes
   useEffect(() => {
-    if (!scriptLoaded || !paypalRef.current || buttonsRendered) {
+    if (!scriptLoaded || !paypalRef.current) {
+      console.log('PayPal script not loaded or container not ready');
       return;
     }
 
     const renderButtons = async () => {
       try {
-        console.log('Rendering PayPal buttons for plan:', selectedPlan.name);
+        console.log('Starting PayPal buttons render for:', selectedPlan.name);
         setIsLoading(true);
+        setError(null);
         
         // Ensure PayPal is available
         if (!(window as any).paypal) {
           throw new Error('PayPal SDK not available');
         }
         
-        // Ensure container exists
+        // Ensure container exists and is empty
         if (!paypalRef.current) {
           throw new Error('PayPal container not found');
         }
@@ -108,12 +110,11 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
         paypalRef.current.innerHTML = '';
         
         const amount = selectedPlan.priceUSD.toFixed(2);
-        console.log('Creating PayPal order with amount:', amount);
+        console.log('Creating PayPal buttons with amount:', amount);
         
         const paypalButtons = (window as any).paypal.Buttons({
           createOrder: (data: any, actions: any) => {
             console.log('PayPal createOrder called with amount:', amount);
-            // Explicitly return the promise from actions.order.create
             return actions.order.create({
               purchase_units: [{
                 description: `${selectedPlan.name.charAt(0).toUpperCase() + selectedPlan.name.slice(1)} Plan`,
@@ -156,11 +157,10 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
           }
         });
         
-        // Render into the specific container
+        // Render the buttons
         await paypalButtons.render(paypalRef.current);
         
         console.log('PayPal buttons rendered successfully');
-        setButtonsRendered(true);
         setIsLoading(false);
         setError(null);
         
@@ -171,14 +171,34 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
       }
     };
 
-    renderButtons();
-  }, [scriptLoaded, selectedPlan.name, selectedPlan.priceUSD, selectedTier, onSuccess, onError, onCancel, buttonsRendered]);
+    // Add a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
+      renderButtons();
+    }, 100);
 
-  // Reset buttons when tier changes
+    return () => clearTimeout(timeoutId);
+  }, [scriptLoaded, selectedTier, selectedPlan.name, selectedPlan.priceUSD, onSuccess, onError, onCancel, renderKey]);
+
+  // Reset when tier changes
   useEffect(() => {
-    setButtonsRendered(false);
+    console.log('Tier changed to:', selectedTier);
     setIsLoading(true);
+    setError(null);
+    setRenderKey(prev => prev + 1);
   }, [selectedTier]);
+
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    if (isLoading && scriptLoaded) {
+      const timeoutId = setTimeout(() => {
+        console.log('PayPal render timeout reached');
+        setError('PayPal buttons failed to load. Please refresh the page.');
+        setIsLoading(false);
+      }, 10000); // 10 second timeout
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isLoading, scriptLoaded]);
 
   if (error) {
     return (
@@ -211,7 +231,12 @@ const FixedPayPalButtons: React.FC<FixedPayPalButtonsProps> = ({
         </p>
       </div>
       
-      <div ref={paypalRef} id="paypal-button-container" className="w-full min-h-[60px]" />
+      <div 
+        ref={paypalRef} 
+        key={renderKey}
+        id="paypal-button-container" 
+        className="w-full min-h-[60px]" 
+      />
       
       <p className="text-xs text-center text-gray-500 mt-3">
         Secure payment powered by PayPal
