@@ -1,6 +1,5 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { PayPalService } from '@/services/paypalService';
 import { useToast } from '@/hooks/use-toast';
 
 interface PayPalButtonProps {
@@ -16,7 +15,6 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -24,118 +22,33 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
       try {
         console.log('Initializing PayPal button...');
         
-        const service = PayPalService.getInstance();
-        const ok = await service.initialize();
-        
-        if (!ok) {
-          console.error('PayPal service initialization failed');
+        // Remove existing script if present
+        const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
+        if (existingScript) {
+          existingScript.remove();
+        }
+
+        // Load PayPal SDK
+        const script = document.createElement('script');
+        script.src = `https://www.paypal.com/sdk/js?client-id=AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E&currency=USD`;
+        script.async = true;
+
+        script.onload = () => {
+          console.log('PayPal SDK loaded successfully');
+          renderButtons();
+        };
+
+        script.onerror = () => {
+          console.error('Failed to load PayPal SDK');
           setIsLoading(false);
           toast({
             title: "PayPal Error",
             description: "Failed to initialize PayPal. Please check your configuration.",
             variant: "destructive"
           });
-          return;
-        }
-
-        // Ensure container is available
-        if (!containerRef.current) {
-          console.error('PayPal container not available');
-          setIsLoading(false);
-          return;
-        }
-
-        const paypal = service.getPayPal();
-        if (!paypal) {
-          console.error('PayPal SDK not loaded');
-          setIsLoading(false);
-          return;
-        }
-
-        console.log('Rendering PayPal buttons...');
-
-        const orderData = {
-          amount,
-          currency: "USD",
-          description: `Payment for $${amount}`,
-          tier: "basic"
         };
 
-        // Clear any existing content
-        containerRef.current.innerHTML = '';
-
-        paypal.Buttons({
-          createOrder: async () => {
-            try {
-              console.log('Creating PayPal order...');
-              const orderId = await service.createOrder(orderData);
-              console.log('Order created:', orderId);
-              return orderId;
-            } catch (error) {
-              console.error('Error creating order:', error);
-              toast({
-                title: "Order Creation Failed",
-                description: "Failed to create PayPal order. Please try again.",
-                variant: "destructive"
-              });
-              throw error;
-            }
-          },
-          
-          onApprove: async (data: any) => {
-            try {
-              console.log('PayPal payment approved:', data.orderID);
-              const capture = await service.captureOrder(data.orderID);
-              console.log('Payment captured:', capture);
-              
-              toast({
-                title: "Payment Successful!",
-                description: `Payment of $${amount} completed successfully.`,
-              });
-
-              if (onSuccess) {
-                onSuccess(capture);
-              }
-            } catch (error) {
-              console.error('Error capturing payment:', error);
-              toast({
-                title: "Payment Failed",
-                description: "Payment approval failed. Please try again.",
-                variant: "destructive"
-              });
-              
-              if (onError) {
-                onError(error);
-              }
-            }
-          },
-
-          onError: (err: any) => {
-            console.error('PayPal error:', err);
-            toast({
-              title: "PayPal Error",
-              description: "There was an error with PayPal. Please try again.",
-              variant: "destructive"
-            });
-            
-            if (onError) {
-              onError(err);
-            }
-          },
-
-          onCancel: (data: any) => {
-            console.log('PayPal payment cancelled:', data);
-            toast({
-              title: "Payment Cancelled",
-              description: "Your payment was cancelled.",
-            });
-          }
-        }).render(containerRef.current);
-
-        setIsInitialized(true);
-        setIsLoading(false);
-        console.log('PayPal buttons rendered successfully');
-        
+        document.head.appendChild(script);
       } catch (error) {
         console.error('Error initializing PayPal:', error);
         setIsLoading(false);
@@ -147,17 +60,81 @@ const PayPalButton: React.FC<PayPalButtonProps> = ({
       }
     };
 
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initPayPal);
-    } else {
-      // DOM is already ready
-      initPayPal();
-    }
+    const renderButtons = () => {
+      if (!window.paypal || !containerRef.current) {
+        console.error('PayPal SDK or container not available');
+        setIsLoading(false);
+        return;
+      }
 
-    return () => {
-      document.removeEventListener('DOMContentLoaded', initPayPal);
+      // Clear any existing content
+      containerRef.current.innerHTML = '';
+
+      window.paypal.Buttons({
+        createOrder: (data: any, actions: any) => {
+          console.log('Creating PayPal order...');
+          return actions.order.create({
+            purchase_units: [{
+              amount: {
+                currency_code: 'USD',
+                value: amount
+              },
+              description: `Payment for $${amount}`
+            }]
+          });
+        },
+        
+        onApprove: (data: any, actions: any) => {
+          console.log('PayPal payment approved:', data.orderID);
+          return actions.order.capture().then((details: any) => {
+            console.log('Payment captured:', details);
+            
+            toast({
+              title: "Payment Successful!",
+              description: `Payment of $${amount} completed successfully.`,
+            });
+
+            if (onSuccess) {
+              onSuccess(details);
+            }
+          });
+        },
+
+        onError: (err: any) => {
+          console.error('PayPal error:', err);
+          toast({
+            title: "PayPal Error",
+            description: "There was an error with PayPal. Please try again.",
+            variant: "destructive"
+          });
+          
+          if (onError) {
+            onError(err);
+          }
+        },
+
+        onCancel: (data: any) => {
+          console.log('PayPal payment cancelled:', data);
+          toast({
+            title: "Payment Cancelled",
+            description: "Your payment was cancelled.",
+          });
+        }
+      }).render(containerRef.current).then(() => {
+        setIsLoading(false);
+        console.log('PayPal buttons rendered successfully');
+      }).catch((err: any) => {
+        console.error('Error rendering PayPal buttons:', err);
+        setIsLoading(false);
+        toast({
+          title: "PayPal Error",
+          description: "Failed to render PayPal buttons. Please try again.",
+          variant: "destructive"
+        });
+      });
     };
+
+    initPayPal();
   }, [amount, onSuccess, onError, toast]);
 
   if (isLoading) {

@@ -1,7 +1,7 @@
 
 declare global {
   interface Window {
-    paypal: {
+    paypal?: {
       Buttons: (config: {
         createOrder: (data: any, actions: any) => Promise<string>;
         onApprove: (data: any, actions: any) => Promise<void>;
