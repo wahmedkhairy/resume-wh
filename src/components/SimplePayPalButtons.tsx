@@ -2,6 +2,13 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
+// Extend Window interface to include paypal
+declare global {
+  interface Window {
+    paypal?: any;
+  }
+}
+
 interface SimplePayPalButtonsProps {
   amount: string;
   tier: string;
@@ -20,180 +27,227 @@ const SimplePayPalButtons: React.FC<SimplePayPalButtonsProps> = ({
   const paypalRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [sdkReady, setSdkReady] = useState(false);
+  const initializationAttempted = useRef(false);
   const { toast } = useToast();
 
-  const initializeButtons = useCallback(() => {
-    if (!window.paypal) {
-      console.error('PayPal SDK not available');
+  // Check if PayPal SDK is already loaded
+  const checkPayPalSDK = useCallback(() => {
+    return typeof window !== 'undefined' && window.paypal && typeof window.paypal.Buttons === 'function';
+  }, []);
+
+  // Initialize PayPal buttons with better error handling
+  const initializePayPalButtons = useCallback(() => {
+    console.log('Attempting to initialize PayPal buttons...');
+    
+    // Prevent multiple initialization attempts
+    if (initializationAttempted.current) {
+      console.log('Initialization already attempted, skipping...');
+      return;
+    }
+
+    if (!checkPayPalSDK()) {
+      console.error('PayPal SDK not ready');
       setError('PayPal SDK not available');
       setIsLoading(false);
       return;
     }
 
-    // Add retry logic for container with exponential backoff
-    const attemptInitialization = (retries = 5, delay = 50) => {
-      if (!paypalRef.current) {
-        if (retries > 0) {
-          console.log(`PayPal container not ready, retrying... (${retries} attempts left)`);
-          setTimeout(() => attemptInitialization(retries - 1, delay * 1.5), delay);
-          return;
-        } else {
-          console.error('PayPal container not found after all retries');
-          setError('PayPal container not found. Please refresh the page.');
-          setIsLoading(false);
-          return;
+    if (!paypalRef.current) {
+      console.error('PayPal container ref is null');
+      setError('PayPal container not found');
+      setIsLoading(false);
+      return;
+    }
+
+    initializationAttempted.current = true;
+
+    try {
+      // Clear any existing content
+      if (paypalRef.current) {
+        paypalRef.current.innerHTML = '';
+      }
+
+      console.log('Creating PayPal buttons...');
+      
+      window.paypal.Buttons({
+        createOrder: (data: any, actions: any) => {
+          console.log('Creating PayPal order for amount:', amount);
+          return actions.order.create({
+            purchase_units: [{
+              amount: {
+                currency_code: 'USD',
+                value: amount
+              },
+              description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan`
+            }]
+          });
+        },
+        onApprove: (data: any, actions: any) => {
+          console.log('PayPal payment approved');
+          return actions.order.capture().then((details: any) => {
+            console.log('Payment captured:', details);
+            onSuccess({
+              id: details.id,
+              status: details.status,
+              amount: amount,
+              currency: 'USD',
+              tier: tier,
+              payer_name: details.payer?.name?.given_name || 'Customer',
+              payment_method: 'paypal'
+            });
+          });
+        },
+        onError: (err: any) => {
+          console.error('PayPal error:', err);
+          onError(err);
+        },
+        onCancel: () => {
+          console.log('PayPal payment cancelled');
+          onCancel();
+        },
+        style: {
+          layout: 'vertical',
+          color: 'gold',
+          shape: 'rect',
+          label: 'paypal'
         }
-      }
-
-      // Check if already initialized to prevent double initialization
-      if (isInitialized) {
-        console.log('PayPal buttons already initialized, skipping...');
-        return;
-      }
-
-      // Clear container
-      paypalRef.current.innerHTML = '';
-
-      try {
-        window.paypal.Buttons({
-          createOrder: (data: any, actions: any) => {
-            console.log('Creating PayPal order for amount:', amount);
-            return actions.order.create({
-              purchase_units: [{
-                amount: {
-                  currency_code: 'USD',
-                  value: amount
-                },
-                description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan`
-              }]
-            });
-          },
-          onApprove: (data: any, actions: any) => {
-            console.log('PayPal payment approved');
-            return actions.order.capture().then((details: any) => {
-              console.log('Payment captured:', details);
-              onSuccess({
-                id: details.id,
-                status: details.status,
-                amount: amount,
-                currency: 'USD',
-                tier: tier,
-                payer_name: details.payer?.name?.given_name || 'Customer',
-                payment_method: 'paypal'
-              });
-            });
-          },
-          onError: (err: any) => {
-            console.error('PayPal error:', err);
-            onError(err);
-          },
-          onCancel: () => {
-            console.log('PayPal payment cancelled');
-            onCancel();
-          },
-          style: {
-            layout: 'vertical',
-            color: 'gold',
-            shape: 'rect',
-            label: 'paypal'
-          }
-        }).render(paypalRef.current).then(() => {
+      }).render(paypalRef.current)
+        .then(() => {
           console.log('PayPal buttons rendered successfully');
-          setIsInitialized(true);
           setIsLoading(false);
-        }).catch((err: any) => {
+          setError(null);
+        })
+        .catch((err: any) => {
           console.error('Error rendering PayPal buttons:', err);
-          setError('Failed to render PayPal buttons. Please try again.');
+          setError('Failed to render PayPal buttons');
           setIsLoading(false);
+          initializationAttempted.current = false; // Reset for retry
         });
-      } catch (err) {
-        console.error('Error initializing PayPal buttons:', err);
-        setError('Error initializing PayPal buttons. Please refresh the page.');
-        setIsLoading(false);
+
+    } catch (err) {
+      console.error('Error in PayPal button initialization:', err);
+      setError('Error initializing PayPal buttons');
+      setIsLoading(false);
+      initializationAttempted.current = false; // Reset for retry
+    }
+  }, [amount, tier, onSuccess, onError, onCancel, checkPayPalSDK]);
+
+  // Load PayPal SDK
+  const loadPayPalSDK = useCallback(() => {
+    console.log('Loading PayPal SDK...');
+    
+    // Check if SDK is already loaded
+    if (checkPayPalSDK()) {
+      console.log('PayPal SDK already loaded');
+      setSdkReady(true);
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      // Remove existing script if any
+      const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
+      if (existingScript) {
+        existingScript.remove();
       }
-    };
 
-    attemptInitialization();
-  }, [amount, tier, onSuccess, onError, onCancel, isInitialized]);
+      const script = document.createElement('script');
+      script.src = `https://www.paypal.com/sdk/js?client-id=AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E&currency=USD`;
+      script.async = true;
 
+      script.onload = () => {
+        console.log('PayPal SDK loaded successfully');
+        setSdkReady(true);
+        resolve();
+      };
+
+      script.onerror = () => {
+        console.error('Failed to load PayPal SDK');
+        reject(new Error('Failed to load PayPal SDK'));
+      };
+
+      document.head.appendChild(script);
+    });
+  }, [checkPayPalSDK]);
+
+  // Main effect to load SDK and initialize buttons
   useEffect(() => {
-    const loadPayPal = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        setIsInitialized(false);
+    console.log('Main effect triggered');
+    
+    setIsLoading(true);
+    setError(null);
+    initializationAttempted.current = false;
 
-        // Check if PayPal SDK is already loaded
-        if (window.paypal) {
-          console.log('PayPal SDK already loaded, initializing buttons...');
-          // Small delay to ensure DOM is ready
-          setTimeout(() => initializeButtons(), 100);
-          return;
-        }
-
-        // Remove existing PayPal script
-        const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
-        if (existingScript) {
-          existingScript.remove();
-        }
-
-        // Load PayPal SDK
-        const script = document.createElement('script');
-        script.src = `https://www.paypal.com/sdk/js?client-id=AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E&currency=USD`;
-        script.async = true;
-
-        script.onload = () => {
-          console.log('PayPal SDK loaded successfully');
-          // Add small delay to ensure DOM is fully ready
-          setTimeout(() => initializeButtons(), 200);
-        };
-
-        script.onerror = () => {
-          console.error('Failed to load PayPal SDK');
-          setError('Failed to load PayPal. Please check your internet connection and refresh the page.');
-          setIsLoading(false);
-        };
-
-        document.head.appendChild(script);
-      } catch (err) {
-        console.error('Error loading PayPal:', err);
-        setError('Error loading PayPal. Please try again.');
+    loadPayPalSDK()
+      .then(() => {
+        console.log('SDK loaded, waiting for DOM...');
+        // Give a moment for DOM to be ready
+        setTimeout(() => {
+          if (paypalRef.current) {
+            initializePayPalButtons();
+          } else {
+            console.error('PayPal ref still null after timeout');
+            setError('Unable to initialize PayPal - please try refreshing the page');
+            setIsLoading(false);
+          }
+        }, 500);
+      })
+      .catch((err) => {
+        console.error('Failed to load PayPal SDK:', err);
+        setError('Failed to load PayPal. Please check your connection and refresh.');
         setIsLoading(false);
-      }
-    };
-
-    loadPayPal();
+      });
 
     // Cleanup function
     return () => {
-      setIsInitialized(false);
+      initializationAttempted.current = false;
     };
-  }, [initializeButtons]);
+  }, [loadPayPalSDK, initializePayPalButtons]);
+
+  // Effect to initialize buttons when SDK becomes ready
+  useEffect(() => {
+    if (sdkReady && paypalRef.current && !initializationAttempted.current) {
+      console.log('SDK ready and ref available, initializing...');
+      setTimeout(() => initializePayPalButtons(), 100);
+    }
+  }, [sdkReady, initializePayPalButtons]);
 
   const handleRetry = () => {
+    console.log('Retry button clicked');
     setError(null);
     setIsLoading(true);
-    setIsInitialized(false);
+    setSdkReady(false);
+    initializationAttempted.current = false;
     
-    // Trigger re-initialization
-    if (window.paypal && paypalRef.current) {
-      setTimeout(() => initializeButtons(), 100);
-    } else {
-      window.location.reload();
-    }
+    // Force reload of the component logic
+    loadPayPalSDK()
+      .then(() => {
+        setTimeout(() => initializePayPalButtons(), 300);
+      })
+      .catch(() => {
+        setError('Failed to reload PayPal. Please refresh the page.');
+        setIsLoading(false);
+      });
   };
 
   if (error) {
     return (
       <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
         <p className="text-red-600 text-sm mb-3">{error}</p>
-        <button 
-          onClick={handleRetry}
-          className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors"
-        >
-          Try Again
-        </button>
+        <div className="space-x-2">
+          <button 
+            onClick={handleRetry}
+            className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-gray-600 text-white px-4 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
+          >
+            Refresh Page
+          </button>
+        </div>
       </div>
     );
   }
@@ -215,7 +269,12 @@ const SimplePayPalButtons: React.FC<SimplePayPalButtonsProps> = ({
         </p>
       </div>
       
-      <div ref={paypalRef} className="w-full min-h-[60px]" />
+      {/* The key prop forces React to recreate the element */}
+      <div 
+        ref={paypalRef} 
+        key={`paypal-${amount}-${tier}`}
+        className="w-full min-h-[60px]" 
+      />
       
       <p className="text-xs text-center text-gray-500 mt-3">
         Secure payment powered by PayPal
