@@ -53,19 +53,22 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
         <div>
           <h3 className="text-sm font-medium mb-3 text-center">Pay with PayPal</h3>
           <div className="paypal-container">
-            <PayPalIntegration
-              amount={orderData.amount}
-              tier={orderData.tier}
-              onSuccess={handlePayPalSuccess}
-              onError={handlePayPalError}
-              onCancel={handlePayPalCancel}
-            />
+            {!isProcessing && (
+              <PayPalIntegration
+                amount={orderData.amount}
+                tier={orderData.tier}
+                onSuccess={handlePayPalSuccess}
+                onError={handlePayPalError}
+                onCancel={handlePayPalCancel}
+              />
+            )}
+            {isProcessing && (
+              <div className="text-center text-sm text-muted-foreground p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+                Processing your payment...
+              </div>
+            )}
           </div>
-          {isProcessing && (
-            <div className="text-center text-sm text-muted-foreground mt-4">
-              Processing your payment...
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
