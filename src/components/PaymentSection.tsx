@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import SimplePayPalButtons from "./SimplePayPalButtons";
+import PayPalIntegration from "./PayPalIntegration";
 
 interface PaymentSectionProps {
   orderData: {
@@ -13,7 +13,6 @@ interface PaymentSectionProps {
   onSuccess: (details: any) => void;
   onError: (error: any) => void;
   onCancel: () => void;
-  useRawHTML?: boolean;
 }
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({
@@ -25,19 +24,19 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePayPalSuccess = useCallback((details: any) => {
-    console.log('PaymentSection: PayPal payment successful:', details);
+    console.log('Payment successful:', details);
     setIsProcessing(true);
     onSuccess(details);
   }, [onSuccess]);
 
   const handlePayPalError = useCallback((error: any) => {
-    console.error('PaymentSection: PayPal payment error:', error);
+    console.error('Payment error:', error);
     setIsProcessing(false);
     onError(error);
   }, [onError]);
 
   const handlePayPalCancel = useCallback(() => {
-    console.log('PaymentSection: PayPal payment cancelled');
+    console.log('Payment cancelled');
     setIsProcessing(false);
     onCancel();
   }, [onCancel]);
@@ -53,9 +52,8 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       <CardContent className="space-y-6">
         <div>
           <h3 className="text-sm font-medium mb-3 text-center">Pay with PayPal</h3>
-          {/* Stable container for PayPal buttons - no conditional rendering */}
-          <div className="paypal-wrapper" style={{ minHeight: '120px' }}>
-            <SimplePayPalButtons
+          <div className="paypal-container">
+            <PayPalIntegration
               amount={orderData.amount}
               tier={orderData.tier}
               onSuccess={handlePayPalSuccess}
@@ -64,7 +62,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
             />
           </div>
           {isProcessing && (
-            <div className="text-center text-sm text-muted-foreground mt-2">
+            <div className="text-center text-sm text-muted-foreground mt-4">
               Processing your payment...
             </div>
           )}

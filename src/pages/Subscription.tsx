@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -30,7 +29,6 @@ const Subscription = () => {
     unlimitedPrice: 4.99
   };
 
-  // Memoize order data to prevent unnecessary re-renders
   const orderData = React.useMemo(() => {
     if (!selectedTier) return null;
 
@@ -87,7 +85,7 @@ const Subscription = () => {
   }, []);
 
   const handlePaymentSuccess = useCallback(async (details: any) => {
-    if (paymentProcessing) return; // Prevent double processing
+    if (paymentProcessing) return;
     
     setPaymentProcessing(true);
     
@@ -246,19 +244,14 @@ const Subscription = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {/* PaymentSection Container - Always rendered when in payment step */}
-                    <div className="payment-container" style={{ minHeight: '400px' }}>
-                      {orderData && (
-                        <PaymentSection
-                          key={`payment-${selectedTier}-${orderData.amount}`}
-                          orderData={orderData}
-                          onSuccess={handlePaymentSuccess}
-                          onError={handlePaymentError}
-                          onCancel={handlePaymentCancel}
-                          useRawHTML={true}
-                        />
-                      )}
-                    </div>
+                    {orderData && (
+                      <PaymentSection
+                        orderData={orderData}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                        onCancel={handlePaymentCancel}
+                      />
+                    )}
                     
                     <div className="text-center">
                       <Button
