@@ -15,39 +15,89 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
 }) => {
   const paypalContainerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const { toast } = useToast();
   const mountedRef = useRef(true);
 
+  const addDebugLog = (message: string) => {
+    console.log(message);
+    setDebugInfo(prev => [...prev.slice(-9), `${new Date().toLocaleTimeString()}: ${message}`]);
+  };
+
   useEffect(() => {
     mountedRef.current = true;
+    addDebugLog('🚀 Component mounted, starting PayPal initialization');
+    
     const liveClientId = 'AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E';
 
-    const initializePayPalButtons = () => {
-      // Add multiple checks and delays to ensure everything is ready
+    const checkContainer = () => {
+      const container = paypalContainerRef.current;
+      addDebugLog(`📦 Container check: ${container ? 'EXISTS' : 'NULL'}`);
+      
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        addDebugLog(`📏 Container dimensions: ${rect.width}x${rect.height}`);
+        addDebugLog(`👁️ Container visible: ${rect.width > 0 && rect.height > 0}`);
+        addDebugLog(`🎯 Container ID: ${container.id}`);
+        addDebugLog(`🏷️ Container classes: ${container.className}`);
+        
+        // Check if container is in the DOM
+        const inDOM = document.contains(container);
+        addDebugLog(`🌐 Container in DOM: ${inDOM}`);
+        
+        // Check computed styles
+        const computedStyle = window.getComputedStyle(container);
+        addDebugLog(`👀 Display: ${computedStyle.display}, Visibility: ${computedStyle.visibility}`);
+      }
+      
+      return container;
+    };
+
+    const initializePayPalButtons = (retryCount = 0) => {
+      addDebugLog(`🔄 Initializing PayPal buttons (attempt ${retryCount + 1})`);
+      
       if (!mountedRef.current) {
-        console.log('Component unmounted, skipping PayPal initialization');
+        addDebugLog('❌ Component unmounted, aborting');
         return;
       }
 
-      if (!(window as any).paypal) {
-        console.error('❌ PayPal SDK not available');
-        setTimeout(initializePayPalButtons, 100); // Retry after 100ms
+      // Check PayPal SDK
+      const paypalSDK = (window as any).paypal;
+      addDebugLog(`💳 PayPal SDK available: ${!!paypalSDK}`);
+      
+      if (!paypalSDK) {
+        if (retryCount < 10) {
+          addDebugLog(`⏳ PayPal SDK not ready, retrying in 200ms...`);
+          setTimeout(() => initializePayPalButtons(retryCount + 1), 200);
+        } else {
+          addDebugLog('❌ PayPal SDK failed to load after 10 attempts');
+          setIsLoading(false);
+        }
         return;
       }
 
-      if (!paypalContainerRef.current) {
-        console.error('❌ PayPal container not available');
-        setTimeout(initializePayPalButtons, 100); // Retry after 100ms
+      // Check container
+      const container = checkContainer();
+      if (!container) {
+        if (retryCount < 10) {
+          addDebugLog(`⏳ Container not ready, retrying in 200ms...`);
+          setTimeout(() => initializePayPalButtons(retryCount + 1), 200);
+        } else {
+          addDebugLog('❌ Container not available after 10 attempts');
+          setIsLoading(false);
+        }
         return;
       }
 
       try {
-        // Clear any existing content
-        paypalContainerRef.current.innerHTML = '';
-
-        (window as any).paypal.Buttons({
+        addDebugLog('🧹 Clearing container content');
+        container.innerHTML = '';
+        
+        addDebugLog('🏗️ Creating PayPal buttons');
+        
+        const buttonConfig = {
           createOrder: (_data: any, actions: any) => {
+            addDebugLog('💰 Creating order');
             return actions.order.create({
               purchase_units: [{
                 amount: {
@@ -58,9 +108,10 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
             });
           },
           onApprove: (_data: any, actions: any) => {
+            addDebugLog('✅ Payment approved, capturing...');
             return actions.order.capture().then((details: any) => {
-              console.log('✅ Payment captured:', details);
-
+              addDebugLog('💳 Payment captured successfully');
+              
               if (!mountedRef.current) return;
 
               toast({
@@ -83,7 +134,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
               })
               .then(res => res.text())
               .then(msg => {
-                console.log("📝 Supabase saved payment:", msg);
+                addDebugLog("📝 Payment saved to database");
                 if (mountedRef.current) {
                   toast({
                     title: "Payment Saved",
@@ -92,7 +143,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
                 }
               })
               .catch(err => {
-                console.error("⚠️ Supabase save failed:", err);
+                addDebugLog(`⚠️ Database save failed: ${err.message}`);
                 if (mountedRef.current) {
                   toast({
                     title: "Warning",
@@ -106,7 +157,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
             });
           },
           onError: (err: any) => {
-            console.error('❌ PayPal error:', err);
+            addDebugLog(`❌ PayPal error: ${err.message || err}`);
             if (mountedRef.current) {
               toast({
                 title: "Payment Failed",
@@ -117,7 +168,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
             if (onError) onError(err);
           },
           onCancel: (_data: any) => {
-            console.log('⛔ Payment cancelled');
+            addDebugLog('⛔ Payment cancelled by user');
             if (mountedRef.current) {
               toast({
                 title: "Payment Cancelled",
@@ -125,18 +176,33 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
               });
             }
           }
-        }).render(paypalContainerRef.current);
+        };
 
-        if (mountedRef.current) {
-          setIsLoading(false);
-          console.log('✅ PayPal buttons initialized successfully');
-        }
-      } catch (error) {
-        console.error('❌ Error initializing PayPal buttons:', error);
+        addDebugLog('🎨 Rendering PayPal buttons to container');
+        
+        paypalSDK.Buttons(buttonConfig).render(container).then(() => {
+          addDebugLog('✅ PayPal buttons rendered successfully');
+          if (mountedRef.current) {
+            setIsLoading(false);
+          }
+        }).catch((renderError: any) => {
+          addDebugLog(`❌ PayPal render error: ${renderError.message || renderError}`);
+          if (mountedRef.current) {
+            toast({
+              title: "PayPal Error",
+              description: `Render failed: ${renderError.message || 'Unknown error'}`,
+              variant: "destructive"
+            });
+            setIsLoading(false);
+          }
+        });
+
+      } catch (error: any) {
+        addDebugLog(`❌ Initialization error: ${error.message || error}`);
         if (mountedRef.current) {
           toast({
             title: "PayPal Error",
-            description: "Failed to initialize PayPal buttons.",
+            description: `Initialization failed: ${error.message || 'Unknown error'}`,
             variant: "destructive"
           });
           setIsLoading(false);
@@ -145,24 +211,19 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
     };
 
     const loadPayPalScript = () => {
-      // Check if PayPal SDK is already loaded
-      if ((window as any).paypal && scriptLoaded) {
-        console.log('✅ PayPal SDK already loaded');
-        initializePayPalButtons();
-        return;
-      }
-
-      // Remove existing script only if we're reloading
-      const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
-      if (existingScript && !scriptLoaded) {
-        existingScript.remove();
-      }
-
-      // Don't reload if script is already loaded
+      addDebugLog('📜 Loading PayPal script');
+      
+      // Check if already loaded
       if ((window as any).paypal) {
-        setScriptLoaded(true);
-        initializePayPalButtons();
+        addDebugLog('✅ PayPal SDK already available');
+        setTimeout(() => initializePayPalButtons(), 100);
         return;
+      }
+
+      const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
+      if (existingScript) {
+        addDebugLog('🗑️ Removing existing PayPal script');
+        existingScript.remove();
       }
 
       const script = document.createElement('script');
@@ -170,43 +231,55 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
       script.async = true;
 
       script.onload = () => {
-        console.log('✅ PayPal SDK loaded');
+        addDebugLog('✅ PayPal SDK script loaded');
         if (mountedRef.current) {
-          setScriptLoaded(true);
-          // Add a small delay to ensure DOM is ready
-          setTimeout(initializePayPalButtons, 100);
+          setTimeout(() => initializePayPalButtons(), 100);
         }
       };
 
-      script.onerror = () => {
-        console.error('❌ Failed to load PayPal SDK');
+      script.onerror = (error) => {
+        addDebugLog(`❌ PayPal script load failed: ${error}`);
         if (mountedRef.current) {
           toast({
             title: "PayPal Error",
-            description: "Could not load PayPal. Check your connection or configuration.",
+            description: "Could not load PayPal SDK. Check your internet connection.",
             variant: "destructive"
           });
           setIsLoading(false);
         }
       };
 
+      addDebugLog('🌐 Adding PayPal script to document head');
       document.head.appendChild(script);
     };
 
-    loadPayPalScript();
+    // Start the process
+    setTimeout(() => {
+      checkContainer();
+      loadPayPalScript();
+    }, 50);
 
     return () => {
+      addDebugLog('🧹 Component cleanup');
       mountedRef.current = false;
-      // Don't remove script on cleanup to avoid reload issues
-      // The script can be reused across component instances
     };
   }, [amount, onSuccess, onError, toast]);
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 border border-gray-300 rounded-lg">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-        <p className="text-sm text-gray-600">Loading PayPal…</p>
+      <div className="w-full">
+        <div className="flex flex-col items-center justify-center p-8 border border-gray-300 rounded-lg">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+          <p className="text-sm text-gray-600">Loading PayPal…</p>
+        </div>
+        
+        {/* Debug Information */}
+        <div className="mt-4 p-4 bg-gray-100 rounded-lg text-xs font-mono">
+          <h4 className="font-bold mb-2">Debug Log:</h4>
+          {debugInfo.map((log, index) => (
+            <div key={index} className="mb-1">{log}</div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -216,11 +289,20 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
       <div 
         id="paypal-button-container" 
         ref={paypalContainerRef}
-        className="min-h-[50px] w-full"
+        className="min-h-[50px] w-full border border-red-200 bg-red-50"
+        style={{ minHeight: '50px', width: '100%' }}
       />
       <p className="text-xs text-center text-gray-500 mt-2">
         Secure payment powered by PayPal
       </p>
+      
+      {/* Debug Information */}
+      <div className="mt-4 p-4 bg-gray-100 rounded-lg text-xs font-mono">
+        <h4 className="font-bold mb-2">Debug Log:</h4>
+        {debugInfo.map((log, index) => (
+          <div key={index} className="mb-1">{log}</div>
+        ))}
+      </div>
     </div>
   );
 };
