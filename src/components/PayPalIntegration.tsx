@@ -1,4 +1,3 @@
-
 // src/components/PayPalIntegration.tsx
 import React, { useEffect, useRef, useState } from 'react';
 
