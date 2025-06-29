@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ const Subscription = () => {
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -28,6 +29,24 @@ const Subscription = () => {
     premiumPrice: 3.00,
     unlimitedPrice: 4.99
   };
+
+  // Memoize order data to prevent unnecessary re-renders
+  const orderData = React.useMemo(() => {
+    if (!selectedTier) return null;
+
+    const prices = {
+      basic: usdPricing.basicPrice,
+      premium: usdPricing.premiumPrice,
+      unlimited: usdPricing.unlimitedPrice
+    };
+
+    return {
+      amount: prices[selectedTier as keyof typeof prices].toFixed(2),
+      currency: usdPricing.code,
+      description: `${selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} Plan`,
+      tier: selectedTier
+    };
+  }, [selectedTier, usdPricing]);
 
   useEffect(() => {
     const initializeSubscription = async () => {
@@ -61,13 +80,20 @@ const Subscription = () => {
     initializeSubscription();
   }, [navigate, toast]);
 
-  const handleSubscriptionSelect = (tier: string) => {
+  const handleSubscriptionSelect = useCallback((tier: string) => {
     console.log('Subscription tier selected:', tier);
     setSelectedTier(tier);
-    setShowPayment(true);
-  };
+    // Add small delay to ensure state is set before showing payment
+    setTimeout(() => {
+      setShowPayment(true);
+    }, 100);
+  }, []);
 
-  const handlePaymentSuccess = async (details: any) => {
+  const handlePaymentSuccess = useCallback(async (details: any) => {
+    if (paymentProcessing) return; // Prevent double processing
+    
+    setPaymentProcessing(true);
+    
     try {
       console.log('Payment successful, processing subscription update:', details);
       
@@ -122,44 +148,31 @@ const Subscription = () => {
         description: "Payment successful but failed to activate subscription. Please contact support.",
         variant: "destructive",
       });
+    } finally {
+      setPaymentProcessing(false);
     }
-  };
+  }, [selectedTier, currentSubscription, currentUserId, paymentProcessing, toast, navigate]);
 
-  const handlePaymentError = (error: any) => {
+  const handlePaymentError = useCallback((error: any) => {
     console.error('Payment error:', error);
+    setPaymentProcessing(false);
     toast({
       title: "Payment Failed",
       description: "Your payment could not be processed. Please try again.",
       variant: "destructive",
     });
-  };
+  }, [toast]);
 
-  const handlePaymentCancel = () => {
+  const handlePaymentCancel = useCallback(() => {
     console.log('Payment cancelled by user');
+    setPaymentProcessing(false);
     setShowPayment(false);
     setSelectedTier(null);
     toast({
       title: "Payment Cancelled",
       description: "You can try again when you're ready.",
     });
-  };
-
-  const getOrderData = () => {
-    if (!selectedTier) return null;
-
-    const prices = {
-      basic: usdPricing.basicPrice,
-      premium: usdPricing.premiumPrice,
-      unlimited: usdPricing.unlimitedPrice
-    };
-
-    return {
-      amount: prices[selectedTier as keyof typeof prices].toFixed(2),
-      currency: usdPricing.code,
-      description: `${selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} Plan`,
-      tier: selectedTier
-    };
-  };
+  }, [toast]);
 
   if (isLoading) {
     return (
@@ -226,14 +239,17 @@ const Subscription = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {getOrderData() && (
-                      <PaymentSection
-                        orderData={getOrderData()!}
-                        onSuccess={handlePaymentSuccess}
-                        onError={handlePaymentError}
-                        onCancel={handlePaymentCancel}
-                        useRawHTML={true}
-                      />
+                    {/* Always render PaymentSection when showPayment is true and orderData exists */}
+                    {orderData && (
+                      <div className="payment-container" style={{ minHeight: '400px' }}>
+                        <PaymentSection
+                          orderData={orderData}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                          onCancel={handlePaymentCancel}
+                          useRawHTML={true}
+                        />
+                      </div>
                     )}
                     
                     <div className="text-center">
@@ -241,8 +257,9 @@ const Subscription = () => {
                         variant="outline"
                         onClick={handlePaymentCancel}
                         className="mt-4"
+                        disabled={paymentProcessing}
                       >
-                        Back to Plans
+                        {paymentProcessing ? "Processing..." : "Back to Plans"}
                       </Button>
                     </div>
                   </div>

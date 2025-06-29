@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SimplePayPalButtons from "./SimplePayPalButtons";
 
@@ -24,23 +24,23 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handlePayPalSuccess = (details: any) => {
+  const handlePayPalSuccess = useCallback((details: any) => {
     console.log('PaymentSection: PayPal payment successful:', details);
     setIsProcessing(true);
     onSuccess(details);
-  };
+  }, [onSuccess]);
 
-  const handlePayPalError = (error: any) => {
+  const handlePayPalError = useCallback((error: any) => {
     console.error('PaymentSection: PayPal payment error:', error);
     setIsProcessing(false);
     onError(error);
-  };
+  }, [onError]);
 
-  const handlePayPalCancel = () => {
+  const handlePayPalCancel = useCallback(() => {
     console.log('PaymentSection: PayPal payment cancelled');
     setIsProcessing(false);
     onCancel();
-  };
+  }, [onCancel]);
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -53,13 +53,16 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
       <CardContent className="space-y-6">
         <div>
           <h3 className="text-sm font-medium mb-3 text-center">Pay with PayPal</h3>
-          <SimplePayPalButtons
-            amount={orderData.amount}
-            tier={orderData.tier}
-            onSuccess={handlePayPalSuccess}
-            onError={handlePayPalError}
-            onCancel={handlePayPalCancel}
-          />
+          {/* Stable container for PayPal buttons - no conditional rendering */}
+          <div className="paypal-wrapper" style={{ minHeight: '120px' }}>
+            <SimplePayPalButtons
+              amount={orderData.amount}
+              tier={orderData.tier}
+              onSuccess={handlePayPalSuccess}
+              onError={handlePayPalError}
+              onCancel={handlePayPalCancel}
+            />
+          </div>
           {isProcessing && (
             <div className="text-center text-sm text-muted-foreground mt-2">
               Processing your payment...
