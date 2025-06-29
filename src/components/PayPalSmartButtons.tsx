@@ -24,7 +24,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
       if (existingScript) existingScript.remove();
 
       const script = document.createElement('script');
-      script.src = https://www.paypal.com/sdk/js?client-id=${liveClientId}&currency=USD;
+      script.src = `https://www.paypal.com/sdk/js?client-id=${liveClientId}&currency=USD`;
       script.async = true;
 
       script.onload = () => {
@@ -70,7 +70,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
 
             toast({
               title: "Payment Successful!",
-              description: Transaction completed by ${details.payer.name.given_name},
+              description: `Transaction completed by ${details.payer.name.given_name}`,
             });
 
             const paymentData = {
