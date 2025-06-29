@@ -15,7 +15,7 @@ const Subscription = () => {
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
-  const [showPayment, setShowPayment] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'plans' | 'payment'>('plans');
   const [isLoading, setIsLoading] = useState(true);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const navigate = useNavigate();
@@ -83,10 +83,7 @@ const Subscription = () => {
   const handleSubscriptionSelect = useCallback((tier: string) => {
     console.log('Subscription tier selected:', tier);
     setSelectedTier(tier);
-    // Add small delay to ensure state is set before showing payment
-    setTimeout(() => {
-      setShowPayment(true);
-    }, 100);
+    setCurrentStep('payment');
   }, []);
 
   const handlePaymentSuccess = useCallback(async (details: any) => {
@@ -166,13 +163,19 @@ const Subscription = () => {
   const handlePaymentCancel = useCallback(() => {
     console.log('Payment cancelled by user');
     setPaymentProcessing(false);
-    setShowPayment(false);
+    setCurrentStep('plans');
     setSelectedTier(null);
     toast({
       title: "Payment Cancelled",
       description: "You can try again when you're ready.",
     });
   }, [toast]);
+
+  const handleBackToPlans = useCallback(() => {
+    setCurrentStep('plans');
+    setSelectedTier(null);
+    setPaymentProcessing(false);
+  }, []);
 
   if (isLoading) {
     return (
@@ -215,7 +218,8 @@ const Subscription = () => {
             </div>
           </div>
 
-          {!showPayment ? (
+          {/* Plans Step */}
+          <div className={currentStep === 'plans' ? 'block' : 'hidden'}>
             <SubscriptionTiers
               currentUserId={currentUserId}
               currentSubscription={currentSubscription}
@@ -228,7 +232,10 @@ const Subscription = () => {
                 currency: usdPricing
               }}
             />
-          ) : (
+          </div>
+
+          {/* Payment Step */}
+          <div className={currentStep === 'payment' ? 'block' : 'hidden'}>
             <div className="max-w-2xl mx-auto">
               <Card>
                 <CardHeader className="text-center">
@@ -239,23 +246,24 @@ const Subscription = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {/* Always render PaymentSection when showPayment is true and orderData exists */}
-                    {orderData && (
-                      <div className="payment-container" style={{ minHeight: '400px' }}>
+                    {/* PaymentSection Container - Always rendered when in payment step */}
+                    <div className="payment-container" style={{ minHeight: '400px' }}>
+                      {orderData && (
                         <PaymentSection
+                          key={`payment-${selectedTier}-${orderData.amount}`}
                           orderData={orderData}
                           onSuccess={handlePaymentSuccess}
                           onError={handlePaymentError}
                           onCancel={handlePaymentCancel}
                           useRawHTML={true}
                         />
-                      </div>
-                    )}
+                      )}
+                    </div>
                     
                     <div className="text-center">
                       <Button
                         variant="outline"
-                        onClick={handlePaymentCancel}
+                        onClick={handleBackToPlans}
                         className="mt-4"
                         disabled={paymentProcessing}
                       >
@@ -266,7 +274,7 @@ const Subscription = () => {
                 </CardContent>
               </Card>
             </div>
-          )}
+          </div>
         </div>
       </main>
       
