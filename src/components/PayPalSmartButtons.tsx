@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,7 +18,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
   const { toast } = useToast();
 
   useEffect(() => {
-    // ✅ Using your latest PayPal Live Client ID directly
+    // Using your latest PayPal Live Client ID directly
     const liveClientId = 'AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E';
 
     const loadPayPalScript = () => {
@@ -25,7 +26,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
       if (existingScript) existingScript.remove();
 
       const script = document.createElement('script');
-      script.src = https://www.paypal.com/sdk/js?client-id=${liveClientId}&currency=USD;
+      script.src = `https://www.paypal.com/sdk/js?client-id=${liveClientId}&currency=USD`;
       script.async = true;
 
       script.onload = () => {
@@ -71,7 +72,7 @@ const PayPalSmartButtons: React.FC<PayPalSmartButtonsProps> = ({
 
             toast({
               title: "Payment Successful!",
-              description: Transaction completed by ${details.payer.name.given_name},
+              description: `Transaction completed by ${details.payer.name.given_name}`,
             });
 
             const paymentData = {
