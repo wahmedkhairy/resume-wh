@@ -143,8 +143,8 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         const script = document.createElement('script');
         script.id = 'paypal-sdk';
         
-        // Secure SDK URL with minimal parameters
-        script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD&intent=capture&disable-funding=credit,card`;
+        // Secure SDK URL - enable all payment methods including cards
+        script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD&intent=capture`;
         script.async = true;
         
         addDebugInfo(`SDK URL: ${script.src}`);
