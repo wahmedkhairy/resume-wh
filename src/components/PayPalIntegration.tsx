@@ -28,7 +28,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   const [sdkLoaded, setSdkLoaded] = useState(false);
 
   // Move CLIENT_ID to environment variable or config
-  const CLIENT_ID = process.env.REACT_APP_PAYPAL_CLIENT_ID || 'AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E';
+  const CLIENT_ID = 'AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E';
 
   // Load PayPal SDK
   useEffect(() => {
