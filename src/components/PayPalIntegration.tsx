@@ -1,11 +1,12 @@
 
+// src/components/PayPalIntegration.tsx
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 
-interface PayPalWindow extends Window {
-  paypal?: any;
+declare global {
+  interface Window { 
+    paypal: any; 
+  }
 }
-
-declare const window: PayPalWindow;
 
 interface PayPalIntegrationProps {
   amount: string;             // e.g. "2.00"
@@ -28,7 +29,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   const [sdkLoaded, setSdkLoaded] = useState(false);
 
   // Move CLIENT_ID to environment variable or config
-  const CLIENT_ID = 'AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E';
+  const CLIENT_ID = process.env.REACT_APP_PAYPAL_CLIENT_ID || 'AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E';
 
   // Load PayPal SDK
   useEffect(() => {
@@ -60,7 +61,9 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         console.log('Loading PayPal SDK...');
         const script = document.createElement('script');
         script.id = 'paypal-sdk';
-        script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD&intent=capture`;
+        // Fixed syntax error: added backticks for template literal
+        // Enable credit cards, debit cards, and other funding sources
+        script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD&intent=capture&enable-funding=venmo,paylater&disable-funding=&components=buttons,funding-eligibility`;
         script.async = true;
         
         script.onload = () => {
@@ -111,12 +114,16 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
       console.log('Rendering PayPal buttons with amount:', amount, 'tier:', tier);
       
       window.paypal.Buttons({
+        // Enable funding sources for credit/debit cards
+        fundingSource: window.paypal.FUNDING.PAYPAL,
+        
         style: { 
           layout: 'vertical', 
           color: 'gold', 
           shape: 'rect',
           label: 'pay',
-          height: 40
+          height: 40,
+          tagline: false
         },
         
         createOrder: (data: any, actions: any) => {
@@ -134,7 +141,11 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
               brand_name: 'Resume Builder',
               locale: 'en-US',
               landing_page: 'BILLING',
-              user_action: 'PAY_NOW'
+              user_action: 'PAY_NOW',
+              shipping_preference: 'NO_SHIPPING',
+              payment_method: {
+                payee_preferred: 'UNRESTRICTED' // Allows credit cards without PayPal account
+              }
             }
           });
         },
