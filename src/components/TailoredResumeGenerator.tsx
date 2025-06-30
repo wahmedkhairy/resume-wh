@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +8,7 @@ import { Loader2, Sparkles, FileText, AlertCircle, Info, Crown } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import TailoredResumeInstructions from "./TailoredResumeInstructions";
 
 interface TailoredResumeGeneratorProps {
   resumeData: any;
@@ -30,6 +30,16 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const [monthlyUsage, setMonthlyUsage] = useState<number | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Check if resume data is complete
+  const isResumeComplete = () => {
+    return (
+      resumeData.personalInfo?.name &&
+      resumeData.personalInfo?.email &&
+      resumeData.workExperience?.length > 0 &&
+      resumeData.education?.length > 0
+    );
+  };
 
   // Get usage limits based on subscription tier
   const getUsageLimit = () => {
@@ -81,10 +91,19 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   }, [currentUserId]);
 
   const handleGenerateTargetedResume = async () => {
+    if (!isResumeComplete()) {
+      toast({
+        title: "Incomplete Resume Information",
+        description: "Please complete your personal information, work experience, and education sections first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!jobDescription.trim()) {
       toast({
         title: "Job Description Required",
-        description: "Please enter a job description to create your targeted resume.",
+        description: "Please enter a complete job description to create your targeted resume.",
         variant: "destructive",
       });
       return;
@@ -163,13 +182,9 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
 
       if (storeError) {
         console.error('Error storing targeted resume:', storeError);
-        // Don't throw here as the generation was successful
       }
 
-      // Update usage counts in UI
       const newUsage = await checkUsageLimit();
-
-      // Pass the targeted data to parent component
       onTailoredResumeGenerated(data.tailoredContent);
 
       const remainingCount = usageConfig.limit === 999 ? "unlimited" : (usageConfig.limit - newUsage.monthly);
@@ -179,7 +194,6 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
         description: `Your resume has been customized for this job. ${remainingCount === "unlimited" ? "Unlimited resumes remaining." : `${remainingCount} targeted resumes remaining this month.`}`,
       });
 
-      // Clear the job description after successful generation
       setJobDescription("");
 
     } catch (error) {
@@ -205,88 +219,123 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const canGenerate = remainingUses > 0 || usageConfig.limit === 999;
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-blue-500" />
-          Targeted Job Resume Generator
-          {isPremiumUser && currentSubscription && (
-            <Badge variant="secondary" className="ml-auto">
-              {currentSubscription.tier} Plan
-            </Badge>
-          )}
-        </CardTitle>
-        <CardDescription>
-          Generate a customized version of your resume targeted to a specific job description.
-          Our AI will analyze the job requirements and emphasize your most relevant experience.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {!isPremiumUser && (
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              Free users need to upgrade to generate targeted resumes. To export your targeted resume as PDF 
-              and get targeted resume generations, please upgrade to a plan.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="space-y-2">
-          <label htmlFor="job-description" className="text-sm font-medium">
-            Job Description *
-          </label>
-          <Textarea
-            id="job-description"
-            placeholder="Paste the full job description here. Include requirements, responsibilities, and desired qualifications for best results..."
-            value={jobDescription}
-            onChange={(e) => setJobDescription(e.target.value)}
-            rows={8}
-            className="resize-none"
-          />
-          <p className="text-xs text-muted-foreground">
-            Tip: Include the complete job posting for better targeting results.
-          </p>
-        </div>
-
-        {canGenerate ? (
-          <Button
-            onClick={handleGenerateTargetedResume}
-            disabled={isGenerating || !jobDescription.trim()}
-            className="w-full"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Targeted Resume...
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Generate Custom Resume for This Job
-              </>
+    <div className="space-y-6">
+      <TailoredResumeInstructions />
+      
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-blue-500" />
+            AI-Powered Resume Targeting
+            {isPremiumUser && currentSubscription && (
+              <Badge variant="secondary" className="ml-auto">
+                {currentSubscription.tier} Plan
+              </Badge>
             )}
-          </Button>
-        ) : (
-          <Button 
-            className="w-full opacity-75"
-            onClick={handleUpgradeClick}
-          >
-            <Crown className="mr-2 h-4 w-4" />
-            🔒 Upgrade to Generate Targeted Resumes
-          </Button>
-        )}
+          </CardTitle>
+          <CardDescription>
+            Our AI analyzes job requirements and optimizes your resume content to match perfectly with the target position.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!isPremiumUser && (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Free users need to upgrade to generate targeted resumes. Upgrade to unlock AI-powered resume targeting and PDF exports.
+              </AlertDescription>
+            </Alert>
+          )}
 
-        {!canGenerate && usageConfig.limit !== 999 && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              You've reached your monthly limit. Your limit will reset next month or upgrade for more targeted resumes.
-            </AlertDescription>
-          </Alert>
-        )}
-      </CardContent>
-    </Card>
+          {!isResumeComplete() && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Please complete your resume information first:
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  {!resumeData.personalInfo?.name && <li>Add your personal information</li>}
+                  {!resumeData.personalInfo?.email && <li>Add your email address</li>}
+                  {!resumeData.workExperience?.length && <li>Add at least one work experience</li>}
+                  {!resumeData.education?.length && <li>Add your education background</li>}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="space-y-2">
+            <label htmlFor="job-description" className="text-sm font-medium">
+              Complete Job Description *
+            </label>
+            <Textarea
+              id="job-description"
+              placeholder="Paste the complete job posting here including:
+• Job title and company name
+• Key responsibilities and requirements
+• Required skills and qualifications
+• Preferred experience and education
+• Any specific technologies or tools mentioned
+
+The more complete the job description, the better our AI can tailor your resume!"
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              rows={12}
+              className="resize-none"
+            />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>💡 Include the complete job posting for best results</span>
+              <span>{jobDescription.length} characters</span>
+            </div>
+          </div>
+
+          {canGenerate && isResumeComplete() ? (
+            <Button
+              onClick={handleGenerateTargetedResume}
+              disabled={isGenerating || !jobDescription.trim()}
+              className="w-full"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  AI is analyzing and tailoring your resume...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generate AI-Targeted Resume
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button 
+              className="w-full opacity-75"
+              onClick={handleUpgradeClick}
+              disabled={!isResumeComplete()}
+            >
+              <Crown className="mr-2 h-4 w-4" />
+              🔒 Upgrade to Generate Targeted Resumes
+            </Button>
+          )}
+
+          {!canGenerate && usageConfig.limit !== 999 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                You've reached your monthly limit of {usageConfig.limit} targeted resumes. Your limit will reset next month or upgrade for more.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {isPremiumUser && (
+            <div className="text-xs text-muted-foreground text-center">
+              {usageConfig.limit === 999 
+                ? "Unlimited targeted resumes remaining" 
+                : `${remainingUses} targeted resumes remaining this month`
+              }
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

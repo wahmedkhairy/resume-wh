@@ -8,11 +8,11 @@ import UserSettings from "@/components/UserSettings";
 import SitemapUploader from "@/components/SitemapUploader";
 import PayPalLiveSettings from "@/components/PayPalLiveSettings";
 import AdminAnalytics from "@/components/AdminAnalytics";
-import UserManagement from "@/components/UserManagement";
+import AdminUserManagement from "@/components/AdminUserManagement";
 import AIIntegrationTester from "@/components/AIIntegrationTester";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, FileText, CreditCard, BarChart, Users, TestTube } from "lucide-react";
+import { Shield, Settings, FileText, CreditCard, BarChart, Users, TestTube, UserCog } from "lucide-react";
 
 const Admin = () => {
   const [user, setUser] = useState<any>(null);
@@ -67,11 +67,15 @@ const Admin = () => {
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Admin Panel</h1>
-            <p className="text-muted-foreground">Manage your account settings and application configuration</p>
+            <p className="text-muted-foreground">Comprehensive platform management and user administration</p>
           </div>
 
-          <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7">
+          <Tabs defaultValue="user-management" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-8">
+              <TabsTrigger value="user-management" className="flex items-center gap-2">
+                <UserCog className="h-4 w-4" />
+                User Management
+              </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart className="h-4 w-4" />
                 Analytics
@@ -102,12 +106,31 @@ const Admin = () => {
               </TabsTrigger>
             </TabsList>
 
+            <TabsContent value="user-management">
+              <AdminUserManagement />
+            </TabsContent>
+
             <TabsContent value="analytics">
               <AdminAnalytics />
             </TabsContent>
 
             <TabsContent value="users">
-              <UserManagement />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    User Overview
+                  </CardTitle>
+                  <CardDescription>
+                    Basic user statistics and information
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Use the "User Management" tab for comprehensive user administration features.
+                  </p>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="ai-testing">

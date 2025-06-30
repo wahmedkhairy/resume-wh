@@ -1,11 +1,11 @@
-// src/components/PayPalIntegration.tsx
+
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 
-declare global {
-  interface Window { 
-    paypal: any; 
-  }
+interface PayPalWindow extends Window {
+  paypal?: any;
 }
+
+declare const window: PayPalWindow;
 
 interface PayPalIntegrationProps {
   amount: string;             // e.g. "2.00"
@@ -60,7 +60,6 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         console.log('Loading PayPal SDK...');
         const script = document.createElement('script');
         script.id = 'paypal-sdk';
-        // Fixed syntax error: added backticks for template literal
         script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD&intent=capture`;
         script.async = true;
         

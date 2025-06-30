@@ -6,6 +6,7 @@ import ExportControls from "@/components/ExportControls";
 import SubscriptionStatus from "@/components/SubscriptionStatus";
 import CallToAction from "@/components/CallToAction";
 import TailoredResumeNotice from "@/components/TailoredResumeNotice";
+import ExportTracker from "@/components/ExportTracker";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
 
 interface Skill {
@@ -113,6 +114,12 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
           onExportWord={onExportWord}
           isExporting={isExporting}
           canExport={canExport()}
+        />
+
+        <ExportTracker
+          currentUserId={currentUserId}
+          currentSubscription={currentSubscription}
+          isPremiumUser={isPremiumUser}
         />
 
         <SubscriptionStatus

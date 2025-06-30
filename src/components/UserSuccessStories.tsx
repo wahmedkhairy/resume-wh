@@ -26,44 +26,80 @@ const UserSuccessStories: React.FC = () => {
   const successStories: SuccessStory[] = [
     {
       id: "1",
-      name: "Ahmed Hassan",
+      name: "James Rodriguez",
       title: "Software Engineer",
-      company: "Microsoft",
-      image: "photo-1618160702438-9b02ab6515c9",
-      story: "After using Resume Builder's ATS optimization, I landed my dream job at Microsoft! The targeted resume feature helped me tailor my application perfectly.",
-      improvement: "3x more interview calls",
+      company: "Google",
+      image: "photo-1507003211169-0a1dd7228f2d",
+      story: "After using Resume Builder's ATS optimization, I landed my dream job at Google! The targeted resume feature helped me tailor my application perfectly for the tech industry.",
+      improvement: "4x more interview calls",
       rating: 5,
       industry: "Technology",
-      timeToSuccess: "2 weeks"
+      timeToSuccess: "3 weeks"
     },
     {
       id: "2",
-      name: "Sarah Al-Rashid",
-      title: "Marketing Manager",
-      company: "Emirates",
-      image: "photo-1582562124811-c09040d0a901",
-      story: "The ATS analysis showed me exactly what keywords I was missing. Within a month, I got hired at Emirates with a 40% salary increase!",
-      improvement: "40% salary increase",
+      name: "Maria Gonzalez",
+      title: "Marketing Director",
+      company: "Nike",
+      image: "photo-1494790108755-2616b332c886",
+      story: "The ATS analysis showed me exactly what keywords I was missing. Within a month, I got hired at Nike with a 50% salary increase! The platform is a game-changer.",
+      improvement: "50% salary increase",
       rating: 5,
-      industry: "Aviation",
+      industry: "Sports & Marketing",
       timeToSuccess: "1 month"
     },
     {
       id: "3",
-      name: "Omar Khalil",
+      name: "Chen Wei",
+      title: "Data Analyst",
+      company: "Amazon",
+      image: "photo-1472099645785-5658abf4ff4e",
+      story: "Resume Builder's professional templates and keyword optimization got me noticed by top recruiters at Amazon. The targeted resume feature made all the difference!",
+      improvement: "6x recruiter reach-outs",
+      rating: 5,
+      industry: "E-commerce & Tech",
+      timeToSuccess: "2 weeks"
+    },
+    {
+      id: "4",
+      name: "Emily Johnson",
       title: "Financial Analyst",
-      company: "NBE Bank",
-      image: "photo-1721322800607-8c38375eef04",
-      story: "Resume Builder's professional templates and keyword optimization got me noticed by top recruiters. Highly recommend for MENA professionals!",
-      improvement: "5x recruiter reach-outs",
+      company: "JPMorgan Chase",
+      image: "photo-1580489944761-15a19d654956",
+      story: "The resume builder helped me transition from consulting to investment banking. The ATS scanner identified gaps in my resume that I never noticed before.",
+      improvement: "Career pivot success",
       rating: 5,
       industry: "Finance",
-      timeToSuccess: "3 weeks"
+      timeToSuccess: "6 weeks"
+    },
+    {
+      id: "5",
+      name: "Aleksandr Petrov",
+      title: "Product Manager",
+      company: "Spotify",
+      image: "photo-1519085360753-af0119f7cbe7",
+      story: "Moving from Europe to the US seemed impossible until I used this platform. The targeted resumes helped me understand what American employers were looking for.",
+      improvement: "International career move",
+      rating: 5,
+      industry: "Music & Tech",
+      timeToSuccess: "2 months"
+    },
+    {
+      id: "6",
+      name: "Priya Sharma",
+      title: "UX Designer",
+      company: "Adobe",
+      image: "photo-1524504388940-b1c1722653e1",
+      story: "As a designer, I knew how important visual presentation was, but I didn't know how to make my resume ATS-friendly. This tool solved both problems perfectly!",
+      improvement: "Design + ATS optimization",
+      rating: 5,
+      industry: "Design & Software",
+      timeToSuccess: "4 weeks"
     }
   ];
 
   const stats = [
-    { icon: Users, label: "Success Stories", value: "10,000+" },
+    { icon: Users, label: "Success Stories", value: "50,000+" },
     { icon: TrendingUp, label: "Avg. Salary Increase", value: "35%" },
     { icon: CheckCircle, label: "Interview Success Rate", value: "78%" },
   ];
@@ -91,9 +127,9 @@ const UserSuccessStories: React.FC = () => {
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-4">Success Stories</h2>
+        <h2 className="text-3xl font-bold mb-4">Global Success Stories</h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Join thousands of professionals who landed their dream jobs using our ATS-optimized resume builder
+          Join professionals worldwide who landed their dream jobs using our ATS-optimized resume builder
         </p>
       </div>
 
@@ -168,7 +204,7 @@ const UserSuccessStories: React.FC = () => {
       <div className="text-center pt-8">
         <h3 className="text-xl font-semibold mb-2">Ready to Write Your Success Story?</h3>
         <p className="text-muted-foreground mb-4">
-          Join thousands of professionals who transformed their careers with our platform
+          Join professionals worldwide who transformed their careers with our platform
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button
