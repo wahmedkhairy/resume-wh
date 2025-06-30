@@ -5,28 +5,49 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { amount, currency, description, tier } = await req.json();
+    const { amount, currency = 'USD', description, tier } = await req.json();
     
-    // Use your PayPal credentials from environment variables
-    const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID');
-    const paypalClientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET');
-    
-    if (!paypalClientId || !paypalClientSecret) {
-      throw new Error('PayPal credentials not configured');
+    // Validate required fields
+    if (!amount || !tier) {
+      throw new Error('Amount and tier are required');
     }
 
-    console.log('Creating PayPal order for:', { amount, currency, tier });
+    // Use the correct PayPal credentials - make sure these match your frontend Client ID
+    const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID') || 'ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2';
+    const paypalClientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET');
+    
+    if (!paypalClientSecret) {
+      console.error('PayPal Client Secret not configured in environment variables');
+      throw new Error('PayPal credentials not properly configured');
+    }
+
+    console.log('Creating PayPal order:', { 
+      amount, 
+      currency, 
+      tier, 
+      clientId: paypalClientId.substring(0, 10) + '...' // Log partial ID for debugging
+    });
+
+    // Determine PayPal API base URL (sandbox vs production)
+    const isProduction = paypalClientId.startsWith('A') && !paypalClientId.includes('sandbox');
+    const baseURL = isProduction 
+      ? 'https://api-m.paypal.com' 
+      : 'https://api-m.sandbox.paypal.com';
+    
+    console.log(`Using PayPal ${isProduction ? 'Production' : 'Sandbox'} API: ${baseURL}`);
 
     // Get PayPal access token
-    const authResponse = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
+    const authResponse = await fetch(`${baseURL}/v1/oauth2/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -37,51 +58,85 @@ serve(async (req) => {
 
     const authData = await authResponse.json();
     
-    if (!authData.access_token) {
-      console.error('Failed to get PayPal access token:', authData);
-      throw new Error('Failed to get PayPal access token');
+    if (!authResponse.ok || !authData.access_token) {
+      console.error('Failed to get PayPal access token:', {
+        status: authResponse.status,
+        data: authData
+      });
+      throw new Error(`Failed to authenticate with PayPal: ${authData.error_description || 'Unknown error'}`);
     }
 
-    // Create PayPal order
-    const orderResponse = await fetch('https://api-m.paypal.com/v2/checkout/orders', {
+    console.log('PayPal access token obtained successfully');
+
+    // Create PayPal order with enhanced configuration
+    const orderPayload = {
+      intent: 'CAPTURE',
+      purchase_units: [{
+        reference_id: `${tier}_${Date.now()}`,
+        amount: {
+          currency_code: currency,
+          value: parseFloat(amount).toFixed(2)
+        },
+        description: description || `${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan`,
+        custom_id: tier,
+        soft_descriptor: 'Resume Builder'
+      }],
+      application_context: {
+        brand_name: 'Resume Builder',
+        locale: 'en-US',
+        landing_page: 'BILLING',
+        shipping_preference: 'NO_SHIPPING',
+        user_action: 'PAY_NOW',
+        return_url: `${req.headers.get('origin') || 'http://localhost:3000'}/payment-success`,
+        cancel_url: `${req.headers.get('origin') || 'http://localhost:3000'}/payment-cancelled`
+      }
+    };
+
+    console.log('Creating order with payload:', JSON.stringify(orderPayload, null, 2));
+
+    const orderResponse = await fetch(`${baseURL}/v2/checkout/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authData.access_token}`
+        'Authorization': `Bearer ${authData.access_token}`,
+        'PayPal-Request-Id': `${tier}_${Date.now()}_${Math.random().toString(36).substring(7)}`
       },
-      body: JSON.stringify({
-        intent: 'CAPTURE',
-        purchase_units: [{
-          amount: {
-            currency_code: currency,
-            value: amount
-          },
-          description: description,
-          custom_id: tier
-        }],
-        application_context: {
-          return_url: `${req.headers.get('origin')}/payment-success`,
-          cancel_url: `${req.headers.get('origin')}/payment-cancelled`
-        }
-      })
+      body: JSON.stringify(orderPayload)
     });
 
     const orderData = await orderResponse.json();
     
-    if (!orderData.id) {
-      console.error('Failed to create PayPal order:', orderData);
-      throw new Error('Failed to create PayPal order');
+    if (!orderResponse.ok || !orderData.id) {
+      console.error('Failed to create PayPal order:', {
+        status: orderResponse.status,
+        data: orderData
+      });
+      throw new Error(`Failed to create PayPal order: ${orderData.message || orderData.error_description || 'Unknown error'}`);
     }
 
-    console.log('PayPal order created successfully:', orderData.id);
+    console.log('PayPal order created successfully:', {
+      orderId: orderData.id,
+      status: orderData.status
+    });
 
-    return new Response(JSON.stringify({ orderId: orderData.id }), {
+    // Return success response
+    return new Response(JSON.stringify({ 
+      success: true,
+      orderId: orderData.id,
+      status: orderData.status
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error creating PayPal order:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Error in create-paypal-order function:', error);
+    
+    // Return detailed error for debugging
+    return new Response(JSON.stringify({ 
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
