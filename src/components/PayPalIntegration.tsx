@@ -29,12 +29,93 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
 
-  // PayPal Client ID
-  const CLIENT_ID = process.env.REACT_APP_PAYPAL_CLIENT_ID || 'AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E';
+  // Updated PayPal Client ID
+  const CLIENT_ID = process.env.REACT_APP_PAYPAL_CLIENT_ID || 'ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2';
+
+  // Supabase Edge Functions URLs
+  const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'your-supabase-url';
+  const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY || 'your-anon-key';
 
   const addDebugInfo = (info: string) => {
     console.log(info);
     setDebugInfo(prev => prev + '\n' + new Date().toLocaleTimeString() + ': ' + info);
+  };
+
+  // Create order via Supabase Edge Function
+  const createOrder = async (orderData: any) => {
+    try {
+      addDebugInfo('Creating order via Supabase Edge Function...');
+      
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/create-paypal-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          amount: amount,
+          currency: 'USD',
+          tier: tier,
+          description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan – ${amount}`
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      addDebugInfo(`Order created successfully: ${data.orderId}`);
+      return data.orderId;
+      
+    } catch (error) {
+      addDebugInfo(`Error creating order: ${error}`);
+      throw error;
+    }
+  };
+
+  // Capture order via Supabase Edge Function
+  const captureOrder = async (orderID: string) => {
+    try {
+      addDebugInfo('Capturing order via Supabase Edge Function...');
+      
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/capture-paypal-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          orderId: orderID
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      addDebugInfo('Order captured successfully');
+      return data;
+      
+    } catch (error) {
+      addDebugInfo(`Error capturing order: ${error}`);
+      throw error;
+    }
   };
 
   // Load PayPal SDK
@@ -62,8 +143,8 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         const script = document.createElement('script');
         script.id = 'paypal-sdk';
         
-        // Simple, reliable SDK URL
-        script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD`;
+        // Secure SDK URL with minimal parameters
+        script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD&intent=capture&disable-funding=credit,card`;
         script.async = true;
         
         addDebugInfo(`SDK URL: ${script.src}`);
@@ -140,38 +221,43 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
           height: 45
         },
         
-        createOrder: (data: any, actions: any) => {
-          addDebugInfo('Creating PayPal order...');
-          return actions.order.create({
-            purchase_units: [{
-              amount: { 
-                currency_code: 'USD', 
-                value: amount 
-              },
-              description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan – $${amount}`,
-              custom_id: tier
-            }],
-            application_context: {
-              brand_name: 'Resume Builder',
-              locale: 'en-US',
-              landing_page: 'BILLING',
-              user_action: 'PAY_NOW',
-              shipping_preference: 'NO_SHIPPING',
-              payment_method: {
-                payee_preferred: 'UNRESTRICTED'
-              }
-            }
-          });
+        createOrder: async (data: any, actions: any) => {
+          try {
+            addDebugInfo('Creating PayPal order via Supabase...');
+            
+            // Use Supabase Edge Function to create order securely
+            const orderID = await createOrder({
+              amount,
+              tier,
+              currency: 'USD'
+            });
+            
+            addDebugInfo(`Order created with ID: ${orderID}`);
+            return orderID;
+            
+          } catch (error) {
+            addDebugInfo(`Error in createOrder: ${error}`);
+            onError(error);
+            throw error;
+          }
         },
         
         onApprove: async (data: any, actions: any) => {
-          addDebugInfo('PayPal payment approved, capturing order...');
           try {
-            const details = await actions.order.capture();
-            addDebugInfo('Payment captured successfully');
-            onSuccess(details);
+            addDebugInfo(`PayPal payment approved, order ID: ${data.orderID}`);
+            
+            // Use Supabase Edge Function to capture order securely
+            const captureResult = await captureOrder(data.orderID);
+            
+            addDebugInfo('Payment captured successfully via Supabase');
+            onSuccess({
+              ...captureResult,
+              orderID: data.orderID,
+              payerID: data.payerID
+            });
+            
           } catch (captureError) {
-            addDebugInfo('Error capturing payment: ' + captureError);
+            addDebugInfo('Error capturing payment via Supabase: ' + captureError);
             onError(captureError);
           }
         },
@@ -188,7 +274,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         }
       };
 
-      addDebugInfo('Rendering PayPal buttons with config...');
+      addDebugInfo('Rendering PayPal buttons with secure config...');
       
       window.paypal.Buttons(buttonsConfig).render(containerRef.current).then(() => {
         addDebugInfo('PayPal buttons rendered successfully');
