@@ -108,18 +108,24 @@ const UserSettings: React.FC = () => {
           <h2 className="text-xl font-semibold">Account Information</h2>
         </div>
         <UserInfoCard userInfo={userInfo} onUserInfoUpdate={handleUserInfoUpdate} />
-        <PasswordChangeCard />
       </div>
 
       <Separator />
 
-      {/* Subscription */}
+      {/* Subscription - moved before password */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <CreditCard className="h-5 w-5" />
           <h2 className="text-xl font-semibold">Subscription</h2>
         </div>
         <SubscriptionCard subscription={subscription} onRefreshSubscription={handleRefreshSubscription} />
+      </div>
+
+      <Separator />
+
+      {/* Password Change - moved after subscription */}
+      <div className="space-y-4">
+        <PasswordChangeCard />
       </div>
     </div>
   );

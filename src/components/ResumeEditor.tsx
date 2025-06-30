@@ -6,7 +6,6 @@ import ExportControls from "@/components/ExportControls";
 import SubscriptionStatus from "@/components/SubscriptionStatus";
 import CallToAction from "@/components/CallToAction";
 import TailoredResumeNotice from "@/components/TailoredResumeNotice";
-import ExportTracker from "@/components/ExportTracker";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
 
 interface Skill {
@@ -98,6 +97,13 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   canExport,
   getCurrentResumeData,
 }) => {
+  // Helper function to get remaining exports (moved from ExportTracker)
+  const getRemainingExports = () => {
+    if (!currentSubscription) return 0;
+    if (currentSubscription.tier === 'unlimited') return 999;
+    return currentSubscription.scan_count || 0;
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Left Column - Editor */}
@@ -116,15 +122,10 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
           canExport={canExport()}
         />
 
-        <ExportTracker
-          currentUserId={currentUserId}
-          currentSubscription={currentSubscription}
-          isPremiumUser={isPremiumUser}
-        />
-
         <SubscriptionStatus
           isPremiumUser={isPremiumUser}
           currentSubscription={currentSubscription}
+          getRemainingExports={getRemainingExports}
         />
 
         {/* Success CTA after resume completion */}
