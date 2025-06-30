@@ -9,7 +9,7 @@ declare global {
 }
 
 interface PayPalIntegrationProps {
-  amount: string;             // e.g. "2.00"
+  amount: string;
   tier: 'basic' | 'premium' | 'unlimited';
   onSuccess: (details: any) => void;
   onError: (err: any) => void;
@@ -23,192 +23,212 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   onError,
   onCancel
 }) => {
-  const paypalContainerRef = useRef<HTMLDivElement>(null);
-  const cardContainerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
-  // Move CLIENT_ID to environment variable or config
+  // PayPal Client ID
   const CLIENT_ID = process.env.REACT_APP_PAYPAL_CLIENT_ID || 'AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E';
 
-  // Load PayPal SDK with all funding sources enabled
+  const addDebugInfo = (info: string) => {
+    console.log(info);
+    setDebugInfo(prev => prev + '\n' + new Date().toLocaleTimeString() + ': ' + info);
+  };
+
+  // Load PayPal SDK
   useEffect(() => {
     const loadPayPalSDK = async () => {
       try {
+        addDebugInfo('Starting PayPal SDK load...');
+        
         // Check if PayPal is already loaded
         if (window.paypal) {
-          console.log('PayPal SDK already loaded');
+          addDebugInfo('PayPal SDK already loaded');
           setSdkLoaded(true);
           setLoading(false);
           return;
         }
 
-        // Check if script is already being loaded
-        const existingScript = document.getElementById('paypal-sdk');
-        if (existingScript) {
-          console.log('PayPal SDK script already exists, waiting for load');
-          existingScript.addEventListener('load', () => {
-            setSdkLoaded(true);
-            setLoading(false);
-          });
-          existingScript.addEventListener('error', () => {
-            setError('Failed to load PayPal SDK');
-            setLoading(false);
-          });
-          return;
-        }
+        // Remove any existing PayPal scripts
+        const existingScripts = document.querySelectorAll('script[src*="paypal.com/sdk"]');
+        existingScripts.forEach(script => {
+          addDebugInfo('Removing existing PayPal script');
+          script.remove();
+        });
 
-        console.log('Loading PayPal SDK...');
+        addDebugInfo('Creating new PayPal SDK script...');
         const script = document.createElement('script');
         script.id = 'paypal-sdk';
         
-        // Enable ALL funding sources including credit/debit cards
-        script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD&intent=capture&enable-funding=venmo,paylater,card&components=buttons,funding-eligibility,payment-fields&disable-funding=`;
+        // Simple, reliable SDK URL
+        script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD`;
         script.async = true;
         
+        addDebugInfo(`SDK URL: ${script.src}`);
+        
         script.onload = () => {
-          console.log('PayPal SDK loaded successfully');
-          setSdkLoaded(true);
+          addDebugInfo('PayPal SDK loaded successfully');
+          if (window.paypal) {
+            addDebugInfo('PayPal object is available');
+            setSdkLoaded(true);
+          } else {
+            addDebugInfo('PayPal object not found after load');
+            setError('PayPal SDK loaded but object not available');
+          }
           setLoading(false);
         };
         
         script.onerror = (err) => {
-          console.error('Failed to load PayPal SDK:', err);
-          setError('Failed to load PayPal SDK');
+          addDebugInfo('PayPal SDK failed to load: ' + err);
+          setError('Failed to load PayPal SDK - Network or URL error');
           setLoading(false);
           onError(new Error('Failed to load PayPal SDK'));
         };
         
         document.head.appendChild(script);
+        addDebugInfo('PayPal SDK script added to document head');
+        
+        // Timeout fallback
+        setTimeout(() => {
+          if (loading && !sdkLoaded) {
+            addDebugInfo('SDK loading timeout - still loading after 10 seconds');
+            setError('PayPal SDK loading timeout');
+            setLoading(false);
+          }
+        }, 10000);
+        
       } catch (err) {
-        console.error('Error loading PayPal SDK:', err);
-        setError('Error loading PayPal SDK');
+        addDebugInfo('Error in loadPayPalSDK: ' + err);
+        setError('Error loading PayPal SDK: ' + err);
         setLoading(false);
         onError(err);
       }
     };
 
     loadPayPalSDK();
-  }, [CLIENT_ID, onError]);
+  }, [CLIENT_ID, onError, loading, sdkLoaded]);
 
-  // Create order function (shared between payment methods)
-  const createOrder = useCallback((data: any, actions: any) => {
-    console.log('Creating PayPal order...');
-    return actions.order.create({
-      purchase_units: [{
-        amount: { 
-          currency_code: 'USD', 
-          value: amount 
-        },
-        description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan – $${amount}`,
-        custom_id: tier
-      }],
-      application_context: {
-        brand_name: 'Resume Builder',
-        locale: 'en-US',
-        landing_page: 'BILLING',
-        user_action: 'PAY_NOW',
-        shipping_preference: 'NO_SHIPPING',
-        payment_method: {
-          payee_preferred: 'UNRESTRICTED' // Critical: Allows credit cards without PayPal account
-        }
-      }
-    });
-  }, [amount, tier]);
-
-  // Approve order function (shared between payment methods)
-  const onApprove = useCallback(async (data: any, actions: any) => {
-    console.log('PayPal payment approved, capturing order...');
-    try {
-      const details = await actions.order.capture();
-      console.log('Payment captured successfully:', details);
-      onSuccess(details);
-    } catch (captureError) {
-      console.error('Error capturing payment:', captureError);
-      onError(captureError);
-    }
-  }, [onSuccess, onError]);
-
-  // Render PayPal buttons for different funding sources
-  const renderPaymentButtons = useCallback(() => {
-    console.log('Attempting to render payment buttons...');
+  // Render PayPal buttons
+  const renderPayPalButtons = useCallback(() => {
+    addDebugInfo('Attempting to render PayPal buttons...');
     
     if (!window.paypal) {
-      console.error('PayPal SDK not available');
+      addDebugInfo('PayPal SDK not available on window object');
       setError('PayPal SDK not available');
       return;
     }
 
-    if (!paypalContainerRef.current) {
-      console.error('PayPal container not found');
+    if (!containerRef.current) {
+      addDebugInfo('PayPal container reference not found');
       setError('PayPal container not found');
       return;
     }
 
     try {
       // Clear existing content
-      paypalContainerRef.current.innerHTML = '';
+      containerRef.current.innerHTML = '';
+      addDebugInfo('Container cleared, creating PayPal buttons...');
       
-      console.log('Rendering PayPal buttons with amount:', amount, 'tier:', tier);
-      
-      // Primary PayPal button (includes credit/debit cards)
-      window.paypal.Buttons({
+      const buttonsConfig = {
         style: { 
-          layout: 'vertical',
-          color: 'gold',
-          shape: 'rect',
-          label: 'pay',
-          height: 45,
-          tagline: false
+          layout: 'vertical' as const,
+          color: 'gold' as const,
+          shape: 'rect' as const,
+          label: 'pay' as const,
+          height: 45
         },
         
-        createOrder,
-        onApprove,
+        createOrder: (data: any, actions: any) => {
+          addDebugInfo('Creating PayPal order...');
+          return actions.order.create({
+            purchase_units: [{
+              amount: { 
+                currency_code: 'USD', 
+                value: amount 
+              },
+              description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan – $${amount}`,
+              custom_id: tier
+            }],
+            application_context: {
+              brand_name: 'Resume Builder',
+              locale: 'en-US',
+              landing_page: 'BILLING',
+              user_action: 'PAY_NOW',
+              shipping_preference: 'NO_SHIPPING',
+              payment_method: {
+                payee_preferred: 'UNRESTRICTED'
+              }
+            }
+          });
+        },
+        
+        onApprove: async (data: any, actions: any) => {
+          addDebugInfo('PayPal payment approved, capturing order...');
+          try {
+            const details = await actions.order.capture();
+            addDebugInfo('Payment captured successfully');
+            onSuccess(details);
+          } catch (captureError) {
+            addDebugInfo('Error capturing payment: ' + captureError);
+            onError(captureError);
+          }
+        },
         
         onError: (err: any) => {
-          console.error('PayPal payment error:', err);
+          addDebugInfo('PayPal payment error: ' + err);
           setError('Payment processing error');
           onError(err);
         },
         
         onCancel: (data: any) => {
-          console.log('PayPal payment cancelled:', data);
+          addDebugInfo('PayPal payment cancelled');
           onCancel();
         }
-      }).render(paypalContainerRef.current).then(() => {
-        console.log('PayPal buttons rendered successfully');
+      };
+
+      addDebugInfo('Rendering PayPal buttons with config...');
+      
+      window.paypal.Buttons(buttonsConfig).render(containerRef.current).then(() => {
+        addDebugInfo('PayPal buttons rendered successfully');
       }).catch((renderError: any) => {
-        console.error('Error rendering PayPal buttons:', renderError);
-        setError('Failed to render PayPal buttons');
+        addDebugInfo('Error rendering PayPal buttons: ' + renderError);
+        setError('Failed to render PayPal buttons: ' + renderError.message);
         onError(renderError);
       });
 
     } catch (err) {
-      console.error('Error in renderPaymentButtons:', err);
-      setError('Error rendering payment buttons');
+      addDebugInfo('Error in renderPayPalButtons: ' + err);
+      setError('Error rendering PayPal buttons: ' + err);
       onError(err);
     }
-  }, [amount, tier, createOrder, onApprove, onError, onCancel]);
+  }, [amount, tier, onSuccess, onError, onCancel]);
 
-  // Render buttons when SDK is loaded and container is ready
+  // Render buttons when SDK is loaded
   useEffect(() => {
-    if (sdkLoaded && paypalContainerRef.current && !loading) {
-      // Small delay to ensure DOM is ready
+    if (sdkLoaded && containerRef.current && !loading && !error) {
+      addDebugInfo('Conditions met, rendering buttons...');
       const timeoutId = setTimeout(() => {
-        renderPaymentButtons();
+        renderPayPalButtons();
       }, 100);
       
       return () => clearTimeout(timeoutId);
     }
-  }, [sdkLoaded, loading, renderPaymentButtons]);
+  }, [sdkLoaded, loading, error, renderPayPalButtons]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex flex-col items-center justify-center p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
-          <p className="text-sm text-gray-600">Loading payment options...</p>
+          <p className="text-sm text-gray-600 mb-2">Loading PayPal...</p>
+          <details className="text-xs text-gray-500 max-w-md">
+            <summary className="cursor-pointer">Debug Info</summary>
+            <pre className="mt-2 text-left bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
+              {debugInfo}
+            </pre>
+          </details>
         </div>
       </div>
     );
@@ -216,7 +236,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex flex-col items-center justify-center p-8">
         <div className="text-center">
           <p className="text-sm text-red-600 mb-3">{error}</p>
           <button 
@@ -224,51 +244,47 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
               setError(null);
               setLoading(true);
               setSdkLoaded(false);
-              // Retry loading
-              window.location.reload();
+              setDebugInfo('');
+              addDebugInfo('Retrying PayPal SDK load...');
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm mb-3"
           >
             Retry
           </button>
+          <details className="text-xs text-gray-500 max-w-md">
+            <summary className="cursor-pointer">Debug Info</summary>
+            <pre className="mt-2 text-left bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
+              {debugInfo}
+            </pre>
+          </details>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="payment-container space-y-4">
-      {/* Payment method info */}
+    <div className="payment-container">
       <div className="text-center mb-4">
-        <p className="text-sm text-gray-600 mb-2">
-          Pay with PayPal, Credit Card, or Debit Card
-        </p>
-        <p className="text-xs text-gray-500">
-          No PayPal account required for card payments
+        <p className="text-sm text-gray-600">
+          Secure payment powered by PayPal
         </p>
       </div>
       
-      {/* PayPal payment buttons */}
-      <div className="paypal-payment-section">
-        <div 
-          ref={paypalContainerRef} 
-          id="paypal-button-container"
-          className="min-h-[50px] w-full"
-        />
-      </div>
+      <div 
+        ref={containerRef} 
+        id="paypal-button-container"
+        className="min-h-[50px] w-full"
+      />
       
-      {/* Security badges */}
-      <div className="flex items-center justify-center space-x-4 mt-4 pt-4 border-t border-gray-200">
-        <div className="flex items-center text-xs text-gray-500">
-          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-          </svg>
-          Secure Payment
-        </div>
-        <div className="text-xs text-gray-500">
-          Powered by PayPal
-        </div>
-      </div>
+      {/* Debug info for development */}
+      {process.env.NODE_ENV === 'development' && (
+        <details className="text-xs text-gray-500 mt-4">
+          <summary className="cursor-pointer">Debug Info</summary>
+          <pre className="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
+            {debugInfo}
+          </pre>
+        </details>
+      )}
     </div>
   );
 };
