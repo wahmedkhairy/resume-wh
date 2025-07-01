@@ -1,4 +1,6 @@
+
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PayPalIntegrationProps {
   amount: string;
@@ -20,20 +22,50 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
-
-  // PayPal Client ID - will be loaded from Supabase secrets
-  const CLIENT_ID = 'sb-4yrvf47866808@business.example.com'; // This will be replaced with secure credentials
+  const [clientId, setClientId] = useState<string>('');
 
   const addDebugInfo = (info: string) => {
     console.log(info);
     setDebugInfo(prev => prev + '\n' + new Date().toLocaleTimeString() + ': ' + info);
   };
 
+  // Fetch PayPal Client ID from secure backend
+  const fetchPayPalConfig = useCallback(async () => {
+    try {
+      addDebugInfo('Fetching PayPal configuration...');
+      
+      const { data, error } = await supabase.functions.invoke('get-paypal-config');
+      
+      if (error) {
+        addDebugInfo('Error fetching PayPal config: ' + error.message);
+        throw new Error('Failed to fetch PayPal configuration: ' + error.message);
+      }
+      
+      if (!data?.clientId) {
+        addDebugInfo('No client ID in response');
+        throw new Error('PayPal Client ID not configured');
+      }
+      
+      addDebugInfo('PayPal Client ID fetched successfully');
+      setClientId(data.clientId);
+      return data.clientId;
+      
+    } catch (err) {
+      addDebugInfo('Error in fetchPayPalConfig: ' + err);
+      setError('Failed to load PayPal configuration');
+      onError(err);
+      throw err;
+    }
+  }, [onError]);
+
   // Load PayPal SDK
   useEffect(() => {
     const loadPayPalSDK = async () => {
       try {
         addDebugInfo('Starting PayPal SDK load...');
+        
+        // First fetch the client ID
+        const fetchedClientId = await fetchPayPalConfig();
         
         // Check if PayPal is already loaded
         if (window.paypal) {
@@ -54,11 +86,11 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         const script = document.createElement('script');
         script.id = 'paypal-sdk';
         
-        // Simple, reliable SDK URL
-        script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD`;
+        // Use the fetched client ID
+        script.src = `https://www.paypal.com/sdk/js?client-id=${fetchedClientId}&currency=USD`;
         script.async = true;
         
-        addDebugInfo(`SDK URL: ${script.src}`);
+        addDebugInfo(`SDK URL: ${script.src.substring(0, 100)}...`);
         
         script.onload = () => {
           addDebugInfo('PayPal SDK loaded successfully');
@@ -85,11 +117,11 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         // Timeout fallback
         setTimeout(() => {
           if (loading && !sdkLoaded) {
-            addDebugInfo('SDK loading timeout - still loading after 10 seconds');
+            addDebugInfo('SDK loading timeout - still loading after 15 seconds');
             setError('PayPal SDK loading timeout');
             setLoading(false);
           }
-        }, 10000);
+        }, 15000);
         
       } catch (err) {
         addDebugInfo('Error in loadPayPalSDK: ' + err);
@@ -100,7 +132,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
     };
 
     loadPayPalSDK();
-  }, [CLIENT_ID, onError, loading, sdkLoaded]);
+  }, [fetchPayPalConfig, onError, loading, sdkLoaded]);
 
   // Render PayPal buttons
   const renderPayPalButtons = useCallback(() => {
@@ -132,36 +164,53 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
           height: 45
         },
         
-        createOrder: (data: any, actions: any) => {
-          addDebugInfo('Creating PayPal order...');
-          return actions.order.create({
-            purchase_units: [{
-              amount: { 
-                currency_code: 'USD', 
-                value: amount 
-              },
-              description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan – $${amount}`,
-              custom_id: tier
-            }],
-            application_context: {
-              brand_name: 'Resume Builder',
-              locale: 'en-US',
-              landing_page: 'BILLING',
-              user_action: 'PAY_NOW',
-              shipping_preference: 'NO_SHIPPING',
-              payment_method: {
-                payee_preferred: 'UNRESTRICTED'
+        createOrder: async (data: any, actions: any) => {
+          addDebugInfo('Creating PayPal order through Supabase function...');
+          
+          try {
+            const { data: orderData, error } = await supabase.functions.invoke('create-paypal-order', {
+              body: {
+                amount: amount,
+                currency: 'USD',
+                description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan – $${amount}`,
+                tier: tier
               }
+            });
+
+            if (error) {
+              addDebugInfo('Error creating order: ' + error.message);
+              throw new Error('Failed to create order: ' + error.message);
             }
-          });
+
+            if (!orderData?.orderId) {
+              addDebugInfo('No order ID in response');
+              throw new Error('No order ID received');
+            }
+
+            addDebugInfo('Order created successfully: ' + orderData.orderId);
+            return orderData.orderId;
+            
+          } catch (createError) {
+            addDebugInfo('Error in createOrder: ' + createError);
+            onError(createError);
+            throw createError;
+          }
         },
         
         onApprove: async (data: any, actions: any) => {
           addDebugInfo('PayPal payment approved, capturing order...');
           try {
-            const details = await actions.order.capture();
+            const { data: captureData, error } = await supabase.functions.invoke('capture-paypal-order', {
+              body: { orderId: data.orderID }
+            });
+
+            if (error) {
+              addDebugInfo('Error capturing payment: ' + error.message);
+              throw new Error('Failed to capture payment: ' + error.message);
+            }
+
             addDebugInfo('Payment captured successfully');
-            onSuccess(details);
+            onSuccess(captureData);
           } catch (captureError) {
             addDebugInfo('Error capturing payment: ' + captureError);
             onError(captureError);
@@ -199,7 +248,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
 
   // Render buttons when SDK is loaded
   useEffect(() => {
-    if (sdkLoaded && containerRef.current && !loading && !error) {
+    if (sdkLoaded && containerRef.current && !loading && !error && clientId) {
       addDebugInfo('Conditions met, rendering buttons...');
       const timeoutId = setTimeout(() => {
         renderPayPalButtons();
@@ -207,7 +256,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
       
       return () => clearTimeout(timeoutId);
     }
-  }, [sdkLoaded, loading, error, renderPayPalButtons]);
+  }, [sdkLoaded, loading, error, clientId, renderPayPalButtons]);
 
   if (loading) {
     return (
@@ -236,6 +285,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
               setError(null);
               setLoading(true);
               setSdkLoaded(false);
+              setClientId('');
               setDebugInfo('');
               addDebugInfo('Retrying PayPal SDK load...');
             }}
