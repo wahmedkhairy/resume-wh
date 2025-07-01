@@ -13,10 +13,11 @@ serve(async (req) => {
   }
 
   try {
+    // Get PayPal Client ID from secure environment variables
     const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID')
     
     if (!paypalClientId) {
-      throw new Error('PayPal client ID not configured')
+      throw new Error('PayPal client ID not configured in environment variables')
     }
 
     return new Response(

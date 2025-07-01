@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -22,12 +21,12 @@ serve(async (req) => {
       throw new Error('Amount and tier are required');
     }
 
-    // Use the correct PayPal credentials - make sure these match your frontend Client ID
-    const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID') || 'ATW52HhFLL9GSuqaUlDiXLhjc6puky0HqmKdmPGAhYRFcdZIu9qV5XowN4wT1td5GgwpQFgQvcq069V2';
+    // Use secure PayPal credentials from environment variables
+    const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID');
     const paypalClientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET');
     
-    if (!paypalClientSecret) {
-      console.error('PayPal Client Secret not configured in environment variables');
+    if (!paypalClientId || !paypalClientSecret) {
+      console.error('PayPal credentials not configured in environment variables');
       throw new Error('PayPal credentials not properly configured');
     }
 

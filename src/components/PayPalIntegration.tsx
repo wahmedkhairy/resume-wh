@@ -1,12 +1,4 @@
-
-// src/components/PayPalIntegration.tsx
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-
-declare global {
-  interface Window { 
-    paypal: any; 
-  }
-}
 
 interface PayPalIntegrationProps {
   amount: string;
@@ -29,8 +21,8 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
 
-  // PayPal Client ID
-  const CLIENT_ID = process.env.REACT_APP_PAYPAL_CLIENT_ID || 'AWiv-6cjprQeRqz07LMIvHDtAJ22f6BVGcpgQHXMT0n2zJ8CFAtgzMT4_v-bhLWmdswIp2E9ExU1NX5E';
+  // PayPal Client ID - will be loaded from Supabase secrets
+  const CLIENT_ID = 'sb-4yrvf47866808@business.example.com'; // This will be replaced with secure credentials
 
   const addDebugInfo = (info: string) => {
     console.log(info);
