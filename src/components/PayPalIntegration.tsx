@@ -28,6 +28,10 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   // Track if component is mounted to prevent state updates after unmount
   const mountedRef = useRef(true);
   const sdkLoadingRef = useRef(false);
+  const buttonsRenderedRef = useRef(false);
+  
+  // Track previous props to detect changes
+  const prevPropsRef = useRef({ amount, tier });
 
   const isDevelopment = process.env.NODE_ENV === 'development';
   const MAX_RETRIES = 3;
@@ -206,8 +210,9 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
     }
 
     try {
-      // Clear existing content
+      // Clear existing content and reset rendered flag
       containerRef.current.innerHTML = '';
+      buttonsRenderedRef.current = false;
       addDebugInfo('Container cleared, creating PayPal buttons...');
       
       const buttonsConfig = {
@@ -289,9 +294,11 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
       window.paypal.Buttons(buttonsConfig).render(containerRef.current)
         .then(() => {
           addDebugInfo('PayPal buttons rendered successfully');
+          buttonsRenderedRef.current = true;
         })
         .catch((renderError: any) => {
           addDebugInfo(`Error rendering PayPal buttons: ${renderError}`);
+          buttonsRenderedRef.current = false;
           setError('Unable to display payment options. Please refresh the page.');
           onError(renderError);
         });
@@ -302,6 +309,15 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
       onError(err);
     }
   }, [amount, tier, onSuccess, onError, onCancel, addDebugInfo]);
+
+  // Force re-render of buttons (useful for plan changes)
+  const forceRenderButtons = useCallback(() => {
+    if (sdkLoaded && containerRef.current && !loading && !error && clientId) {
+      addDebugInfo('Force re-rendering PayPal buttons...');
+      buttonsRenderedRef.current = false;
+      renderPayPalButtons();
+    }
+  }, [sdkLoaded, loading, error, clientId, renderPayPalButtons, addDebugInfo]);
 
   // Handle retry logic
   const handleRetry = useCallback(() => {
@@ -316,6 +332,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
     setClientId('');
     setDebugInfo('');
     setRetryCount(prev => prev + 1);
+    buttonsRenderedRef.current = false;
     
     addDebugInfo(`Retrying PayPal SDK load... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
     
@@ -325,30 +342,59 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
     }, 1000);
   }, [retryCount, addDebugInfo, loadPayPalSDK]);
 
+  // Reset component state when props change (e.g., different plan selected)
+  useEffect(() => {
+    const currentProps = { amount, tier };
+    const prevProps = prevPropsRef.current;
+    
+    if (currentProps.amount !== prevProps.amount || currentProps.tier !== prevProps.tier) {
+      addDebugInfo(`Props changed - Amount: ${prevProps.amount} -> ${currentProps.amount}, Tier: ${prevProps.tier} -> ${currentProps.tier}`);
+      
+      // Reset component state for new plan
+      setError(null);
+      setRetryCount(0);
+      buttonsRenderedRef.current = false;
+      
+      // If SDK is already loaded, just re-render buttons
+      if (sdkLoaded && !loading) {
+        addDebugInfo('SDK already loaded, re-rendering buttons for new plan');
+        setLoading(false); // Ensure loading is false
+        // Buttons will be re-rendered by the other useEffect
+      }
+      
+      prevPropsRef.current = currentProps;
+    }
+  }, [amount, tier, sdkLoaded, loading, addDebugInfo]);
+
   // Main effect to load SDK
   useEffect(() => {
     mountedRef.current = true;
-    loadPayPalSDK();
+    
+    // Only load SDK if not already loaded
+    if (!sdkLoaded && !sdkLoadingRef.current) {
+      loadPayPalSDK();
+    }
 
     return () => {
       mountedRef.current = false;
     };
-  }, [loadPayPalSDK]);
+  }, [loadPayPalSDK, sdkLoaded]);
 
   // Effect to render buttons when SDK is ready
   useEffect(() => {
-    if (sdkLoaded && containerRef.current && !loading && !error && clientId && mountedRef.current) {
+    if (sdkLoaded && containerRef.current && !loading && !error && clientId && mountedRef.current && !buttonsRenderedRef.current) {
       addDebugInfo('All conditions met, rendering buttons...');
       // Small delay to ensure DOM is ready
       const timeoutId = setTimeout(() => {
-        if (mountedRef.current) {
+        if (mountedRef.current && !buttonsRenderedRef.current) {
+          buttonsRenderedRef.current = true;
           renderPayPalButtons();
         }
       }, 300);
       
       return () => clearTimeout(timeoutId);
     }
-  }, [sdkLoaded, loading, error, clientId, renderPayPalButtons, addDebugInfo]);
+  }, [sdkLoaded, loading, error, clientId, renderPayPalButtons, addDebugInfo, amount, tier]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -419,6 +465,9 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         <p className="text-sm text-gray-600">
           Secure payment powered by PayPal
         </p>
+        <p className="text-xs text-gray-500 mt-1">
+          {tier.charAt(0).toUpperCase() + tier.slice(1)} Plan - ${amount} USD
+        </p>
       </div>
       
       <div 
@@ -426,6 +475,18 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         id="paypal-button-container"
         className="min-h-[50px] w-full"
       />
+      
+      {/* Show refresh button if buttons don't appear after some time */}
+      {sdkLoaded && !loading && !error && clientId && (
+        <div className="text-center mt-4">
+          <button
+            onClick={forceRenderButtons}
+            className="text-xs text-blue-600 hover:text-blue-800 underline"
+          >
+            Payment options not showing? Click to refresh
+          </button>
+        </div>
+      )}
       
       {/* Debug info only shown in development */}
       {isDevelopment && debugInfo && (
