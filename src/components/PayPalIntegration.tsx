@@ -33,13 +33,20 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   // Track previous props to detect changes
   const prevPropsRef = useRef({ amount, tier });
 
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  // More robust development environment detection
+  const isDevelopment = process.env.NODE_ENV === 'development' || 
+                       process.env.REACT_APP_ENV === 'development' || 
+                       window.location.hostname === 'localhost' ||
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname.includes('.local');
+  
   const MAX_RETRIES = 3;
   const SDK_TIMEOUT = 20000; // Increased to 20 seconds
 
   const addDebugInfo = useCallback((info: string) => {
+    // Only log to console and store debug info in development
     if (isDevelopment) {
-      console.log(info);
+      console.log(`[PayPal Debug] ${info}`);
       if (mountedRef.current) {
         setDebugInfo(prev => prev + '\n' + new Date().toLocaleTimeString() + ': ' + info);
       }
@@ -409,9 +416,10 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
           <p className="text-sm text-gray-600 mb-2">Loading secure payment...</p>
-          {isDevelopment && (
+          {/* Debug info only shown in development */}
+          {isDevelopment && debugInfo && (
             <details className="text-xs text-gray-500 max-w-md">
-              <summary className="cursor-pointer">Debug Info</summary>
+              <summary className="cursor-pointer">Debug Info (Development Only)</summary>
               <pre className="mt-2 text-left bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
                 {debugInfo}
               </pre>
@@ -446,7 +454,8 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
               Please refresh the page or contact support if the problem persists.
             </p>
           )}
-          {isDevelopment && (
+          {/* Debug info only shown in development */}
+          {isDevelopment && debugInfo && (
             <details className="text-xs text-gray-500 max-w-md">
               <summary className="cursor-pointer">Debug Info (Development Only)</summary>
               <pre className="mt-2 text-left bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
@@ -488,11 +497,11 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         </div>
       )}
       
-      {/* Debug info only shown in development */}
+      {/* Debug info only shown in development environment */}
       {isDevelopment && debugInfo && (
         <details className="text-xs text-gray-500 mt-4">
-          <summary className="cursor-pointer">Debug Info (Development Only)</summary>
-          <pre className="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
+          <summary className="cursor-pointer">🔧 Debug Info (Development Only)</summary>
+          <pre className="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32 whitespace-pre-wrap">
             {debugInfo}
           </pre>
         </details>
