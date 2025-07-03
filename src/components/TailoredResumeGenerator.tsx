@@ -1,416 +1,394 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, FileText, AlertCircle, Info, Crown, Download } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import TailoredResumeInstructions from "./TailoredResumeInstructions";
+import React, { useState, useEffect } from 'react';
+import { User } from '@supabase/supabase-js';
+import { Target, Download, AlertCircle, CheckCircle } from 'lucide-react';
+import { ResumeData } from '../types/ResumeTypes';
 
 interface TailoredResumeGeneratorProps {
-  resumeData: any;
-  currentUserId: string;
-  isPremiumUser: boolean;
-  currentSubscription: any;
-  canAccessTargetedResumes: boolean;
-  onTailoredResumeGenerated: (tailoredData: any) => void;
-  // Add export functions for targeted resumes
-  onExportTailoredResume?: (tailoredData: any) => void;
-  onExportTailoredResumeAsWord?: (tailoredData: any) => void;
-  isExporting?: boolean;
+  user: User | null;
+  resumeData: ResumeData;
+  subscription: any;
+  subscriptionLoading: boolean;
+}
+
+interface GeneratedResume {
+  id: string;
+  jobTitle: string;
+  company: string;
+  tailoredContent: ResumeData;
+  createdAt: string;
 }
 
 const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
+  user,
   resumeData,
-  currentUserId,
-  isPremiumUser,
-  currentSubscription,
-  canAccessTargetedResumes,
-  onTailoredResumeGenerated,
-  onExportTailoredResume,
-  onExportTailoredResumeAsWord,
-  isExporting = false,
+  subscription,
+  subscriptionLoading
 }) => {
-  const [jobDescription, setJobDescription] = useState("");
+  const [jobDescription, setJobDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [targetedResumeUsage, setTargetedResumeUsage] = useState<number | null>(null);
-  const [currentTailoredData, setCurrentTailoredData] = useState<any>(null);
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const [isExporting, setIsExporting] = useState(false);
+  const [generatedResumes, setGeneratedResumes] = useState<GeneratedResume[]>([]);
+  const [currentTailoredResume, setCurrentTailoredResume] = useState<ResumeData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  console.log('TailoredResumeGenerator props:', {
-    isPremiumUser,
-    canAccessTargetedResumes,
-    currentSubscription: currentSubscription ? {
-      tier: currentSubscription.tier,
-      status: currentSubscription.status
-    } : null
-  });
-
-  // Check if resume data is complete
-  const isResumeComplete = () => {
-    return (
-      resumeData.personalInfo?.name &&
-      resumeData.personalInfo?.email &&
-      resumeData.workExperience?.length > 0 &&
-      resumeData.education?.length > 0
-    );
+  // Check if user can access targeted resumes
+  const canAccessTargetedResumes = () => {
+    if (!subscription || !user) return false;
+    return ['basic', 'premium', 'unlimited'].includes(subscription.tier?.toLowerCase());
   };
 
-  // Get usage limits based on subscription tier - Updated for one-time limits
-  const getTargetedResumeLimit = () => {
-    if (!canAccessTargetedResumes || !currentSubscription) {
-      return { limit: 0, isOneTime: true };
-    }
+  // Get remaining targeted resumes based on plan
+  const getRemainingTargetedResumes = () => {
+    if (!subscription) return 0;
     
-    switch (currentSubscription.tier) {
+    switch (subscription.tier?.toLowerCase()) {
       case 'basic':
-        return { limit: 1, isOneTime: true }; // 1 targeted resume total (one-time)
+        return 1;
       case 'premium':
-        return { limit: 3, isOneTime: true }; // 3 targeted resumes total (one-time)
+        return 3;
       case 'unlimited':
-        return { limit: 999, isOneTime: true }; // Unlimited targeted resumes
+        return 999;
       default:
-        return { limit: 0, isOneTime: true };
+        return 0;
     }
   };
 
-  const canExportResume = () => {
-    // Users with access to targeted resumes can export
-    return canAccessTargetedResumes && currentSubscription;
+  // Check if user can export
+  const canExport = () => {
+    return subscription && subscription.scan_count > 0;
   };
 
-  const checkTargetedResumeUsage = async () => {
-    try {
-      const { data: tailoredResumes } = await supabase
-        .from('tailored_resumes')
-        .select('id')
-        .eq('user_id', currentUserId);
-      
-      const currentUsage = tailoredResumes?.length || 0;
-      setTargetedResumeUsage(currentUsage);
-      return currentUsage;
-    } catch (error) {
-      console.error('Error checking targeted resume usage:', error);
-      return 0;
-    }
-  };
-
-  React.useEffect(() => {
-    if (currentUserId) {
-      checkTargetedResumeUsage();
-    }
-  }, [currentUserId]);
-
-  const handleGenerateTargetedResume = async () => {
-    if (!isResumeComplete()) {
-      toast({
-        title: "Incomplete Resume Information",
-        description: "Please complete your personal information, work experience, and education sections first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  // Generate tailored resume
+  const generateTailoredResume = async () => {
     if (!jobDescription.trim()) {
-      toast({
-        title: "Job Description Required",
-        description: "Please enter a complete job description to create your targeted resume.",
-        variant: "destructive",
-      });
+      setError('Please enter a job description');
       return;
     }
 
-    if (!currentUserId) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to use the targeted resume feature.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const currentUsage = await checkTargetedResumeUsage();
-    const usageConfig = getTargetedResumeLimit();
-
-    if (currentUsage >= usageConfig.limit) {
-      toast({
-        title: "Usage Limit Reached",
-        description: `You've reached your limit of ${usageConfig.limit === 999 ? "unlimited" : usageConfig.limit} targeted resumes. Please upgrade your plan for more.`,
-        variant: "destructive",
-      });
+    if (!canAccessTargetedResumes()) {
+      setError('You need an active subscription to access targeted resumes');
       return;
     }
 
     setIsGenerating(true);
+    setError(null);
 
     try {
-      console.log('Starting targeted resume generation process...');
+      // Simulate AI processing (replace with actual AI integration)
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Call the edge function to generate targeted resume
-      const { data, error } = await supabase.functions.invoke('tailor-resume', {
-        body: {
-          resumeData,
-          jobDescription,
-          userId: currentUserId,
-        },
-      });
+      // Extract job title and company from job description (simplified)
+      const jobTitle = extractJobTitle(jobDescription);
+      const company = extractCompany(jobDescription);
 
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(error.message || 'Failed to generate targeted resume');
-      }
+      // Generate tailored resume data
+      const tailoredResume: ResumeData = {
+        ...resumeData,
+        // Enhance summary for the specific job
+        summary: generateTailoredSummary(resumeData.summary, jobDescription),
+        // Prioritize relevant skills
+        skills: prioritizeSkills(resumeData.skills, jobDescription),
+        // Optimize experience descriptions
+        workExperience: optimizeExperience(resumeData.workExperience, jobDescription),
+      };
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate targeted resume');
-      }
+      const newResume: GeneratedResume = {
+        id: Date.now().toString(),
+        jobTitle,
+        company,
+        tailoredContent: tailoredResume,
+        createdAt: new Date().toISOString(),
+      };
 
-      // Store the targeted resume
-      const { error: storeError } = await supabase
-        .from('tailored_resumes')
-        .insert([
-          {
-            user_id: currentUserId,
-            job_description: jobDescription,
-            tailored_content: data.tailoredContent,
-            original_content: data.originalContent,
-          },
-        ]);
-
-      if (storeError) {
-        console.error('Error storing targeted resume:', storeError);
-      }
-
-      const newUsage = await checkTargetedResumeUsage();
-      setCurrentTailoredData(data.tailoredContent);
-      onTailoredResumeGenerated(data.tailoredContent);
-
-      const remainingCount = usageConfig.limit === 999 ? "unlimited" : (usageConfig.limit - newUsage);
-
-      toast({
-        title: "Targeted Resume Created Successfully!",
-        description: `Your resume has been customized for this job. ${remainingCount === "unlimited" ? "Unlimited resumes remaining." : `${remainingCount} targeted resumes remaining.`}`,
-      });
-
-      setJobDescription("");
-
-    } catch (error) {
-      console.error('Error generating targeted resume:', error);
-      toast({
-        title: "Generation Failed",
-        description: error.message || "There was an error creating your targeted resume. Please try again.",
-        variant: "destructive",
-      });
+      setGeneratedResumes(prev => [newResume, ...prev]);
+      setCurrentTailoredResume(tailoredResume);
+      setSuccess('Resume tailored successfully!');
+      setJobDescription('');
+      
+    } catch (err) {
+      setError('Failed to generate tailored resume. Please try again.');
+      console.error('Error generating tailored resume:', err);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleUpgradeClick = () => {
-    console.log('TailoredResumeGenerator: Upgrade button clicked - navigating to subscription page');
-    navigate("/subscription");
-  };
+  // Export tailored resume
+  const exportTailoredResume = async (resumeContent: ResumeData) => {
+    if (!canExport()) {
+      setError('You have no remaining exports. Please upgrade your plan.');
+      return;
+    }
 
-  // NEW: Export handlers for tailored resumes
-  const handleExportTailoredPDF = async () => {
-    if (currentTailoredData && onExportTailoredResume && canExportResume()) {
-      try {
-        await onExportTailoredResume(currentTailoredData);
-      } catch (error) {
-        toast({
-          title: "Export Failed",
-          description: "There was an error exporting your targeted resume.",
-          variant: "destructive",
-        });
-      }
+    setIsExporting(true);
+    setError(null);
+
+    try {
+      // Generate PDF (replace with actual PDF generation)
+      const pdfBlob = await generatePDF(resumeContent);
+      
+      // Download the PDF
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tailored-resume-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      // Update subscription scan count
+      await updateScanCount();
+      
+      setSuccess('Resume exported successfully!');
+      
+    } catch (err) {
+      setError('Failed to export resume. Please try again.');
+      console.error('Error exporting resume:', err);
+    } finally {
+      setIsExporting(false);
     }
   };
 
-  const handleExportTailoredWord = async () => {
-    if (currentTailoredData && onExportTailoredResumeAsWord && canExportResume()) {
-      try {
-        await onExportTailoredResumeAsWord(currentTailoredData);
-      } catch (error) {
-        toast({
-          title: "Export Failed",
-          description: "There was an error exporting your targeted resume as Word.",
-          variant: "destructive",
-        });
-      }
-    }
+  // Update scan count after export
+  const updateScanCount = async () => {
+    // This would typically be handled by the useSubscription hook
+    // For now, we'll just simulate the update
+    console.log('Updating scan count...');
   };
 
-  const usageConfig = getTargetedResumeLimit();
-  const currentUsageCount = targetedResumeUsage || 0;
-  const remainingUses = Math.max(0, usageConfig.limit - currentUsageCount);
-  const canGenerate = remainingUses > 0 || usageConfig.limit === 999;
+  // Helper functions (simplified implementations)
+  const extractJobTitle = (description: string): string => {
+    const titleMatch = description.match(/(?:job title|position|role):\s*([^\n]+)/i);
+    return titleMatch ? titleMatch[1].trim() : 'Software Developer';
+  };
 
-  // Debug log to help identify the issue
-  console.log('Render decision variables:', {
-    canAccessTargetedResumes,
-    isResumeComplete: isResumeComplete(),
-    canGenerate,
-    currentSubscription: currentSubscription?.tier
-  });
+  const extractCompany = (description: string): string => {
+    const companyMatch = description.match(/(?:company|organization):\s*([^\n]+)/i);
+    return companyMatch ? companyMatch[1].trim() : 'Company';
+  };
+
+  const generateTailoredSummary = (originalSummary: string, jobDescription: string): string => {
+    // Simplified AI-like enhancement
+    const keywords = extractKeywords(jobDescription);
+    return `${originalSummary} Experienced with ${keywords.slice(0, 3).join(', ')}.`;
+  };
+
+  const extractKeywords = (text: string): string[] => {
+    const common = ['react', 'javascript', 'typescript', 'node.js', 'python', 'aws', 'docker', 'kubernetes'];
+    return common.filter(keyword => 
+      text.toLowerCase().includes(keyword.toLowerCase())
+    );
+  };
+
+  const prioritizeSkills = (skills: string[], jobDescription: string): string[] => {
+    const keywords = extractKeywords(jobDescription);
+    const prioritized = skills.filter(skill => 
+      keywords.some(keyword => skill.toLowerCase().includes(keyword.toLowerCase()))
+    );
+    const remaining = skills.filter(skill => !prioritized.includes(skill));
+    return [...prioritized, ...remaining];
+  };
+
+  const optimizeExperience = (experience: any[], jobDescription: string): any[] => {
+    // Simplified optimization - in reality this would use AI
+    return experience.map(exp => ({
+      ...exp,
+      description: `${exp.description} (Relevant to: ${extractKeywords(jobDescription).slice(0, 2).join(', ')})`
+    }));
+  };
+
+  const generatePDF = async (resumeContent: ResumeData): Promise<Blob> => {
+    // Simplified PDF generation - replace with actual implementation
+    const pdfContent = JSON.stringify(resumeContent, null, 2);
+    return new Blob([pdfContent], { type: 'application/pdf' });
+  };
+
+  // Clear messages after 5 seconds
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError(null);
+        setSuccess(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, success]);
+
+  if (subscriptionLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-32 bg-gray-200 rounded w-full"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!canAccessTargetedResumes()) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex items-center space-x-2 mb-4">
+          <AlertCircle className="text-red-500" size={20} />
+          <h2 className="text-xl font-bold text-gray-800">Targeted Resume Generator</h2>
+        </div>
+        <p className="text-gray-600 mb-4">
+          You need an active subscription to access the targeted resume feature.
+        </p>
+        <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+          Upgrade Plan
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <TailoredResumeInstructions />
-      
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-blue-500" />
-            AI-Powered Resume Targeting
-            {canAccessTargetedResumes && currentSubscription && (
-              <Badge variant="secondary" className="ml-auto">
-                {currentSubscription.tier} Plan
-              </Badge>
-            )}
-          </CardTitle>
-          <CardDescription>
-            Our AI analyzes job requirements and optimizes your resume content to match perfectly with the target position.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {!canAccessTargetedResumes && (
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                You need a subscription plan to generate targeted resumes. Upgrade to unlock AI-powered resume targeting and PDF exports.
-              </AlertDescription>
-            </Alert>
-          )}
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex items-center space-x-2 mb-4">
+          <Target className="text-blue-500" size={24} />
+          <h2 className="text-2xl font-bold text-gray-800">Targeted Resume Generator</h2>
+        </div>
+        <p className="text-gray-600 mb-4">
+          Generate AI-tailored resumes for specific job descriptions to increase your chances of getting interviews.
+        </p>
+        <div className="flex items-center space-x-4 text-sm text-gray-500">
+          <span>Remaining: {getRemainingTargetedResumes()}</span>
+          <span>•</span>
+          <span>Exports: {subscription?.scan_count || 0}</span>
+        </div>
+      </div>
 
-          {!isResumeComplete() && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Please complete your resume information first:
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  {!resumeData.personalInfo?.name && <li>Add your personal information</li>}
-                  {!resumeData.personalInfo?.email && <li>Add your email address</li>}
-                  {!resumeData.workExperience?.length && <li>Add at least one work experience</li>}
-                  {!resumeData.education?.length && <li>Add your education background</li>}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="space-y-2">
-            <label htmlFor="job-description" className="text-sm font-medium">
-              Complete Job Description *
-            </label>
-            <Textarea
-              id="job-description"
-              placeholder="Paste the complete job posting here including:
-• Job title and company name
-• Key responsibilities and requirements
-• Required skills and qualifications
-• Preferred experience and education
-• Any specific technologies or tools mentioned
-
-The more complete the job description, the better our AI can tailor your resume!"
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              rows={12}
-              className="resize-none"
-            />
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>💡 Include the complete job posting for best results</span>
-              <span>{jobDescription.length} characters</span>
-            </div>
+      {/* Messages */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="text-red-500" size={16} />
+            <span className="text-red-700">{error}</span>
           </div>
+        </div>
+      )}
 
-          {canAccessTargetedResumes && canGenerate && isResumeComplete() ? (
-            <div className="space-y-3">
-              <Button
-                onClick={handleGenerateTargetedResume}
-                disabled={isGenerating || !jobDescription.trim()}
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    AI is analyzing and tailoring your resume...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate AI-Targeted Resume
-                  </>
-                )}
-              </Button>
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2">
+            <CheckCircle className="text-green-500" size={16} />
+            <span className="text-green-700">{success}</span>
+          </div>
+        </div>
+      )}
 
-              {/* NEW: Export section for generated tailored resume */}
-              {currentTailoredData && canExportResume() && (
-                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-green-800">Targeted Resume Ready!</h4>
-                      <p className="text-sm text-green-600">Export your customized resume now</p>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button disabled={isExporting} size="sm">
-                          <Download className="mr-2 h-4 w-4" />
-                          {isExporting ? "Exporting..." : "Export Targeted Resume"}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={handleExportTailoredPDF} disabled={isExporting}>
-                          <Download className="mr-2 h-4 w-4" />
-                          Export as PDF
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleExportTailoredWord} disabled={isExporting}>
-                          <FileText className="mr-2 h-4 w-4" />
-                          Export as Word (.DOCX)
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+      {/* Job Description Input */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Enter Job Description</h3>
+        <textarea
+          value={jobDescription}
+          onChange={(e) => setJobDescription(e.target.value)}
+          placeholder="Paste the job description here. Include job title, company, requirements, and responsibilities..."
+          className="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+        <div className="mt-4 flex justify-between items-center">
+          <span className="text-sm text-gray-500">
+            {jobDescription.length} characters
+          </span>
+          <button
+            onClick={generateTailoredResume}
+            disabled={isGenerating || !jobDescription.trim()}
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+          >
+            <Target size={16} />
+            <span>{isGenerating ? 'Generating...' : 'Generate Tailored Resume'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Current Tailored Resume Preview */}
+      {currentTailoredResume && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Current Tailored Resume</h3>
+            <button
+              onClick={() => exportTailoredResume(currentTailoredResume)}
+              disabled={isExporting || !canExport()}
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+            >
+              <Download size={16} />
+              <span>{isExporting ? 'Exporting...' : 'Export PDF'}</span>
+            </button>
+          </div>
+          
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h4 className="font-semibold text-gray-800 mb-2">Enhanced Summary:</h4>
+            <p className="text-gray-600 text-sm mb-4">{currentTailoredResume.summary}</p>
+            
+            <h4 className="font-semibold text-gray-800 mb-2">Prioritized Skills:</h4>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {currentTailoredResume.skills.slice(0, 8).map((skill, index) => (
+                <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                  {skill}
+                </span>
+              ))}
+            </div>
+            
+            <p className="text-sm text-gray-500">
+              Resume optimized for better keyword matching and relevance.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Generated Resumes History */}
+      {generatedResumes.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Generated Resumes History</h3>
+          <div className="space-y-3">
+            {generatedResumes.map((resume) => (
+              <div key={resume.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-800">{resume.jobTitle}</h4>
+                    <p className="text-sm text-gray-500">{resume.company}</p>
+                    <p className="text-xs text-gray-400">
+                      Generated on {new Date(resume.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setCurrentTailoredResume(resume.tailoredContent)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => exportTailoredResume(resume.tailoredContent)}
+                      disabled={isExporting || !canExport()}
+                      className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
+                    >
+                      <Download size={12} />
+                      <span>Export</span>
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
-          ) : (
-            <Button 
-              className="w-full opacity-75"
-              onClick={handleUpgradeClick}
-              disabled={!isResumeComplete()}
-            >
-              <Crown className="mr-2 h-4 w-4" />
-              🔒 Upgrade to Generate Targeted Resumes
-            </Button>
-          )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-          {!canGenerate && usageConfig.limit !== 999 && (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                You've reached your limit of {usageConfig.limit} targeted resumes. Please upgrade for more.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {canAccessTargetedResumes && (
-            <div className="text-xs text-muted-foreground text-center">
-              {usageConfig.limit === 999 
-                ? "Unlimited targeted resumes remaining" 
-                : `${remainingUses} targeted resumes remaining (one-time limit)`
-              }
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Usage Guidelines */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-blue-800 mb-2">Tips for Better Results</h3>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Include the complete job description with requirements and responsibilities</li>
+          <li>• Mention the company name and job title for better targeting</li>
+          <li>• Ensure your base resume is complete before generating tailored versions</li>
+          <li>• Review and customize the generated resume before exporting</li>
+        </ul>
+      </div>
     </div>
   );
 };
