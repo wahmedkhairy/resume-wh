@@ -113,6 +113,8 @@ const MainContent: React.FC<MainContentProps> = ({
     await onExportWord(); // Use the same export function but with tailored data
   };
 
+  console.log('MainContent currentSection:', currentSection);
+
   switch (currentSection) {
     case "editor":
       return (
@@ -180,8 +182,22 @@ const MainContent: React.FC<MainContentProps> = ({
         <UserSettings />
       );
 
+    case "success-stories":
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2">Success Stories</h2>
+            <p className="text-muted-foreground">See how our users achieved their career goals</p>
+          </div>
+          <div className="text-center text-muted-foreground">
+            Success stories coming soon...
+          </div>
+        </div>
+      );
+
     default:
-      return <div>Section not found</div>;
+      console.error('Unknown section:', currentSection);
+      return <div>Section not found: {currentSection}</div>;
   }
 };
 

@@ -23,10 +23,16 @@ const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection
       description: "Optimize for ATS"
     },
     {
-      id: "tailor",
+      id: "targeted-resumes",
       label: "Targeted Job Resume",
       icon: Target,
       description: "Customize for jobs"
+    },
+    {
+      id: "subscription",
+      label: "Subscription",
+      icon: Settings,
+      description: "Account & preferences"
     },
     {
       id: "settings",

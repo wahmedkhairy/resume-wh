@@ -13,6 +13,14 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   currentSubscription,
   getRemainingExports,
 }) => {
+  // Debug logging to see what's happening
+  console.log('SubscriptionStatus props:', {
+    isPremiumUser,
+    currentSubscription,
+    tier: currentSubscription?.tier,
+    status: currentSubscription?.status
+  });
+
   if (!isPremiumUser || !currentSubscription) {
     return null;
   }
@@ -22,6 +30,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
 
   // Get the correct plan name with proper capitalization - FIXED
   const getPlanDisplayName = (tier: string) => {
+    console.log('Getting plan display name for tier:', tier);
     switch (tier) {
       case 'basic':
         return 'Basic';
@@ -35,6 +44,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   };
 
   const planName = getPlanDisplayName(currentSubscription.tier);
+  console.log('Final plan name:', planName);
 
   return (
     <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
