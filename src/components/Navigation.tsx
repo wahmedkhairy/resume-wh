@@ -1,86 +1,68 @@
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { FileEdit, Settings, BarChart3, Target, Star } from "lucide-react";
+import React from 'react';
+import { User, FileText, Award, Code, BookOpen, Target, CreditCard } from 'lucide-react';
 
 interface NavigationProps {
-  onSectionChange: (section: string) => void;
-  currentSection: string;
+  activeSection: string;
+  setActiveSection: (section: string) => void;
+  user: any;
+  subscription: any;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection }) => {
+const Navigation: React.FC<NavigationProps> = ({
+  activeSection,
+  setActiveSection,
+  user,
+  subscription
+}) => {
+  // Check if user can access targeted resumes
+  const canAccessTargetedResumes = () => {
+    if (!subscription || !user) return false;
+    
+    const tier = subscription.tier;
+    return ['basic', 'premium', 'unlimited'].includes(tier);
+  };
+
   const navigationItems = [
-    {
-      id: "editor",
-      label: "Resume Editor",
-      icon: FileEdit,
-      description: "Build your resume"
-    },
-    {
-      id: "ats",
-      label: "ATS Analysis",
-      icon: BarChart3,
-      description: "Optimize for ATS"
-    },
-    {
-      id: "targeted-resumes",
-      label: "Targeted Job Resume",
-      icon: Target,
-      description: "Customize for jobs"
-    },
-    {
-      id: "subscription",
-      label: "Subscription",
-      icon: Settings,
-      description: "Account & preferences"
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: Settings,
-      description: "Account & preferences"
-    }
+    { id: 'personal', label: 'Personal Info', icon: User },
+    { id: 'experience', label: 'Experience', icon: FileText },
+    { id: 'education', label: 'Education', icon: BookOpen },
+    { id: 'skills', label: 'Skills', icon: Code },
+    { id: 'projects', label: 'Projects', icon: FileText },
+    { id: 'certifications', label: 'Certifications', icon: Award },
+    ...(canAccessTargetedResumes() ? [
+      { id: 'targeted-resumes', label: 'Targeted Job Resume', icon: Target }
+    ] : []),
+    { id: 'subscription', label: 'Subscription', icon: CreditCard }
   ];
 
   return (
-    <nav className="border-b bg-white dark:bg-gray-800 shadow-sm">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center space-x-1 overflow-x-auto py-4">
+    <nav className="w-64 bg-white shadow-md">
+      <div className="p-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-8">Resume Builder</h1>
+        
+        <ul className="space-y-2">
           {navigationItems.map((item) => {
-            const isActive = currentSection === item.id;
             const Icon = item.icon;
+            const isActive = activeSection === item.id;
             
             return (
-              <Button
-                key={item.id}
-                variant={isActive ? "default" : "ghost"}
-                onClick={() => onSectionChange(item.id)}
-                className={`flex items-center gap-2 whitespace-nowrap ${
-                  isActive 
-                    ? "bg-primary text-primary-foreground" 
-                    : "hover:bg-accent hover:text-accent-foreground"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{item.label}</span>
-              </Button>
+              <li key={item.id}>
+                <button
+                  onClick={() => setActiveSection(item.id)}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive
+                      ? 'bg-blue-500 text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon size={20} />
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              </li>
             );
           })}
-          
-          {/* Success Stories button moved here */}
-          <Button
-            variant={currentSection === "success-stories" ? "default" : "ghost"}
-            onClick={() => onSectionChange("success-stories")}
-            className={`flex items-center gap-2 whitespace-nowrap ml-auto ${
-              currentSection === "success-stories"
-                ? "bg-primary text-primary-foreground" 
-                : "hover:bg-accent hover:text-accent-foreground"
-            }`}
-          >
-            <Star className="h-4 w-4" />
-            <span className="hidden sm:inline">Success Stories</span>
-          </Button>
-        </div>
+        </ul>
       </div>
     </nav>
   );
