@@ -92,10 +92,11 @@ const Subscription = () => {
     try {
       console.log('Payment successful, processing subscription update:', details);
       
+      // Updated tier pricing with correct export limits
       const tierPricing = {
-        basic: { scans: 2, max_scans: 2 },
-        premium: { scans: 6, max_scans: 6 },
-        unlimited: { scans: 999, max_scans: 999 }
+        basic: { scans: 2, max_scans: 2 }, // 2 resume editor exports
+        premium: { scans: 6, max_scans: 6 }, // 6 resume editor exports
+        unlimited: { scans: 999, max_scans: 999 } // Unlimited resume editor exports
       };
 
       const tierData = tierPricing[selectedTier as keyof typeof tierPricing];

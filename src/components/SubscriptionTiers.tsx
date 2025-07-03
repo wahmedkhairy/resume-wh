@@ -47,10 +47,10 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
         period: "one-time payment",
         description: "Perfect for job seekers starting their career",
         features: [
-          "2 Professional resume exports",
+          "2 Resume editor exports",
+          "1 Targeted job resume (one-time)",
           "Basic ATS optimization",
           "PDF export",
-          "1 Targeted resume (one-time)",
           "Email support"
         ],
         icon: <Zap className="h-6 w-6" />,
@@ -64,11 +64,10 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
         period: "one-time payment",
         description: "Most popular choice for serious job seekers",
         features: [
-          "All Basic features",
-          "6 Professional resume exports",
+          "6 Resume editor exports",
+          "3 Targeted job resumes (one-time)",
           "Advanced ATS analysis",
           "PDF & Word export",
-          "3 Targeted resumes (one-time)",
           "Priority support",
           "Interview preparation tips"
         ],
@@ -83,9 +82,8 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
         period: "one-time payment",
         description: "For professionals who need maximum flexibility",
         features: [
-          "All Premium features",
-          "Unlimited resume exports",
-          "Unlimited targeted resumes",
+          "Unlimited resume editor exports",
+          "Unlimited targeted job resumes",
           "Advanced career insights",
           "1-on-1 career consultation",
           "Priority queue processing",

@@ -44,7 +44,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     );
   };
 
-  // Get usage limits based on subscription tier - FIXED to be one-time limits
+  // Get usage limits based on subscription tier - Updated for one-time limits
   const getTargetedResumeLimit = () => {
     if (!canAccessTargetedResumes || !currentSubscription) {
       return { limit: 0, isOneTime: true };
@@ -52,9 +52,9 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     
     switch (currentSubscription.tier) {
       case 'basic':
-        return { limit: 1, isOneTime: true }; // 1 targeted resume total
+        return { limit: 1, isOneTime: true }; // 1 targeted resume total (one-time)
       case 'premium':
-        return { limit: 3, isOneTime: true }; // 3 targeted resumes total
+        return { limit: 3, isOneTime: true }; // 3 targeted resumes total (one-time)
       case 'unlimited':
         return { limit: 999, isOneTime: true }; // Unlimited targeted resumes
       default:
@@ -316,7 +316,7 @@ The more complete the job description, the better our AI can tailor your resume!
             <div className="text-xs text-muted-foreground text-center">
               {usageConfig.limit === 999 
                 ? "Unlimited targeted resumes remaining" 
-                : `${remainingUses} targeted resumes remaining`
+                : `${remainingUses} targeted resumes remaining (one-time limit)`
               }
             </div>
           )}

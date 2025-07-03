@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,16 +175,17 @@ export const useSubscription = (currentUserId: string) => {
            currentSubscription.tier !== 'demo';
   };
 
+  // Updated export limits for resume editor
   const getMaxExports = () => {
     if (!currentSubscription) return 0;
     
     switch (currentSubscription.tier) {
       case 'basic':
-        return 2;
+        return 2; // 2 resume editor exports
       case 'premium':
-        return 6;
+        return 6; // 6 resume editor exports
       case 'unlimited':
-        return 999;
+        return 999; // Unlimited resume editor exports
       default:
         return 0;
     }
