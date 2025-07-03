@@ -15,6 +15,7 @@ interface TailoredResumeGeneratorProps {
   currentUserId: string;
   isPremiumUser: boolean;
   currentSubscription: any;
+  canAccessTargetedResumes: boolean;
   onTailoredResumeGenerated: (tailoredData: any) => void;
 }
 
@@ -23,6 +24,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   currentUserId,
   isPremiumUser,
   currentSubscription,
+  canAccessTargetedResumes,
   onTailoredResumeGenerated,
 }) => {
   const [jobDescription, setJobDescription] = useState("");
@@ -43,7 +45,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
 
   // Get usage limits based on subscription tier
   const getUsageLimit = () => {
-    if (!isPremiumUser || !currentSubscription) {
+    if (!canAccessTargetedResumes || !currentSubscription) {
       return { limit: 0, isMonthly: true }; // Free users get 0 targeted resumes
     }
     
@@ -61,7 +63,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
 
   const canExportResume = () => {
     // Free users cannot export
-    if (!isPremiumUser || !currentSubscription) return false;
+    if (!canAccessTargetedResumes || !currentSubscription) return false;
     
     // All paid users can export
     return true;
@@ -227,7 +229,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-blue-500" />
             AI-Powered Resume Targeting
-            {isPremiumUser && currentSubscription && (
+            {canAccessTargetedResumes && currentSubscription && (
               <Badge variant="secondary" className="ml-auto">
                 {currentSubscription.tier} Plan
               </Badge>
@@ -238,7 +240,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!isPremiumUser && (
+          {!canAccessTargetedResumes && (
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
@@ -325,7 +327,7 @@ The more complete the job description, the better our AI can tailor your resume!
             </Alert>
           )}
 
-          {isPremiumUser && (
+          {canAccessTargetedResumes && (
             <div className="text-xs text-muted-foreground text-center">
               {usageConfig.limit === 999 
                 ? "Unlimited targeted resumes remaining" 

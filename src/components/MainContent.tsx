@@ -81,6 +81,7 @@ interface MainContentProps {
   currentUserId: string;
   isPremiumUser: boolean;
   currentSubscription: any;
+  canAccessTargetedResumes: boolean;
   isSaving: boolean;
   isExporting: boolean;
   sessionId: string;
@@ -112,6 +113,7 @@ const MainContent: React.FC<MainContentProps> = ({
   currentUserId,
   isPremiumUser,
   currentSubscription,
+  canAccessTargetedResumes,
   isSaving,
   isExporting,
   sessionId,
@@ -155,6 +157,7 @@ const MainContent: React.FC<MainContentProps> = ({
             currentUserId={currentUserId}
             isPremiumUser={isPremiumUser}
             currentSubscription={currentSubscription}
+            canAccessTargetedResumes={canAccessTargetedResumes}
             onTailoredResumeGenerated={onTailoredResumeGenerated}
           />
         </Suspense>

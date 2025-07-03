@@ -137,11 +137,10 @@ export const useSubscription = (currentUserId: string) => {
           .maybeSingle();
         
         if (subscription && subscription.status === 'active') {
-          // Only set as premium if user has remaining scans AND is not demo tier
+          // Set as premium based on paid tier - targeted resumes have separate monthly limits
           const hasPaidTier = subscription.tier !== 'demo';
-          const hasRemainingScans = subscription.scan_count > 0;
           
-          setIsPremiumUser(hasPaidTier && hasRemainingScans);
+          setIsPremiumUser(hasPaidTier);
           setCurrentSubscription(subscription);
         } else {
           setIsPremiumUser(false);
@@ -180,6 +179,14 @@ export const useSubscription = (currentUserId: string) => {
       default:
         return 0;
     }
+  };
+
+  const canAccessTargetedResumes = () => {
+    if (!currentSubscription) return false;
+    
+    // Check if user has a paid tier (regardless of normal export count)
+    return currentSubscription.status === 'active' && 
+           currentSubscription.tier !== 'demo';
   };
 
   const getMaxExports = () => {
@@ -353,5 +360,6 @@ export const useSubscription = (currentUserId: string) => {
     getTargetedResumeLimit,
     getMaxExports,
     getRemainingExports,
+    canAccessTargetedResumes,
   };
 };

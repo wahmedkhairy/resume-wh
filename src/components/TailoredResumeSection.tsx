@@ -9,6 +9,7 @@ interface TailoredResumeSectionProps {
   currentUserId: string;
   isPremiumUser: boolean;
   currentSubscription: any;
+  canAccessTargetedResumes: boolean;
   onTailoredResumeGenerated: (tailoredData: any) => void;
 }
 
@@ -17,6 +18,7 @@ const TailoredResumeSection: React.FC<TailoredResumeSectionProps> = ({
   currentUserId,
   isPremiumUser,
   currentSubscription,
+  canAccessTargetedResumes,
   onTailoredResumeGenerated,
 }) => {
   return (
@@ -41,6 +43,7 @@ const TailoredResumeSection: React.FC<TailoredResumeSectionProps> = ({
             currentUserId={currentUserId}
             isPremiumUser={isPremiumUser}
             currentSubscription={currentSubscription}
+            canAccessTargetedResumes={canAccessTargetedResumes}
             onTailoredResumeGenerated={onTailoredResumeGenerated}
           />
         </TabsContent>

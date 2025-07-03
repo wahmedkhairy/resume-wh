@@ -59,6 +59,7 @@ const Index = () => {
     handleExport,
     handleWordExport,
     canExport,
+    canAccessTargetedResumes,
   } = useSubscription(currentUserId);
 
   // Initialize user authentication
@@ -212,6 +213,7 @@ const Index = () => {
             currentUserId={currentUserId}
             isPremiumUser={isPremiumUser}
             currentSubscription={currentSubscription}
+            canAccessTargetedResumes={canAccessTargetedResumes()}
             isSaving={isSaving}
             isExporting={isExporting}
             sessionId={sessionId}
