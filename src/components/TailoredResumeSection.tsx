@@ -46,15 +46,10 @@ const TailoredResumeSection: React.FC<TailoredResumeSectionProps> = ({
         
         <TabsContent value="generator" className="space-y-6">
           <TailoredResumeGenerator
+            user={null}
             resumeData={resumeData}
-            currentUserId={currentUserId}
-            isPremiumUser={isPremiumUser}
-            currentSubscription={currentSubscription}
-            canAccessTargetedResumes={canAccessTargetedResumes}
-            onTailoredResumeGenerated={onTailoredResumeGenerated}
-            onExportTailoredResume={onExportTailoredResume}
-            onExportTailoredResumeAsWord={onExportTailoredResumeAsWord}
-            isExporting={isExporting}
+            subscription={currentSubscription}
+            subscriptionLoading={false}
           />
         </TabsContent>
         
