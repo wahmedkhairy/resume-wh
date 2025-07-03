@@ -123,9 +123,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         />
 
         <SubscriptionStatus
-          isPremiumUser={isPremiumUser}
-          currentSubscription={currentSubscription}
-          getRemainingExports={getRemainingExports}
+          subscription={currentSubscription}
+          loading={false}
         />
 
         {/* Success CTA after resume completion */}

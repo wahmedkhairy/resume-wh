@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { X } from 'lucide-react';
