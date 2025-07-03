@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,8 +14,12 @@ export const useSubscription = (currentUserId: string) => {
       if (!currentUserId) return;
 
       try {
-        // Check if this is one of the special free users
+        console.log('Checking subscription for user:', currentUserId);
+        
+        // Get current user email for special user checks
         const { data: { user } } = await supabase.auth.getUser();
+        
+        // Check if this is one of the special free users
         const specialFreeUsers = [
           "ahmedkhairyabdelfatah@gmail.com",
           "ahmedz.khairy@gmail.com"
@@ -26,64 +29,84 @@ export const useSubscription = (currentUserId: string) => {
         // Check if this is the basic plan user
         const basicPlanUsers = ["ahmedz.khairy88@gmail.com"];
         const isBasicUser = user?.email && basicPlanUsers.includes(user.email);
-        
-        if (isSpecialUser) {
-          // Check if subscription exists in database first
-          const { data: existingSubscription } = await supabase
-            .from('subscriptions')
-            .select('*')
-            .eq('user_id', currentUserId)
-            .maybeSingle();
 
-          if (existingSubscription) {
-            setIsPremiumUser(true);
-            setCurrentSubscription(existingSubscription);
-            return;
-          }
+        // First, always fetch the actual subscription from database
+        const { data: subscription, error: fetchError } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', currentUserId)
+          .maybeSingle();
 
-          // Create unlimited subscription in database if it doesn't exist
-          const { data: newSubscription, error } = await supabase
-            .from('subscriptions')
-            .insert({
-              user_id: currentUserId,
-              tier: 'unlimited',
-              scan_count: 999,
-              max_scans: 999,
-              status: 'active'
-            })
-            .select()
-            .single();
-
-          if (error) {
-            console.error('Error creating unlimited subscription:', error);
-            return;
-          }
-
-          setIsPremiumUser(true);
-          setCurrentSubscription(newSubscription);
+        if (fetchError) {
+          console.error('Error fetching subscription:', fetchError);
           return;
+        }
+
+        console.log('Found subscription:', subscription);
+        
+        // Handle special users
+        if (isSpecialUser) {
+          if (subscription) {
+            // Use existing subscription but ensure it's unlimited
+            if (subscription.tier !== 'unlimited') {
+              const { data: updatedSubscription, error: updateError } = await supabase
+                .from('subscriptions')
+                .update({
+                  tier: 'unlimited',
+                  scan_count: 999,
+                  max_scans: 999,
+                  status: 'active'
+                })
+                .eq('user_id', currentUserId)
+                .select()
+                .single();
+
+              if (updateError) {
+                console.error('Error updating unlimited subscription:', updateError);
+              } else {
+                setCurrentSubscription(updatedSubscription);
+                setIsPremiumUser(true);
+                return;
+              }
+            } else {
+              setCurrentSubscription(subscription);
+              setIsPremiumUser(true);
+              return;
+            }
+          } else {
+            // Create unlimited subscription
+            const { data: newSubscription, error } = await supabase
+              .from('subscriptions')
+              .insert({
+                user_id: currentUserId,
+                tier: 'unlimited',
+                scan_count: 999,
+                max_scans: 999,
+                status: 'active'
+              })
+              .select()
+              .single();
+
+            if (error) {
+              console.error('Error creating unlimited subscription:', error);
+              return;
+            }
+
+            setCurrentSubscription(newSubscription);
+            setIsPremiumUser(true);
+            return;
+          }
         }
         
         if (isBasicUser) {
-          console.log('Processing basic plan user:', user.email);
-          
-          // Check if subscription exists in database first
-          const { data: existingSubscription } = await supabase
-            .from('subscriptions')
-            .select('*')
-            .eq('user_id', currentUserId)
-            .maybeSingle();
-
-          if (existingSubscription) {
-            console.log('Found existing subscription for basic user:', existingSubscription);
-            
+          if (subscription) {
             // Ensure they have the correct basic plan setup
-            if (existingSubscription.tier !== 'basic' || existingSubscription.max_scans !== 2) {
+            if (subscription.tier !== 'basic' || subscription.max_scans !== 2) {
               const { data: updatedSubscription, error: updateError } = await supabase
                 .from('subscriptions')
                 .update({
                   tier: 'basic',
-                  scan_count: Math.max(existingSubscription.scan_count, 2),
+                  scan_count: Math.max(subscription.scan_count || 0, 2),
                   max_scans: 2,
                   status: 'active'
                 })
@@ -100,52 +123,55 @@ export const useSubscription = (currentUserId: string) => {
               }
             }
             
-            setIsPremiumUser(existingSubscription.scan_count > 0 && existingSubscription.tier !== 'demo');
-            setCurrentSubscription(existingSubscription);
+            setCurrentSubscription(subscription);
+            setIsPremiumUser(subscription.scan_count > 0 && subscription.tier !== 'demo');
+            return;
+          } else {
+            // Create basic subscription
+            const { data: newSubscription, error } = await supabase
+              .from('subscriptions')
+              .insert({
+                user_id: currentUserId,
+                tier: 'basic',
+                scan_count: 2,
+                max_scans: 2,
+                status: 'active'
+              })
+              .select()
+              .single();
+
+            if (error) {
+              console.error('Error creating basic subscription:', error);
+              return;
+            }
+
+            setCurrentSubscription(newSubscription);
+            setIsPremiumUser(true);
             return;
           }
-
-          // Create basic subscription in database if it doesn't exist
-          console.log('Creating new basic subscription for user');
-          const { data: newSubscription, error } = await supabase
-            .from('subscriptions')
-            .insert({
-              user_id: currentUserId,
-              tier: 'basic',
-              scan_count: 2,
-              max_scans: 2,
-              status: 'active'
-            })
-            .select()
-            .single();
-
-          if (error) {
-            console.error('Error creating basic subscription:', error);
-            return;
-          }
-
-          console.log('Created basic subscription:', newSubscription);
-          setIsPremiumUser(true);
-          setCurrentSubscription(newSubscription);
-          return;
         }
 
-        // For all other users, fetch from database
-        const { data: subscription } = await supabase
-          .from('subscriptions')
-          .select('*')
-          .eq('user_id', currentUserId)
-          .maybeSingle();
-        
-        if (subscription && subscription.status === 'active') {
-          // Set as premium based on paid tier
-          const hasPaidTier = subscription.tier !== 'demo';
+        // For all other users, use the subscription as-is
+        if (subscription) {
+          console.log('Setting subscription for regular user:', {
+            tier: subscription.tier,
+            status: subscription.status,
+            scan_count: subscription.scan_count
+          });
           
-          setIsPremiumUser(hasPaidTier);
+          // Determine if user is premium based on their actual subscription
+          const isPremium = subscription.status === 'active' && 
+                           subscription.tier !== 'demo' && 
+                           ['basic', 'premium', 'unlimited'].includes(subscription.tier);
+          
+          console.log('User premium status:', isPremium);
+          
           setCurrentSubscription(subscription);
+          setIsPremiumUser(isPremium);
         } else {
+          console.log('No subscription found for user');
+          setCurrentSubscription(null);
           setIsPremiumUser(false);
-          setCurrentSubscription(subscription);
         }
       } catch (error) {
         console.error('Error checking subscription:', error);
@@ -168,11 +194,22 @@ export const useSubscription = (currentUserId: string) => {
   };
 
   const canAccessTargetedResumes = () => {
+    console.log('Checking targeted resume access:', {
+      hasSubscription: !!currentSubscription,
+      tier: currentSubscription?.tier,
+      status: currentSubscription?.status,
+      isPremiumUser
+    });
+    
     if (!currentSubscription) return false;
     
-    // Check if user has a paid tier
-    return currentSubscription.status === 'active' && 
-           currentSubscription.tier !== 'demo';
+    // Check if user has a paid tier (not demo)
+    const hasAccess = currentSubscription.status === 'active' && 
+                     currentSubscription.tier !== 'demo' &&
+                     ['basic', 'premium', 'unlimited'].includes(currentSubscription.tier);
+    
+    console.log('Targeted resume access result:', hasAccess);
+    return hasAccess;
   };
 
   // Updated export limits for resume editor

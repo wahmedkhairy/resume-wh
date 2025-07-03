@@ -34,6 +34,15 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  console.log('TailoredResumeGenerator props:', {
+    isPremiumUser,
+    canAccessTargetedResumes,
+    currentSubscription: currentSubscription ? {
+      tier: currentSubscription.tier,
+      status: currentSubscription.status
+    } : null
+  });
+
   // Check if resume data is complete
   const isResumeComplete = () => {
     return (
@@ -63,11 +72,8 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   };
 
   const canExportResume = () => {
-    // Free users cannot export
-    if (!canAccessTargetedResumes || !currentSubscription) return false;
-    
-    // All paid users can export
-    return true;
+    // Users with access to targeted resumes can export
+    return canAccessTargetedResumes && currentSubscription;
   };
 
   const checkTargetedResumeUsage = async () => {
@@ -205,6 +211,14 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const remainingUses = Math.max(0, usageConfig.limit - currentUsageCount);
   const canGenerate = remainingUses > 0 || usageConfig.limit === 999;
 
+  // Debug log to help identify the issue
+  console.log('Render decision variables:', {
+    canAccessTargetedResumes,
+    isResumeComplete: isResumeComplete(),
+    canGenerate,
+    currentSubscription: currentSubscription?.tier
+  });
+
   return (
     <div className="space-y-6">
       <TailoredResumeInstructions />
@@ -229,7 +243,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Free users need to upgrade to generate targeted resumes. Upgrade to unlock AI-powered resume targeting and PDF exports.
+                You need a subscription plan to generate targeted resumes. Upgrade to unlock AI-powered resume targeting and PDF exports.
               </AlertDescription>
             </Alert>
           )}
@@ -274,7 +288,7 @@ The more complete the job description, the better our AI can tailor your resume!
             </div>
           </div>
 
-          {canGenerate && isResumeComplete() ? (
+          {canAccessTargetedResumes && canGenerate && isResumeComplete() ? (
             <Button
               onClick={handleGenerateTargetedResume}
               disabled={isGenerating || !jobDescription.trim()}
