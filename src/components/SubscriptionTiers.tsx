@@ -50,7 +50,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
           "2 Professional resume exports",
           "Basic ATS optimization",
           "PDF export",
-          "1 Targeted resume per month",
+          "1 Targeted resume (one-time)",
           "Email support"
         ],
         icon: <Zap className="h-6 w-6" />,
@@ -68,7 +68,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
           "6 Professional resume exports",
           "Advanced ATS analysis",
           "PDF & Word export",
-          "3 Targeted resumes per month",
+          "3 Targeted resumes (one-time)",
           "Priority support",
           "Interview preparation tips"
         ],
@@ -104,32 +104,31 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
     return currentSubscription?.tier === tierId && currentSubscription?.status === 'active';
   };
 
-  const canResubscribe = (tierId: string) => {
-    if (!currentSubscription) return true;
-    
-    const noRemainingExports = currentSubscription.scan_count <= 0;
-    const isInactive = currentSubscription.status !== 'active';
-    
-    return isInactive || noRemainingExports;
+  const canPurchase = (tierId: string) => {
+    // Users can always purchase/upgrade to any tier
+    return true;
   };
 
   const getButtonText = (tier: any) => {
-    if (isCurrentTier(tier.id) && currentSubscription?.scan_count > 0) {
+    if (isCurrentTier(tier.id)) {
       return "Current Plan";
-    }
-    
-    if (currentSubscription?.scan_count <= 0) {
-      if (currentSubscription?.tier === tier.id) {
-        return `Renew ${tier.name}`;
-      } else {
-        return `Switch to ${tier.name}`;
-      }
     }
     
     return tier.buttonText;
   };
 
+  const getButtonVariant = (tier: any) => {
+    if (isCurrentTier(tier.id)) {
+      return "secondary";
+    }
+    return "default";
+  };
+
   const handleTierClick = (tierId: string) => {
+    if (isCurrentTier(tierId)) {
+      return; // Don't allow clicking on current tier
+    }
+    
     if (onSubscriptionSelect) {
       onSubscriptionSelect(tierId);
     }
@@ -175,19 +174,14 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
             </ul>
             
             <div className="pt-4">
-              {isCurrentTier(tier.id) && currentSubscription?.scan_count > 0 ? (
-                <Button className="w-full" disabled>
-                  Current Plan
-                </Button>
-              ) : (
-                <Button 
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                  onClick={() => handleTierClick(tier.id)}
-                  disabled={!canResubscribe(tier.id) && !isCurrentTier(tier.id)}
-                >
-                  {getButtonText(tier)}
-                </Button>
-              )}
+              <Button 
+                className="w-full"
+                variant={getButtonVariant(tier)}
+                onClick={() => handleTierClick(tier.id)}
+                disabled={isCurrentTier(tier.id)}
+              >
+                {getButtonText(tier)}
+              </Button>
             </div>
           </CardContent>
         </Card>

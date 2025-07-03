@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +30,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
 }) => {
   const [jobDescription, setJobDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [monthlyUsage, setMonthlyUsage] = useState<number | null>(null);
+  const [targetedResumeUsage, setTargetedResumeUsage] = useState<number | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -43,21 +44,21 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     );
   };
 
-  // Get usage limits based on subscription tier
-  const getUsageLimit = () => {
+  // Get usage limits based on subscription tier - FIXED to be one-time limits
+  const getTargetedResumeLimit = () => {
     if (!canAccessTargetedResumes || !currentSubscription) {
-      return { limit: 0, isMonthly: true }; // Free users get 0 targeted resumes
+      return { limit: 0, isOneTime: true };
     }
     
     switch (currentSubscription.tier) {
       case 'basic':
-        return { limit: 1, isMonthly: true }; // Basic users get 1 targeted resume per month
+        return { limit: 1, isOneTime: true }; // 1 targeted resume total
       case 'premium':
-        return { limit: 3, isMonthly: true }; // Premium users get 3 targeted resumes per month
+        return { limit: 3, isOneTime: true }; // 3 targeted resumes total
       case 'unlimited':
-        return { limit: 999, isMonthly: true }; // Unlimited users get unlimited targeted resumes
+        return { limit: 999, isOneTime: true }; // Unlimited targeted resumes
       default:
-        return { limit: 0, isMonthly: true };
+        return { limit: 0, isOneTime: true };
     }
   };
 
@@ -69,26 +70,25 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     return true;
   };
 
-  const checkUsageLimit = async () => {
+  const checkTargetedResumeUsage = async () => {
     try {
-      const { data: usage } = await supabase
-        .from('tailoring_usage')
-        .select('monthly_count')
-        .eq('user_id', currentUserId)
-        .maybeSingle();
+      const { data: tailoredResumes } = await supabase
+        .from('tailored_resumes')
+        .select('id')
+        .eq('user_id', currentUserId);
       
-      const currentMonthlyUsage = usage?.monthly_count || 0;
-      setMonthlyUsage(currentMonthlyUsage);
-      return { monthly: currentMonthlyUsage };
+      const currentUsage = tailoredResumes?.length || 0;
+      setTargetedResumeUsage(currentUsage);
+      return currentUsage;
     } catch (error) {
-      console.error('Error checking usage:', error);
-      return { monthly: 0 };
+      console.error('Error checking targeted resume usage:', error);
+      return 0;
     }
   };
 
   React.useEffect(() => {
     if (currentUserId) {
-      checkUsageLimit();
+      checkTargetedResumeUsage();
     }
   }, [currentUserId]);
 
@@ -120,14 +120,13 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
       return;
     }
 
-    const usage = await checkUsageLimit();
-    const usageConfig = getUsageLimit();
-    const currentUsageCount = usage.monthly;
+    const currentUsage = await checkTargetedResumeUsage();
+    const usageConfig = getTargetedResumeLimit();
 
-    if (currentUsageCount >= usageConfig.limit) {
+    if (currentUsage >= usageConfig.limit) {
       toast({
         title: "Usage Limit Reached",
-        description: `You've reached your monthly limit of ${usageConfig.limit === 999 ? "unlimited" : usageConfig.limit} targeted resumes. Your limit will reset next month.`,
+        description: `You've reached your limit of ${usageConfig.limit === 999 ? "unlimited" : usageConfig.limit} targeted resumes. Please upgrade your plan for more.`,
         variant: "destructive",
       });
       return;
@@ -156,20 +155,6 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
         throw new Error(data.error || 'Failed to generate targeted resume');
       }
 
-      // Update usage count (skip for special user)
-      const { data: { user } } = await supabase.auth.getUser();
-      const isSpecialUser = user?.email === "ahmedkhairyabdelfatah@gmail.com";
-      
-      if (!isSpecialUser) {
-        const { error: usageError } = await supabase.rpc('increment_tailoring_usage', {
-          user_uuid: currentUserId
-        });
-
-        if (usageError) {
-          console.error('Error updating usage:', usageError);
-        }
-      }
-
       // Store the targeted resume
       const { error: storeError } = await supabase
         .from('tailored_resumes')
@@ -186,14 +171,14 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
         console.error('Error storing targeted resume:', storeError);
       }
 
-      const newUsage = await checkUsageLimit();
+      const newUsage = await checkTargetedResumeUsage();
       onTailoredResumeGenerated(data.tailoredContent);
 
-      const remainingCount = usageConfig.limit === 999 ? "unlimited" : (usageConfig.limit - newUsage.monthly);
+      const remainingCount = usageConfig.limit === 999 ? "unlimited" : (usageConfig.limit - newUsage);
 
       toast({
         title: "Targeted Resume Created Successfully!",
-        description: `Your resume has been customized for this job. ${remainingCount === "unlimited" ? "Unlimited resumes remaining." : `${remainingCount} targeted resumes remaining this month.`}`,
+        description: `Your resume has been customized for this job. ${remainingCount === "unlimited" ? "Unlimited resumes remaining." : `${remainingCount} targeted resumes remaining.`}`,
       });
 
       setJobDescription("");
@@ -215,8 +200,8 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
     navigate("/subscription");
   };
 
-  const usageConfig = getUsageLimit();
-  const currentUsageCount = monthlyUsage || 0;
+  const usageConfig = getTargetedResumeLimit();
+  const currentUsageCount = targetedResumeUsage || 0;
   const remainingUses = Math.max(0, usageConfig.limit - currentUsageCount);
   const canGenerate = remainingUses > 0 || usageConfig.limit === 999;
 
@@ -322,7 +307,7 @@ The more complete the job description, the better our AI can tailor your resume!
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                You've reached your monthly limit of {usageConfig.limit} targeted resumes. Your limit will reset next month or upgrade for more.
+                You've reached your limit of {usageConfig.limit} targeted resumes. Please upgrade for more.
               </AlertDescription>
             </Alert>
           )}
@@ -331,7 +316,7 @@ The more complete the job description, the better our AI can tailor your resume!
             <div className="text-xs text-muted-foreground text-center">
               {usageConfig.limit === 999 
                 ? "Unlimited targeted resumes remaining" 
-                : `${remainingUses} targeted resumes remaining this month`
+                : `${remainingUses} targeted resumes remaining`
               }
             </div>
           )}
