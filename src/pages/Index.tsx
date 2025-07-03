@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { ResumeData } from '../types/ResumeTypes';
@@ -34,12 +35,14 @@ const Index: React.FC = () => {
   const supabase = useSupabaseClient();
   const { subscription, loading: subscriptionLoading, canExport, decrementExports } = useSubscription();
 
+  // Load user's resume data on mount
   useEffect(() => {
     if (user) {
       loadUserResumeData();
     }
   }, [user]);
 
+  // Auto-save resume data when it changes
   useEffect(() => {
     if (user && resumeData.personalInfo.fullName) {
       saveResumeData();
@@ -57,7 +60,7 @@ const Index: React.FC = () => {
         .single();
 
       if (error) {
-        if (error.code !== 'PGRST116') {
+        if (error.code !== 'PGRST116') { // Not found error
           console.error('Error loading resume data:', error);
         }
         return;
@@ -106,8 +109,10 @@ const Index: React.FC = () => {
     setIsExporting(true);
 
     try {
+      // Generate PDF (replace with actual PDF generation library)
       const pdfBlob = await generatePDF(resumeData);
       
+      // Download the PDF
       const url = URL.createObjectURL(pdfBlob);
       const a = document.createElement('a');
       a.href = url;
@@ -117,6 +122,7 @@ const Index: React.FC = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      // Decrement the export count
       await decrementExports();
 
       alert('Resume exported successfully!');
@@ -129,11 +135,14 @@ const Index: React.FC = () => {
   };
 
   const generatePDF = async (data: ResumeData): Promise<Blob> => {
+    // Simplified PDF generation - replace with actual implementation
+    // You would typically use a library like jsPDF or Puppeteer
     const htmlContent = generateHTMLResume(data);
     return new Blob([htmlContent], { type: 'text/html' });
   };
 
   const generateHTMLResume = (data: ResumeData): string => {
+    // Simplified HTML generation - replace with actual template
     return `
       <!DOCTYPE html>
       <html>
@@ -228,6 +237,7 @@ const Index: React.FC = () => {
         />
         
         <div className="flex-1 flex flex-col">
+          {/* Top Bar */}
           <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
@@ -292,6 +302,7 @@ const Index: React.FC = () => {
         </div>
       </div>
 
+      {/* Auth Modal */}
       {showAuthModal && (
         <AuthModal
           mode={authMode}

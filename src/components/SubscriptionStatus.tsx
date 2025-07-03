@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Crown, CheckCircle, XCircle } from 'lucide-react';
 
@@ -94,9 +93,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   const planLimits = getPlanLimits(subscription.tier);
   const planColorClass = getPlanColor(subscription.tier);
   const remainingExports = subscription.scan_count || 0;
-  // Fix the type issue by ensuring both values are numbers
-  const maxExports = typeof planLimits.exports === 'number' ? planLimits.exports : 0;
-  const usedExports = maxExports - remainingExports;
+  const usedExports = planLimits.exports - remainingExports;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -128,14 +125,14 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
           <div className="flex items-center justify-between">
             <span className="text-gray-600">Resume Exports:</span>
             <span className="text-gray-800 font-medium">
-              {usedExports}/{maxExports === 999 ? '∞' : maxExports}
+              {usedExports}/{planLimits.exports === 999 ? '∞' : planLimits.exports}
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-blue-500 h-2 rounded-full transition-all duration-300"
               style={{ 
-                width: maxExports === 999 ? '100%' : `${(usedExports / maxExports) * 100}%` 
+                width: planLimits.exports === 999 ? '100%' : `${(usedExports / planLimits.exports) * 100}%` 
               }}
             ></div>
           </div>
@@ -164,7 +161,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
               <CheckCircle className="text-green-500" size={14} />
               <span>Multiple resume templates</span>
             </li>
-            {typeof planLimits.targetedResumes === 'number' && planLimits.targetedResumes > 0 && (
+            {planLimits.targetedResumes > 0 && (
               <li className="flex items-center space-x-2">
                 <CheckCircle className="text-green-500" size={14} />
                 <span>Targeted job resume generation</span>
