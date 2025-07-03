@@ -17,8 +17,6 @@ export interface PersonalInfo {
   location: string;
   email: string;
   phone: string;
-  linkedin: string;
-  github: string;
 }
 
 const PersonalInfoBar: React.FC<PersonalInfoBarProps> = ({ 
@@ -28,9 +26,7 @@ const PersonalInfoBar: React.FC<PersonalInfoBarProps> = ({
     jobTitle: "", 
     location: "", 
     email: "", 
-    phone: "",
-    linkedin: "",
-    github: ""
+    phone: ""
   }
 }) => {
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(initialInfo);
@@ -134,30 +130,6 @@ const PersonalInfoBar: React.FC<PersonalInfoBarProps> = ({
                 className="pl-9"
                 value={personalInfo.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="linkedin">LinkedIn</Label>
-            <div className="relative">
-              <Input
-                id="linkedin"
-                placeholder="https://linkedin.com/in/johndoe"
-                value={personalInfo.linkedin}
-                onChange={(e) => handleChange("linkedin", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="github">GitHub</Label>
-            <div className="relative">
-              <Input
-                id="github"
-                placeholder="https://github.com/johndoe"
-                value={personalInfo.github}
-                onChange={(e) => handleChange("github", e.target.value)}
               />
             </div>
           </div>
