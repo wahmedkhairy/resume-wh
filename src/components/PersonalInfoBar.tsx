@@ -26,7 +26,7 @@ const PersonalInfoBar: React.FC<PersonalInfoBarProps> = ({
     jobTitle: "", 
     location: "", 
     email: "", 
-    phone: ""
+    phone: "" 
   }
 }) => {
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(initialInfo);

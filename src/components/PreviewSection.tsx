@@ -78,45 +78,6 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
     coursesAndCertifications,
   };
 
-  // Convert the data to match ResumePreview expected format
-  const resumePreviewData = {
-    personalInfo: {
-      fullName: personalInfo.name || '',
-      email: personalInfo.email || '',
-      phone: personalInfo.phone || '',
-      address: personalInfo.location || '',
-      linkedin: personalInfo.linkedin || '',
-      github: personalInfo.github || ''
-    },
-    summary,
-    workExperience: workExperience.map(exp => ({
-      id: exp.id,
-      jobTitle: exp.jobTitle,
-      company: exp.company,
-      startDate: exp.startDate,
-      endDate: exp.endDate,
-      location: exp.location,
-      description: exp.responsibilities.join('. ')
-    })),
-    education: education.map(edu => ({
-      id: edu.id,
-      degree: edu.degree,
-      field: '',
-      school: edu.institution,
-      year: edu.graduationYear,
-      gpa: edu.gpa
-    })),
-    skills: skills.map(skill => skill.name),
-    projects: [],
-    certifications: coursesAndCertifications.filter(item => item.type === 'certification').map(cert => ({
-      id: cert.id,
-      name: cert.title,
-      issuer: cert.provider,
-      date: cert.date,
-      url: ''
-    }))
-  };
-
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
@@ -126,7 +87,14 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
         
         <div className="border rounded-lg bg-white relative" data-resume-preview>
           <ResumePreview 
-            resumeData={resumePreviewData}
+            watermark={!isPremiumUser}
+            personalInfo={personalInfo}
+            summary={summary}
+            workExperience={workExperience}
+            education={education}
+            skills={skills}
+            coursesAndCertifications={coursesAndCertifications}
+            onSummaryChange={onSummaryChange}
           />
           <AntiTheftProtection 
             isActive={!isPremiumUser}
