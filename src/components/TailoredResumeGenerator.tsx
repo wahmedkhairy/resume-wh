@@ -1,14 +1,19 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, FileText, AlertCircle, Info, Crown } from "lucide-react";
+import { Loader2, Sparkles, FileText, AlertCircle, Info, Crown, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import TailoredResumeInstructions from "./TailoredResumeInstructions";
 
 interface TailoredResumeGeneratorProps {
@@ -18,6 +23,10 @@ interface TailoredResumeGeneratorProps {
   currentSubscription: any;
   canAccessTargetedResumes: boolean;
   onTailoredResumeGenerated: (tailoredData: any) => void;
+  // Add export functions for targeted resumes
+  onExportTailoredResume?: (tailoredData: any) => void;
+  onExportTailoredResumeAsWord?: (tailoredData: any) => void;
+  isExporting?: boolean;
 }
 
 const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
@@ -27,10 +36,14 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   currentSubscription,
   canAccessTargetedResumes,
   onTailoredResumeGenerated,
+  onExportTailoredResume,
+  onExportTailoredResumeAsWord,
+  isExporting = false,
 }) => {
   const [jobDescription, setJobDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [targetedResumeUsage, setTargetedResumeUsage] = useState<number | null>(null);
+  const [currentTailoredData, setCurrentTailoredData] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -178,6 +191,7 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
       }
 
       const newUsage = await checkTargetedResumeUsage();
+      setCurrentTailoredData(data.tailoredContent);
       onTailoredResumeGenerated(data.tailoredContent);
 
       const remainingCount = usageConfig.limit === 999 ? "unlimited" : (usageConfig.limit - newUsage);
@@ -204,6 +218,35 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const handleUpgradeClick = () => {
     console.log('TailoredResumeGenerator: Upgrade button clicked - navigating to subscription page');
     navigate("/subscription");
+  };
+
+  // NEW: Export handlers for tailored resumes
+  const handleExportTailoredPDF = async () => {
+    if (currentTailoredData && onExportTailoredResume && canExportResume()) {
+      try {
+        await onExportTailoredResume(currentTailoredData);
+      } catch (error) {
+        toast({
+          title: "Export Failed",
+          description: "There was an error exporting your targeted resume.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleExportTailoredWord = async () => {
+    if (currentTailoredData && onExportTailoredResumeAsWord && canExportResume()) {
+      try {
+        await onExportTailoredResumeAsWord(currentTailoredData);
+      } catch (error) {
+        toast({
+          title: "Export Failed",
+          description: "There was an error exporting your targeted resume as Word.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const usageConfig = getTargetedResumeLimit();
@@ -289,23 +332,55 @@ The more complete the job description, the better our AI can tailor your resume!
           </div>
 
           {canAccessTargetedResumes && canGenerate && isResumeComplete() ? (
-            <Button
-              onClick={handleGenerateTargetedResume}
-              disabled={isGenerating || !jobDescription.trim()}
-              className="w-full"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  AI is analyzing and tailoring your resume...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Generate AI-Targeted Resume
-                </>
+            <div className="space-y-3">
+              <Button
+                onClick={handleGenerateTargetedResume}
+                disabled={isGenerating || !jobDescription.trim()}
+                className="w-full"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    AI is analyzing and tailoring your resume...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate AI-Targeted Resume
+                  </>
+                )}
+              </Button>
+
+              {/* NEW: Export section for generated tailored resume */}
+              {currentTailoredData && canExportResume() && (
+                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-green-800">Targeted Resume Ready!</h4>
+                      <p className="text-sm text-green-600">Export your customized resume now</p>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button disabled={isExporting} size="sm">
+                          <Download className="mr-2 h-4 w-4" />
+                          {isExporting ? "Exporting..." : "Export Targeted Resume"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={handleExportTailoredPDF} disabled={isExporting}>
+                          <Download className="mr-2 h-4 w-4" />
+                          Export as PDF
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportTailoredWord} disabled={isExporting}>
+                          <FileText className="mr-2 h-4 w-4" />
+                          Export as Word (.DOCX)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
               )}
-            </Button>
+            </div>
           ) : (
             <Button 
               className="w-full opacity-75"

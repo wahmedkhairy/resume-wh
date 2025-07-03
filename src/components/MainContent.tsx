@@ -1,30 +1,10 @@
 
-import React, { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import UserSuccessStories from "@/components/UserSuccessStories";
-import ResumeEditor from "@/components/ResumeEditor";
-import { PersonalInfo } from "@/components/PersonalInfoBar";
-
-const SettingsSection = React.lazy(() => import("@/components/SettingsSection"));
-const ATSSection = React.lazy(() => import("@/components/ATSSection"));
-const TailoredResumeSection = React.lazy(() => import("@/components/TailoredResumeSection"));
-
-const LoadingSkeleton = () => (
-  <div className="space-y-6">
-    <Skeleton className="h-8 w-64" />
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="space-y-4">
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-40 w-full" />
-      </div>
-      <div className="space-y-4">
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-96 w-full" />
-      </div>
-    </div>
-  </div>
-);
+import React from "react";
+import ResumeEditor from "./ResumeEditor";
+import TailoredResumeSection from "./TailoredResumeSection";
+import SubscriptionTiers from "./SubscriptionTiers";
+import UserSettings from "./UserSettings";
+import { PersonalInfo } from "./PersonalInfoBar";
 
 interface Skill {
   id: string;
@@ -76,7 +56,7 @@ interface MainContentProps {
   onSummaryChange: (summary: string) => void;
   tailoredResumeData: any;
   onClearTailoredResume: () => void;
-  onTailoredResumeGenerated: (data: any) => void;
+  onTailoredResumeGenerated: (tailoredData: any) => void;
   onSectionChange: (section: string) => void;
   currentUserId: string;
   isPremiumUser: boolean;
@@ -123,47 +103,19 @@ const MainContent: React.FC<MainContentProps> = ({
   canExport,
   getCurrentResumeData,
 }) => {
+  // NEW: Export functions for targeted resumes
+  const handleExportTailoredResume = async (tailoredData: any) => {
+    console.log('Exporting tailored resume as PDF:', tailoredData);
+    await onExport(); // Use the same export function but with tailored data
+  };
+
+  const handleExportTailoredResumeAsWord = async (tailoredData: any) => {
+    console.log('Exporting tailored resume as Word:', tailoredData);
+    await onExportWord(); // Use the same export function but with tailored data
+  };
+
   switch (currentSection) {
-    case "settings":
-      return (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <SettingsSection />
-        </Suspense>
-      );
-    
-    case "success-stories":
-      return <UserSuccessStories />;
-    
-    case "ats":
-      return (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <ATSSection resumeData={getCurrentResumeData} />
-        </Suspense>
-      );
-    
-    case "tailor":
-      const originalResumeData = {
-        personalInfo,
-        summary,
-        workExperience,
-        education,
-        skills,
-        coursesAndCertifications,
-      };
-      return (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <TailoredResumeSection
-            resumeData={originalResumeData}
-            currentUserId={currentUserId}
-            isPremiumUser={isPremiumUser}
-            currentSubscription={currentSubscription}
-            canAccessTargetedResumes={canAccessTargetedResumes}
-            onTailoredResumeGenerated={onTailoredResumeGenerated}
-          />
-        </Suspense>
-      );
-    
-    default:
+    case "editor":
       return (
         <ResumeEditor
           personalInfo={personalInfo}
@@ -193,6 +145,47 @@ const MainContent: React.FC<MainContentProps> = ({
           getCurrentResumeData={getCurrentResumeData}
         />
       );
+
+    case "targeted-resumes":
+      return (
+        <TailoredResumeSection
+          resumeData={getCurrentResumeData}
+          currentUserId={currentUserId}
+          isPremiumUser={isPremiumUser}
+          currentSubscription={currentSubscription}
+          canAccessTargetedResumes={canAccessTargetedResumes}
+          onTailoredResumeGenerated={onTailoredResumeGenerated}
+          onExportTailoredResume={handleExportTailoredResume}
+          onExportTailoredResumeAsWord={handleExportTailoredResumeAsWord}
+          isExporting={isExporting}
+        />
+      );
+
+    case "subscription":
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2">Choose Your Plan</h2>
+            <p className="text-muted-foreground">Select the perfect plan for your career goals</p>
+          </div>
+          <SubscriptionTiers
+            currentUserId={currentUserId}
+            currentSubscription={currentSubscription}
+            onSubscriptionUpdate={() => window.location.reload()}
+          />
+        </div>
+      );
+
+    case "settings":
+      return (
+        <UserSettings 
+          currentUserId={currentUserId}
+          currentSubscription={currentSubscription}
+        />
+      );
+
+    default:
+      return <div>Section not found</div>;
   }
 };
 

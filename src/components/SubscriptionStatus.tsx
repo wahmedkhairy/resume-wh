@@ -20,7 +20,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   const remainingExports = getRemainingExports ? getRemainingExports() : currentSubscription.scan_count;
   const isUnlimited = currentSubscription.tier === 'unlimited';
 
-  // Get the correct plan name with proper capitalization
+  // Get the correct plan name with proper capitalization - FIXED
   const getPlanDisplayName = (tier: string) => {
     switch (tier) {
       case 'basic':
@@ -34,13 +34,15 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
     }
   };
 
+  const planName = getPlanDisplayName(currentSubscription.tier);
+
   return (
     <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <Shield className="h-5 w-5 text-green-600 mr-2" />
           <span className="font-medium text-green-800">
-            {getPlanDisplayName(currentSubscription.tier)} Plan Active
+            {planName} Plan Active
           </span>
         </div>
         <div className="flex items-center text-green-600 font-medium">

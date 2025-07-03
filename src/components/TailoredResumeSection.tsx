@@ -11,6 +11,10 @@ interface TailoredResumeSectionProps {
   currentSubscription: any;
   canAccessTargetedResumes: boolean;
   onTailoredResumeGenerated: (tailoredData: any) => void;
+  // NEW: Add export functions for targeted resumes
+  onExportTailoredResume?: (tailoredData: any) => void;
+  onExportTailoredResumeAsWord?: (tailoredData: any) => void;
+  isExporting?: boolean;
 }
 
 const TailoredResumeSection: React.FC<TailoredResumeSectionProps> = ({
@@ -20,6 +24,9 @@ const TailoredResumeSection: React.FC<TailoredResumeSectionProps> = ({
   currentSubscription,
   canAccessTargetedResumes,
   onTailoredResumeGenerated,
+  onExportTailoredResume,
+  onExportTailoredResumeAsWord,
+  isExporting = false,
 }) => {
   return (
     <div className="space-y-6">
@@ -45,6 +52,9 @@ const TailoredResumeSection: React.FC<TailoredResumeSectionProps> = ({
             currentSubscription={currentSubscription}
             canAccessTargetedResumes={canAccessTargetedResumes}
             onTailoredResumeGenerated={onTailoredResumeGenerated}
+            onExportTailoredResume={onExportTailoredResume}
+            onExportTailoredResumeAsWord={onExportTailoredResumeAsWord}
+            isExporting={isExporting}
           />
         </TabsContent>
         
