@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -126,7 +125,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
     cleanupPayPalButtons();
     
     // Also remove from window object - but be careful not to break other instances
-    if (window.paypal && typeof window.paypal.version !== 'undefined') {
+    if (window.paypal && typeof window.paypal.Buttons === 'function') {
       addDebugInfo('PayPal SDK found in window, keeping for potential reuse');
     }
   }, [addDebugInfo, cleanupPayPalButtons]);

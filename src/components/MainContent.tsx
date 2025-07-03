@@ -1,4 +1,3 @@
-
 import React from "react";
 import ResumeEditor from "./ResumeEditor";
 import TailoredResumeSection from "./TailoredResumeSection";
@@ -178,10 +177,7 @@ const MainContent: React.FC<MainContentProps> = ({
 
     case "settings":
       return (
-        <UserSettings 
-          currentUserId={currentUserId}
-          currentSubscription={currentSubscription}
-        />
+        <UserSettings />
       );
 
     default:
