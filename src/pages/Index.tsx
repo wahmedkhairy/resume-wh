@@ -1,234 +1,340 @@
 
-import React, { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import Header from "@/components/Header";
-import Navigation from "@/components/Navigation";
-import MainContent from "@/components/MainContent";
-import Footer from "@/components/Footer";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useResumeData } from "@/hooks/useResumeData";
-import { useSubscription } from "@/hooks/useSubscription";
+import React, { useState, useEffect } from 'react';
+import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
+import { ResumeData } from '../types/ResumeTypes';
+import { useSubscription } from '../hooks/useSubscription';
+import Navigation from '../components/Navigation';
+import MainContent from '../components/MainContent';
+import LoadingSpinner from '../components/LoadingSpinner';
+import AuthModal from '../components/AuthModal';
 
-const LoadingSkeleton = () => (
-  <div className="space-y-6">
-    <Skeleton className="h-8 w-64" />
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="space-y-4">
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-40 w-full" />
-      </div>
-      <div className="space-y-4">
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-96 w-full" />
-      </div>
-    </div>
-  </div>
-);
+const Index: React.FC = () => {
+  const [resumeData, setResumeData] = useState<ResumeData>({
+    personalInfo: {
+      fullName: '',
+      email: '',
+      phone: '',
+      address: '',
+      linkedin: '',
+      github: ''
+    },
+    summary: '',
+    workExperience: [],
+    education: [],
+    skills: [],
+    projects: [],
+    certifications: []
+  });
 
-const Index = () => {
-  const [currentSection, setCurrentSection] = useState("editor");
-  const [currentUserId, setCurrentUserId] = useState<string>("");
-  const [sessionId] = useState(`session_${Date.now()}`);
-  const [tailoredResumeData, setTailoredResumeData] = useState<any>(null);
-  const [isPageLoading, setIsPageLoading] = useState(true);
-  const { toast } = useToast();
+  const [activeSection, setActiveSection] = useState('personal');
+  const [isExporting, setIsExporting] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
-  const {
-    resumeState,
-    setResumeState,
-    personalInfo,
-    setPersonalInfo,
-    workExperience,
-    setWorkExperience,
-    education,
-    setEducation,
-    skills,
-    setSkills,
-    coursesAndCertifications,
-    setCoursesAndCertifications,
-    isSaving,
-    handleSave,
-  } = useResumeData(currentUserId);
+  const user = useUser();
+  const supabase = useSupabaseClient();
+  const { subscription, loading: subscriptionLoading, canExport, decrementExports } = useSubscription();
 
-  const {
-    currentSubscription,
-    isPremiumUser,
-    isExporting,
-    handleExport,
-    handleWordExport,
-    canExport,
-    canAccessTargetedResumes,
-  } = useSubscription(currentUserId);
-
-  // Initialize user authentication
+  // Load user's resume data on mount
   useEffect(() => {
-    const initializeUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setCurrentUserId(user.id);
+    if (user) {
+      loadUserResumeData();
+    }
+  }, [user]);
+
+  // Auto-save resume data when it changes
+  useEffect(() => {
+    if (user && resumeData.personalInfo.fullName) {
+      saveResumeData();
+    }
+  }, [resumeData, user]);
+
+  const loadUserResumeData = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('resumes')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        if (error.code !== 'PGRST116') { // Not found error
+          console.error('Error loading resume data:', error);
         }
-      } catch (error) {
-        console.error('Error checking user:', error);
-      } finally {
-        setIsPageLoading(false);
+        return;
       }
-    };
-    
-    initializeUser();
-  }, []);
 
-  // Create current resume data object
-  const getCurrentResumeData = () => {
-    return tailoredResumeData || {
-      personalInfo,
-      summary: resumeState.summary,
-      workExperience,
-      education,
-      skills,
-      coursesAndCertifications
-    };
+      if (data && data.resume_data) {
+        setResumeData(data.resume_data);
+      }
+    } catch (err) {
+      console.error('Error loading resume data:', err);
+    }
   };
 
-  const handlePersonalInfoChange = (info: any) => {
-    setPersonalInfo(info);
-  };
+  const saveResumeData = async () => {
+    if (!user) return;
 
-  const handleWorkExperienceChange = (newExperience: any) => {
-    setWorkExperience(newExperience);
-  };
-
-  const handleEducationChange = (newEducation: any) => {
-    setEducation(newEducation);
-  };
-
-  const handleSkillsChange = (newSkills: any) => {
-    setSkills(newSkills);
-  };
-
-  const handleCoursesChange = (newCourses: any) => {
-    setCoursesAndCertifications(newCourses);
-  };
-
-  const handleSummaryChange = (newSummary: string) => {
-    setResumeState(prev => ({
-      ...prev,
-      summary: newSummary
-    }));
-  };
-
-  const handleExportResume = async () => {
     try {
-      await handleExport(getCurrentResumeData());
-    } catch (error) {
-      console.error('Export failed:', error);
-      toast({
-        title: "Export Failed",
-        description: "Export failed. Please try again.",
-        variant: "destructive",
-      });
+      const { error } = await supabase
+        .from('resumes')
+        .upsert({
+          user_id: user.id,
+          resume_data: resumeData,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error saving resume data:', error);
+      }
+    } catch (err) {
+      console.error('Error saving resume data:', err);
     }
   };
 
-  const handleExportResumeAsWord = async () => {
+  const handleExport = async () => {
+    if (!user) {
+      setShowAuthModal(true);
+      setAuthMode('login');
+      return;
+    }
+
+    if (!canExport) {
+      alert('You have no remaining exports. Please upgrade your plan.');
+      return;
+    }
+
+    setIsExporting(true);
+
     try {
-      await handleWordExport(getCurrentResumeData());
+      // Generate PDF (replace with actual PDF generation library)
+      const pdfBlob = await generatePDF(resumeData);
+      
+      // Download the PDF
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `resume-${resumeData.personalInfo.fullName.replace(/\s+/g, '-')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      // Decrement the export count
+      await decrementExports();
+
+      alert('Resume exported successfully!');
     } catch (error) {
-      console.error('Word export failed:', error);
-      toast({
-        title: "Export Failed",
-        description: "Word export failed. Please try again.",
-        variant: "destructive",
+      console.error('Error exporting resume:', error);
+      alert('Failed to export resume. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const generatePDF = async (data: ResumeData): Promise<Blob> => {
+    // Simplified PDF generation - replace with actual implementation
+    // You would typically use a library like jsPDF or Puppeteer
+    const htmlContent = generateHTMLResume(data);
+    return new Blob([htmlContent], { type: 'text/html' });
+  };
+
+  const generateHTMLResume = (data: ResumeData): string => {
+    // Simplified HTML generation - replace with actual template
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${data.personalInfo.fullName} - Resume</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .section { margin-bottom: 20px; }
+          .section h2 { color: #333; border-bottom: 2px solid #333; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${data.personalInfo.fullName}</h1>
+          <p>${data.personalInfo.email} | ${data.personalInfo.phone}</p>
+          <p>${data.personalInfo.address}</p>
+        </div>
+        
+        <div class="section">
+          <h2>Summary</h2>
+          <p>${data.summary}</p>
+        </div>
+        
+        <div class="section">
+          <h2>Skills</h2>
+          <p>${data.skills.join(', ')}</p>
+        </div>
+        
+        <div class="section">
+          <h2>Experience</h2>
+          ${data.workExperience.map(exp => `
+            <div>
+              <h3>${exp.jobTitle} at ${exp.company}</h3>
+              <p><strong>${exp.startDate} - ${exp.endDate}</strong></p>
+              <p>${exp.description}</p>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="section">
+          <h2>Education</h2>
+          ${data.education.map(edu => `
+            <div>
+              <h3>${edu.degree} in ${edu.field}</h3>
+              <p><strong>${edu.school} (${edu.year})</strong></p>
+            </div>
+          `).join('')}
+        </div>
+      </body>
+      </html>
+    `;
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setResumeData({
+        personalInfo: {
+          fullName: '',
+          email: '',
+          phone: '',
+          address: '',
+          linkedin: '',
+          github: ''
+        },
+        summary: '',
+        workExperience: [],
+        education: [],
+        skills: [],
+        projects: [],
+        certifications: []
       });
+      setActiveSection('personal');
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
   };
 
-  const handleSectionChange = (section: string) => {
-    setCurrentSection(section);
-    if (section !== "editor") {
-      setTailoredResumeData(null);
-    }
-  };
-
-  const handleTailoredResumeGenerated = (tailoredData: any) => {
-    setTailoredResumeData(tailoredData);
-    toast({
-      title: "Targeted Resume Ready",
-      description: "Your targeted resume is now displayed in the preview. You can export it or make further adjustments.",
-    });
-  };
-
-  const handleClearTailoredResume = () => {
-    setTailoredResumeData(null);
-  };
-
-  if (isPageLoading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-        <Header />
-        <Navigation onSectionChange={() => {}} currentSection="editor" />
-        <main className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto">
-            <LoadingSkeleton />
-          </div>
-        </main>
-      </div>
-    );
+  if (subscriptionLoading) {
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      <Header />
-      <Navigation onSectionChange={handleSectionChange} currentSection={currentSection} />
-      
-      <main className="flex-1 p-6">
-        <div className="max-w-7xl mx-auto">
-          {currentSection === "editor" && (
-            <div className="mb-8 text-center">
-              <h1 className="text-3xl font-bold mb-2">Professional Resume Builder</h1>
-              <p className="text-muted-foreground">Create ATS-optimized resumes that get you hired faster</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex">
+        <Navigation
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+          user={user}
+          subscription={subscription}
+        />
+        
+        <div className="flex-1 flex flex-col">
+          {/* Top Bar */}
+          <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-semibold text-gray-800">
+                  {getSectionTitle(activeSection)}
+                </h1>
+                {user && (
+                  <p className="text-sm text-gray-600">
+                    Welcome back, {user.email}
+                  </p>
+                )}
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                {user ? (
+                  <>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">
+                        {subscription ? (
+                          <>
+                            {subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)} Plan
+                            <span className="text-gray-400 ml-2">
+                              {subscription.scan_count} exports left
+                            </span>
+                          </>
+                        ) : (
+                          'No active subscription'
+                        )}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setShowAuthModal(true);
+                      setAuthMode('login');
+                    }}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    Sign In
+                  </button>
+                )}
+              </div>
             </div>
-          )}
+          </header>
 
           <MainContent
-            currentSection={currentSection}
-            personalInfo={personalInfo}
-            onPersonalInfoChange={handlePersonalInfoChange}
-            workExperience={workExperience}
-            onWorkExperienceChange={handleWorkExperienceChange}
-            education={education}
-            onEducationChange={handleEducationChange}
-            skills={skills}
-            onSkillsChange={handleSkillsChange}
-            coursesAndCertifications={coursesAndCertifications}
-            onCoursesChange={handleCoursesChange}
-            summary={resumeState.summary}
-            onSummaryChange={handleSummaryChange}
-            tailoredResumeData={tailoredResumeData}
-            onClearTailoredResume={handleClearTailoredResume}
-            onTailoredResumeGenerated={handleTailoredResumeGenerated}
-            onSectionChange={setCurrentSection}
-            currentUserId={currentUserId}
-            isPremiumUser={isPremiumUser}
-            currentSubscription={currentSubscription}
-            canAccessTargetedResumes={canAccessTargetedResumes()}
-            isSaving={isSaving}
+            user={user}
+            resumeData={resumeData}
+            setResumeData={setResumeData}
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            onExport={handleExport}
             isExporting={isExporting}
-            sessionId={sessionId}
-            onSave={handleSave}
-            onExport={handleExportResume}
-            onExportWord={handleExportResumeAsWord}
-            canExport={canExport}
-            getCurrentResumeData={getCurrentResumeData()}
           />
         </div>
-      </main>
-      
-      <Footer />
+      </div>
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <AuthModal
+          mode={authMode}
+          onClose={() => setShowAuthModal(false)}
+          onSwitchMode={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+        />
+      )}
     </div>
   );
+};
+
+const getSectionTitle = (section: string): string => {
+  switch (section) {
+    case 'personal':
+      return 'Personal Information';
+    case 'experience':
+      return 'Work Experience';
+    case 'education':
+      return 'Education';
+    case 'skills':
+      return 'Skills';
+    case 'projects':
+      return 'Projects';
+    case 'certifications':
+      return 'Certifications';
+    case 'targeted-resumes':
+      return 'Targeted Job Resume';
+    case 'subscription':
+      return 'Subscription Status';
+    default:
+      return 'Resume Builder';
+  }
 };
 
 export default Index;
