@@ -29,57 +29,22 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   const mountedRef = useRef(true);
   const sdkLoadingRef = useRef(false);
   const buttonsRenderedRef = useRef(false);
-  const currentButtonsRef = useRef<any>(null); // Track current PayPal buttons instance
   
   // Track previous props to detect changes
   const prevPropsRef = useRef({ amount, tier });
 
-  // More robust development environment detection
-  const isDevelopment = 
-    process.env.NODE_ENV === 'development' || 
-    process.env.REACT_APP_ENV === 'development' || 
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    window.location.hostname.includes('.local') ||
-    window.location.hostname.includes('dev') ||
-    window.location.port !== '';
-  
+  const isDevelopment = process.env.NODE_ENV === 'development';
   const MAX_RETRIES = 3;
-  const SDK_TIMEOUT = 20000;
+  const SDK_TIMEOUT = 20000; // Increased to 20 seconds
 
   const addDebugInfo = useCallback((info: string) => {
-    // Only log to console and store debug info in development
     if (isDevelopment) {
-      console.log(`[PayPal Debug] ${info}`);
+      console.log(info);
       if (mountedRef.current) {
         setDebugInfo(prev => prev + '\n' + new Date().toLocaleTimeString() + ': ' + info);
       }
     }
   }, [isDevelopment]);
-
-  // Clean up existing PayPal buttons properly
-  const cleanupPayPalButtons = useCallback(() => {
-    addDebugInfo('Cleaning up existing PayPal buttons...');
-    
-    // Close/destroy existing buttons instance
-    if (currentButtonsRef.current && typeof currentButtonsRef.current.close === 'function') {
-      try {
-        currentButtonsRef.current.close();
-        addDebugInfo('Existing PayPal buttons closed');
-      } catch (e) {
-        addDebugInfo(`Error closing PayPal buttons: ${e}`);
-      }
-    }
-    currentButtonsRef.current = null;
-    
-    // Clear container content
-    if (containerRef.current) {
-      containerRef.current.innerHTML = '';
-      addDebugInfo('PayPal container cleared');
-    }
-    
-    buttonsRenderedRef.current = false;
-  }, [addDebugInfo]);
 
   // Fetch PayPal Client ID from secure backend
   const fetchPayPalConfig = useCallback(async () => {
@@ -122,14 +87,11 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
       script.remove();
     });
     
-    // Clean up PayPal button instances and global state
-    cleanupPayPalButtons();
-    
-    // Also remove from window object - but be careful not to break other instances
-    if (window.paypal && typeof window.paypal.version !== 'undefined') {
-      addDebugInfo('PayPal SDK found in window, keeping for potential reuse');
+    // Also remove from window object
+    if (window.paypal) {
+      delete window.paypal;
     }
-  }, [addDebugInfo, cleanupPayPalButtons]);
+  }, [addDebugInfo]);
 
   // Load PayPal SDK with improved error handling
   const loadPayPalSDK = useCallback(async () => {
@@ -157,16 +119,14 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
       
       if (!mountedRef.current) return;
 
-      // Clean up any existing scripts but preserve functional SDK
-      if (!window.paypal || typeof window.paypal.Buttons !== 'function') {
-        cleanupPayPalScripts();
-      }
+      // Clean up any existing scripts
+      cleanupPayPalScripts();
 
       addDebugInfo('Creating new PayPal SDK script...');
       
       return new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
-        script.id = 'paypal-sdk-' + Date.now(); // Unique ID to avoid conflicts
+        script.id = 'paypal-sdk';
         script.src = `https://www.paypal.com/sdk/js?client-id=${fetchedClientId}&currency=USD&intent=capture`;
         script.async = true;
         
@@ -233,7 +193,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
     }
   }, [fetchPayPalConfig, onError, addDebugInfo, cleanupPayPalScripts]);
 
-  // Render PayPal buttons with better error handling and cleanup
+  // Render PayPal buttons with better error handling
   const renderPayPalButtons = useCallback(() => {
     addDebugInfo('Attempting to render PayPal buttons...');
     
@@ -249,10 +209,10 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
       return;
     }
 
-    // Clean up any existing buttons first
-    cleanupPayPalButtons();
-
     try {
+      // Clear existing content and reset rendered flag
+      containerRef.current.innerHTML = '';
+      buttonsRenderedRef.current = false;
       addDebugInfo('Container cleared, creating PayPal buttons...');
       
       const buttonsConfig = {
@@ -331,19 +291,14 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
 
       addDebugInfo('Rendering PayPal buttons...');
       
-      // Create and render the buttons
-      const buttonsInstance = window.paypal.Buttons(buttonsConfig);
-      
-      buttonsInstance.render(containerRef.current)
+      window.paypal.Buttons(buttonsConfig).render(containerRef.current)
         .then(() => {
           addDebugInfo('PayPal buttons rendered successfully');
           buttonsRenderedRef.current = true;
-          currentButtonsRef.current = buttonsInstance; // Store reference for cleanup
         })
         .catch((renderError: any) => {
           addDebugInfo(`Error rendering PayPal buttons: ${renderError}`);
           buttonsRenderedRef.current = false;
-          currentButtonsRef.current = null;
           setError('Unable to display payment options. Please refresh the page.');
           onError(renderError);
         });
@@ -353,12 +308,13 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
       setError('Payment system error. Please try again.');
       onError(err);
     }
-  }, [amount, tier, onSuccess, onError, onCancel, addDebugInfo, cleanupPayPalButtons]);
+  }, [amount, tier, onSuccess, onError, onCancel, addDebugInfo]);
 
   // Force re-render of buttons (useful for plan changes)
   const forceRenderButtons = useCallback(() => {
     if (sdkLoaded && containerRef.current && !loading && !error && clientId) {
       addDebugInfo('Force re-rendering PayPal buttons...');
+      buttonsRenderedRef.current = false;
       renderPayPalButtons();
     }
   }, [sdkLoaded, loading, error, clientId, renderPayPalButtons, addDebugInfo]);
@@ -376,9 +332,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
     setClientId('');
     setDebugInfo('');
     setRetryCount(prev => prev + 1);
-    
-    // Clean up existing buttons
-    cleanupPayPalButtons();
+    buttonsRenderedRef.current = false;
     
     addDebugInfo(`Retrying PayPal SDK load... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
     
@@ -386,7 +340,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
     setTimeout(() => {
       loadPayPalSDK();
     }, 1000);
-  }, [retryCount, addDebugInfo, loadPayPalSDK, cleanupPayPalButtons]);
+  }, [retryCount, addDebugInfo, loadPayPalSDK]);
 
   // Reset component state when props change (e.g., different plan selected)
   useEffect(() => {
@@ -396,26 +350,21 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
     if (currentProps.amount !== prevProps.amount || currentProps.tier !== prevProps.tier) {
       addDebugInfo(`Props changed - Amount: ${prevProps.amount} -> ${currentProps.amount}, Tier: ${prevProps.tier} -> ${currentProps.tier}`);
       
-      // Clean up existing buttons when props change
-      cleanupPayPalButtons();
-      
       // Reset component state for new plan
       setError(null);
       setRetryCount(0);
+      buttonsRenderedRef.current = false;
       
-      // If SDK is already loaded, re-render buttons immediately
-      if (sdkLoaded && !loading && clientId) {
+      // If SDK is already loaded, just re-render buttons
+      if (sdkLoaded && !loading) {
         addDebugInfo('SDK already loaded, re-rendering buttons for new plan');
-        setTimeout(() => {
-          if (mountedRef.current) {
-            renderPayPalButtons();
-          }
-        }, 100);
+        setLoading(false); // Ensure loading is false
+        // Buttons will be re-rendered by the other useEffect
       }
       
       prevPropsRef.current = currentProps;
     }
-  }, [amount, tier, sdkLoaded, loading, clientId, addDebugInfo, cleanupPayPalButtons, renderPayPalButtons]);
+  }, [amount, tier, sdkLoaded, loading, addDebugInfo]);
 
   // Main effect to load SDK
   useEffect(() => {
@@ -438,21 +387,21 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
       // Small delay to ensure DOM is ready
       const timeoutId = setTimeout(() => {
         if (mountedRef.current && !buttonsRenderedRef.current) {
+          buttonsRenderedRef.current = true;
           renderPayPalButtons();
         }
       }, 300);
       
       return () => clearTimeout(timeoutId);
     }
-  }, [sdkLoaded, loading, error, clientId, renderPayPalButtons, addDebugInfo]);
+  }, [sdkLoaded, loading, error, clientId, renderPayPalButtons, addDebugInfo, amount, tier]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       mountedRef.current = false;
-      cleanupPayPalButtons();
     };
-  }, [cleanupPayPalButtons]);
+  }, []);
 
   if (loading) {
     return (
@@ -460,10 +409,9 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
           <p className="text-sm text-gray-600 mb-2">Loading secure payment...</p>
-          {/* Debug info only shown in development */}
-          {isDevelopment && debugInfo && (
+          {isDevelopment && (
             <details className="text-xs text-gray-500 max-w-md">
-              <summary className="cursor-pointer">Debug Info (Development Only)</summary>
+              <summary className="cursor-pointer">Debug Info</summary>
               <pre className="mt-2 text-left bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
                 {debugInfo}
               </pre>
@@ -498,8 +446,7 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
               Please refresh the page or contact support if the problem persists.
             </p>
           )}
-          {/* Debug info only shown in development */}
-          {isDevelopment && debugInfo && (
+          {isDevelopment && (
             <details className="text-xs text-gray-500 max-w-md">
               <summary className="cursor-pointer">Debug Info (Development Only)</summary>
               <pre className="mt-2 text-left bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
@@ -541,11 +488,11 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         </div>
       )}
       
-      {/* Debug info only shown in development environment */}
+      {/* Debug info only shown in development */}
       {isDevelopment && debugInfo && (
         <details className="text-xs text-gray-500 mt-4">
-          <summary className="cursor-pointer">🔧 Debug Info (Development Only)</summary>
-          <pre className="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32 whitespace-pre-wrap">
+          <summary className="cursor-pointer">Debug Info (Development Only)</summary>
+          <pre className="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
             {debugInfo}
           </pre>
         </details>
