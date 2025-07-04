@@ -3,7 +3,7 @@ import React from "react";
 import ResumeData from "@/components/ResumeData";
 import PreviewSection from "@/components/PreviewSection";
 import ExportControls from "@/components/ExportControls";
-import SubscriptionStatus from "@/components/SubscriptionStatus";
+import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatusCard";
 import CallToAction from "@/components/CallToAction";
 import TailoredResumeNotice from "@/components/TailoredResumeNotice";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
@@ -97,13 +97,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   canExport,
   getCurrentResumeData,
 }) => {
-  // Helper function to get remaining exports (moved from ExportTracker)
-  const getRemainingExports = () => {
-    if (!currentSubscription) return 0;
-    if (currentSubscription.tier === 'unlimited') return 999;
-    return currentSubscription.scan_count || 0;
-  };
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Left Column - Editor */}
@@ -122,11 +115,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
           canExport={canExport()}
         />
 
-        <SubscriptionStatus
-          isPremiumUser={isPremiumUser}
-          currentSubscription={currentSubscription}
-          getRemainingExports={getRemainingExports}
-        />
+        <SubscriptionStatusCard subscription={currentSubscription} />
 
         {/* Success CTA after resume completion */}
         {personalInfo.name && workExperience.length > 0 && (
