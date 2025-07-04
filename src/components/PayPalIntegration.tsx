@@ -10,12 +10,6 @@ interface PayPalIntegrationProps {
   onCancel: () => void;
 }
 
-interface DebugInfo {
-  timestamp: string;
-  message: string;
-  level: 'info' | 'warn' | 'error';
-}
-
 const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   amount,
   tier,
@@ -28,249 +22,158 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const [debugInfo, setDebugInfo] = useState<DebugInfo[]>([]);
   const [clientId, setClientId] = useState<string>('');
-  const [showDebugPanel, setShowDebugPanel] = useState(false);
   
-  // Component state management
+  // Refs for cleanup and state management
   const mountedRef = useRef(true);
   const sdkLoadingRef = useRef(false);
   const buttonsRenderedRef = useRef(false);
-  const componentInstanceRef = useRef(Date.now()); // Unique instance ID
+  const currentPropsRef = useRef({ amount, tier });
   
-  // Track previous props to detect changes
-  const prevPropsRef = useRef({ amount, tier });
-
-  // Environment detection - only show debug in development
-  const isDevelopment = process.env.NODE_ENV === 'development';
   const MAX_RETRIES = 3;
   const SDK_TIMEOUT = 15000;
 
-  // Enhanced debug logging that respects environment
-  const addDebugInfo = useCallback((message: string, level: 'info' | 'warn' | 'error' = 'info') => {
-    const timestamp = new Date().toLocaleTimeString();
-    const debugEntry: DebugInfo = { timestamp, message, level };
-    
-    // Always log to console in development
-    if (isDevelopment) {
+  // Debug logging (only in development)
+  const debug = useCallback((message: string, level: 'info' | 'warn' | 'error' = 'info') => {
+    if (process.env.NODE_ENV === 'development') {
       const logMethod = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
-      logMethod(`[PayPal Integration] ${timestamp}: ${message}`);
+      logMethod(`[PayPal] ${message}`);
     }
-    
-    // Only store debug info in development
-    if (isDevelopment && mountedRef.current) {
-      setDebugInfo(prev => [...prev.slice(-19), debugEntry]); // Keep last 20 entries
-    }
-  }, [isDevelopment]);
+  }, []);
 
-  // Reset component state completely
-  const resetComponentState = useCallback(() => {
-    addDebugInfo('Resetting component state');
-    setError(null);
-    setLoading(true);
-    setSdkLoaded(false);
-    setClientId('');
-    setRetryCount(0);
-    if (isDevelopment) {
-      setDebugInfo([]);
-    }
-    buttonsRenderedRef.current = false;
-    componentInstanceRef.current = Date.now();
-  }, [addDebugInfo, isDevelopment]);
-
-  // Cleanup PayPal resources more thoroughly
-  const cleanupPayPalResources = useCallback(() => {
-    addDebugInfo('Cleaning up PayPal resources');
+  // Complete cleanup function
+  const cleanup = useCallback(() => {
+    debug('Cleaning up PayPal resources');
     
     // Clear container
     if (containerRef.current) {
       containerRef.current.innerHTML = '';
     }
     
-    // Remove existing scripts
-    const existingScripts = document.querySelectorAll('script[src*="paypal.com/sdk"]');
-    existingScripts.forEach(script => {
-      addDebugInfo('Removing existing PayPal script');
-      script.remove();
-    });
+    // Remove PayPal scripts
+    document.querySelectorAll('script[src*="paypal.com/sdk"]').forEach(script => script.remove());
     
-    // Clean up window object
+    // Reset state
+    buttonsRenderedRef.current = false;
+    sdkLoadingRef.current = false;
+    
+    // Clean window object
     if (window.paypal) {
       try {
         delete window.paypal;
       } catch (e) {
-        addDebugInfo('Could not delete paypal from window object', 'warn');
+        debug('Could not delete paypal from window', 'warn');
       }
     }
-    
-    buttonsRenderedRef.current = false;
-  }, [addDebugInfo]);
+  }, [debug]);
 
-  // Fetch PayPal configuration with better error handling
-  const fetchPayPalConfig = useCallback(async () => {
+  // Fetch PayPal configuration
+  const fetchConfig = useCallback(async () => {
     try {
-      addDebugInfo('Fetching PayPal configuration...');
-      
+      debug('Fetching PayPal configuration');
       const { data, error } = await supabase.functions.invoke('get-paypal-config');
       
-      if (error) {
-        addDebugInfo(`Error fetching PayPal config: ${error.message}`, 'error');
-        throw new Error(`Failed to fetch PayPal configuration: ${error.message}`);
-      }
+      if (error) throw new Error(`Config fetch failed: ${error.message}`);
+      if (!data?.clientId) throw new Error('PayPal Client ID not configured');
       
-      if (!data?.clientId) {
-        addDebugInfo('No client ID in response', 'error');
-        throw new Error('PayPal Client ID not configured');
-      }
-      
-      addDebugInfo('PayPal Client ID fetched successfully');
-      if (mountedRef.current) {
-        setClientId(data.clientId);
-      }
+      debug('PayPal Client ID fetched successfully');
       return data.clientId;
-      
     } catch (err) {
-      addDebugInfo(`Error in fetchPayPalConfig: ${err}`, 'error');
-      if (mountedRef.current) {
-        setError('Unable to load payment system. Please try again.');
-        onError(err);
-      }
+      debug(`Config fetch error: ${err}`, 'error');
       throw err;
     }
-  }, [onError, addDebugInfo]);
+  }, [debug]);
 
-  // Enhanced PayPal SDK loading with better state management
-  const loadPayPalSDK = useCallback(async () => {
-    if (sdkLoadingRef.current || !mountedRef.current) {
-      addDebugInfo('SDK loading already in progress or component unmounted, skipping...');
-      return;
-    }
+  // Load PayPal SDK
+  const loadSDK = useCallback(async () => {
+    if (sdkLoadingRef.current || !mountedRef.current) return;
 
     try {
       sdkLoadingRef.current = true;
-      addDebugInfo('Starting PayPal SDK load...');
+      debug('Loading PayPal SDK');
       
-      // Check if PayPal is already loaded and functional
-      if (window.paypal && typeof window.paypal.Buttons === 'function') {
-        addDebugInfo('PayPal SDK already loaded and functional');
-        if (mountedRef.current) {
-          setSdkLoaded(true);
-          setLoading(false);
-        }
+      // Check if already loaded
+      if (window.paypal?.Buttons) {
+        debug('PayPal SDK already loaded');
+        setSdkLoaded(true);
+        setLoading(false);
         return;
       }
 
-      // Fetch the client ID
-      const fetchedClientId = await fetchPayPalConfig();
+      // Get client ID
+      const fetchedClientId = await fetchConfig();
+      if (!mountedRef.current) return;
       
-      if (!mountedRef.current) {
-        addDebugInfo('Component unmounted during config fetch');
-        return;
-      }
+      setClientId(fetchedClientId);
+      cleanup();
 
-      // Clean up any existing resources
-      cleanupPayPalResources();
-
-      addDebugInfo('Creating new PayPal SDK script...');
-      
-      return new Promise<void>((resolve, reject) => {
+      // Load SDK script
+      await new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
-        script.id = `paypal-sdk-${componentInstanceRef.current}`;
-        script.src = `https://www.paypal.com/sdk/js?client-id=${fetchedClientId}&currency=USD&intent=capture&disable-funding=credit,card`;
+        script.src = `https://www.paypal.com/sdk/js?client-id=${fetchedClientId}&currency=USD&intent=capture&components=buttons`;
         script.async = true;
-        script.defer = true;
-        
-        addDebugInfo(`SDK URL: ${script.src}`);
         
         const timeout = setTimeout(() => {
-          addDebugInfo('SDK loading timeout reached', 'error');
           script.remove();
-          if (mountedRef.current) {
-            setError('Payment system is taking too long to load. Please check your connection and try again.');
-            setLoading(false);
-          }
-          reject(new Error('PayPal SDK loading timeout'));
+          reject(new Error('SDK loading timeout'));
         }, SDK_TIMEOUT);
         
         script.onload = () => {
           clearTimeout(timeout);
-          addDebugInfo('PayPal SDK script loaded');
+          debug('PayPal SDK loaded');
           
-          // Wait for PayPal object to be fully initialized
-          const checkPayPalReady = (attempts = 0) => {
-            if (attempts > 50) { // 5 seconds max
-              addDebugInfo('PayPal object initialization timeout', 'error');
-              if (mountedRef.current) {
-                setError('Payment system failed to initialize. Please try again.');
-                setLoading(false);
-              }
-              reject(new Error('PayPal SDK loaded but not functional'));
+          // Wait for PayPal to initialize
+          const checkReady = (attempts = 0) => {
+            if (attempts > 50) {
+              reject(new Error('PayPal initialization timeout'));
               return;
             }
             
-            if (window.paypal && typeof window.paypal.Buttons === 'function') {
-              addDebugInfo('PayPal SDK fully initialized');
-              if (mountedRef.current) {
-                setSdkLoaded(true);
-                setLoading(false);
-              }
+            if (window.paypal?.Buttons) {
+              debug('PayPal SDK ready');
+              setSdkLoaded(true);
+              setLoading(false);
               resolve();
             } else {
-              setTimeout(() => checkPayPalReady(attempts + 1), 100);
+              setTimeout(() => checkReady(attempts + 1), 100);
             }
           };
           
-          checkPayPalReady();
+          checkReady();
         };
         
-        script.onerror = (err) => {
+        script.onerror = () => {
           clearTimeout(timeout);
-          addDebugInfo(`PayPal SDK failed to load: ${err}`, 'error');
           script.remove();
-          if (mountedRef.current) {
-            setError('Failed to load payment system. Please check your connection.');
-            setLoading(false);
-          }
-          reject(new Error('Failed to load PayPal SDK'));
+          reject(new Error('SDK loading failed'));
         };
         
         document.head.appendChild(script);
-        addDebugInfo('PayPal SDK script added to document head');
       });
         
     } catch (err) {
-      addDebugInfo(`Error in loadPayPalSDK: ${err}`, 'error');
+      debug(`SDK loading error: ${err}`, 'error');
       if (mountedRef.current) {
-        setError('Unable to initialize payment system. Please try again.');
+        setError('Unable to load payment system. Please try again.');
         setLoading(false);
         onError(err);
       }
     } finally {
       sdkLoadingRef.current = false;
     }
-  }, [fetchPayPalConfig, onError, addDebugInfo, cleanupPayPalResources]);
+  }, [fetchConfig, cleanup, debug, onError]);
 
-  // Enhanced button rendering with better cleanup
-  const renderPayPalButtons = useCallback(() => {
-    addDebugInfo('Attempting to render PayPal buttons...');
+  // Render PayPal buttons
+  const renderButtons = useCallback(() => {
+    if (!window.paypal?.Buttons || !containerRef.current || buttonsRenderedRef.current) {
+      debug('Cannot render buttons - SDK not ready or already rendered');
+      return;
+    }
+
+    debug('Rendering PayPal buttons');
     
-    if (!window.paypal || typeof window.paypal.Buttons !== 'function') {
-      addDebugInfo('PayPal SDK not available or not functional', 'error');
-      setError('Payment system not ready. Please try again.');
-      return;
-    }
-
-    if (!containerRef.current) {
-      addDebugInfo('PayPal container reference not found', 'error');
-      setError('Payment container not found. Please refresh the page.');
-      return;
-    }
-
     try {
-      // Ensure container is clean
       containerRef.current.innerHTML = '';
-      buttonsRenderedRef.current = false;
-      addDebugInfo('Container cleared, creating PayPal buttons...');
       
       const buttonsConfig = {
         style: { 
@@ -283,158 +186,155 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         },
         
         createOrder: async (data: any, actions: any) => {
-          addDebugInfo('Creating PayPal order...');
-          
+          debug('Creating order');
           try {
             const { data: orderData, error } = await supabase.functions.invoke('create-paypal-order', {
               body: {
-                amount: amount,
+                amount,
                 currency: 'USD',
                 description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan – $${amount} USD`,
-                tier: tier
+                tier
               }
             });
 
-            if (error) {
-              addDebugInfo(`Error creating order: ${error.message}`, 'error');
-              throw new Error('Unable to create payment order. Please try again.');
-            }
+            if (error) throw new Error('Order creation failed');
+            if (!orderData?.orderId) throw new Error('No order ID received');
 
-            if (!orderData?.orderId) {
-              addDebugInfo('No order ID in response', 'error');
-              throw new Error('Payment order creation failed. Please try again.');
-            }
-
-            addDebugInfo(`Order created successfully: ${orderData.orderId}`);
+            debug(`Order created: ${orderData.orderId}`);
             return orderData.orderId;
-            
-          } catch (createError) {
-            addDebugInfo(`Error in createOrder: ${createError}`, 'error');
-            onError(createError);
-            throw createError;
+          } catch (err) {
+            debug(`Order creation error: ${err}`, 'error');
+            onError(err);
+            throw err;
           }
         },
         
         onApprove: async (data: any, actions: any) => {
-          addDebugInfo('PayPal payment approved, capturing order...');
+          debug('Payment approved, capturing');
           try {
             const { data: captureData, error } = await supabase.functions.invoke('capture-paypal-order', {
               body: { orderId: data.orderID }
             });
 
-            if (error) {
-              addDebugInfo(`Error capturing payment: ${error.message}`, 'error');
-              throw new Error('Payment processing failed. Please contact support.');
-            }
-
-            addDebugInfo('Payment captured successfully');
+            if (error) throw new Error('Payment capture failed');
+            
+            debug('Payment captured successfully');
             onSuccess(captureData);
-          } catch (captureError) {
-            addDebugInfo(`Error capturing payment: ${captureError}`, 'error');
-            onError(captureError);
+          } catch (err) {
+            debug(`Payment capture error: ${err}`, 'error');
+            onError(err);
           }
         },
         
         onError: (err: any) => {
-          addDebugInfo(`PayPal payment error: ${JSON.stringify(err)}`, 'error');
-          setError('Payment processing encountered an error. Please try again.');
+          debug(`PayPal error: ${err}`, 'error');
+          setError('Payment processing error. Please try again.');
           onError(err);
         },
         
-        onCancel: (data: any) => {
-          addDebugInfo('PayPal payment cancelled by user');
+        onCancel: () => {
+          debug('Payment cancelled');
           onCancel();
         }
       };
 
-      addDebugInfo('Rendering PayPal buttons...');
-      
       window.paypal.Buttons(buttonsConfig).render(containerRef.current)
         .then(() => {
-          addDebugInfo('PayPal buttons rendered successfully');
+          debug('Buttons rendered successfully');
           buttonsRenderedRef.current = true;
         })
-        .catch((renderError: any) => {
-          addDebugInfo(`Error rendering PayPal buttons: ${renderError}`, 'error');
-          buttonsRenderedRef.current = false;
-          setError('Unable to display payment options. Please refresh the page.');
-          onError(renderError);
+        .catch((err: any) => {
+          debug(`Button rendering error: ${err}`, 'error');
+          setError('Unable to display payment options. Please try again.');
+          onError(err);
         });
 
     } catch (err) {
-      addDebugInfo(`Error in renderPayPalButtons: ${err}`, 'error');
+      debug(`Button setup error: ${err}`, 'error');
       setError('Payment system error. Please try again.');
       onError(err);
     }
-  }, [amount, tier, onSuccess, onError, onCancel, addDebugInfo]);
+  }, [amount, tier, onSuccess, onError, onCancel, debug]);
 
-  // Enhanced retry logic
+  // Handle retry
   const handleRetry = useCallback(() => {
     if (retryCount >= MAX_RETRIES) {
-      setError('Maximum retry attempts reached. Please refresh the page or try again later.');
+      setError('Maximum retry attempts reached. Please refresh the page.');
       return;
     }
 
-    addDebugInfo(`Retrying PayPal SDK load... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
+    debug(`Retrying (${retryCount + 1}/${MAX_RETRIES})`);
     
-    // Clean up everything and start fresh
-    cleanupPayPalResources();
-    resetComponentState();
+    cleanup();
+    setError(null);
+    setLoading(true);
+    setSdkLoaded(false);
     setRetryCount(prev => prev + 1);
     
-    // Delay before retry
     setTimeout(() => {
       if (mountedRef.current) {
-        loadPayPalSDK();
+        loadSDK();
       }
     }, 1000);
-  }, [retryCount, addDebugInfo, cleanupPayPalResources, resetComponentState, loadPayPalSDK]);
+  }, [retryCount, cleanup, loadSDK, debug]);
 
-  // Handle prop changes (plan selection changes)
-  useEffect(() => {
-    const currentProps = { amount, tier };
-    const prevProps = prevPropsRef.current;
-    
-    if (currentProps.amount !== prevProps.amount || currentProps.tier !== prevProps.tier) {
-      addDebugInfo(`Props changed - Amount: ${prevProps.amount} -> ${currentProps.amount}, Tier: ${prevProps.tier} -> ${currentProps.tier}`);
+  // Force refresh buttons
+  const refreshButtons = useCallback(() => {
+    if (sdkLoaded && containerRef.current && !loading && !error) {
+      debug('Force refreshing buttons');
+      containerRef.current.innerHTML = '';
+      buttonsRenderedRef.current = false;
       
-      // Clean up current buttons and re-render
+      setTimeout(() => {
+        if (mountedRef.current) {
+          renderButtons();
+        }
+      }, 100);
+    }
+  }, [sdkLoaded, loading, error, renderButtons, debug]);
+
+  // Handle prop changes (plan selection)
+  useEffect(() => {
+    const prevProps = currentPropsRef.current;
+    if (amount !== prevProps.amount || tier !== prevProps.tier) {
+      debug(`Props changed: ${prevProps.tier}($${prevProps.amount}) -> ${tier}($${amount})`);
+      
+      // Clear existing buttons
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
       }
       buttonsRenderedRef.current = false;
       setError(null);
       
-      // If SDK is loaded, re-render buttons immediately
-      if (sdkLoaded && !loading && clientId) {
-        addDebugInfo('SDK ready, re-rendering buttons for new plan');
+      // Re-render if SDK is ready
+      if (sdkLoaded && !loading) {
         setTimeout(() => {
-          if (mountedRef.current && !buttonsRenderedRef.current) {
-            renderPayPalButtons();
+          if (mountedRef.current) {
+            renderButtons();
           }
         }, 100);
       }
       
-      prevPropsRef.current = currentProps;
+      currentPropsRef.current = { amount, tier };
     }
-  }, [amount, tier, sdkLoaded, loading, clientId, addDebugInfo, renderPayPalButtons]);
+  }, [amount, tier, sdkLoaded, loading, renderButtons, debug]);
 
-  // Initial SDK loading
+  // Initialize SDK
   useEffect(() => {
     mountedRef.current = true;
-    addDebugInfo('Component mounted, initializing PayPal integration');
+    debug('Component mounted');
     
     if (!sdkLoaded && !sdkLoadingRef.current) {
-      loadPayPalSDK();
+      loadSDK();
     }
 
     return () => {
       mountedRef.current = false;
-      addDebugInfo('Component unmounting, cleaning up');
+      debug('Component unmounted');
     };
-  }, [loadPayPalSDK, sdkLoaded, addDebugInfo]);
+  }, [loadSDK, sdkLoaded, debug]);
 
-  // Render buttons when conditions are met
+  // Render buttons when ready
   useEffect(() => {
     if (sdkLoaded && 
         containerRef.current && 
@@ -444,38 +344,16 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         mountedRef.current && 
         !buttonsRenderedRef.current) {
       
-      addDebugInfo('All conditions met, rendering buttons...');
-      
-      // Small delay to ensure DOM is stable
-      const timeoutId = setTimeout(() => {
-        if (mountedRef.current && !buttonsRenderedRef.current) {
-          renderPayPalButtons();
-        }
-      }, 200);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [sdkLoaded, loading, error, clientId, renderPayPalButtons, addDebugInfo]);
-
-  // Force button re-render function
-  const forceRenderButtons = useCallback(() => {
-    if (sdkLoaded && containerRef.current && !loading && !error && clientId) {
-      addDebugInfo('Force re-rendering PayPal buttons...');
-      
-      // Clean container and reset state
-      containerRef.current.innerHTML = '';
-      buttonsRenderedRef.current = false;
-      
-      // Re-render after short delay
+      debug('All conditions met, rendering buttons');
       setTimeout(() => {
         if (mountedRef.current && !buttonsRenderedRef.current) {
-          renderPayPalButtons();
+          renderButtons();
         }
-      }, 100);
+      }, 200);
     }
-  }, [sdkLoaded, loading, error, clientId, renderPayPalButtons, addDebugInfo]);
+  }, [sdkLoaded, loading, error, clientId, renderButtons, debug]);
 
-  // Render loading state
+  // Loading state
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
@@ -483,38 +361,12 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
           <p className="text-sm text-gray-600 mb-2">Loading secure payment...</p>
           <p className="text-xs text-gray-500">Please wait while we prepare your payment options</p>
-          
-          {/* Debug panel only in development */}
-          {isDevelopment && debugInfo.length > 0 && (
-            <div className="mt-4">
-              <button
-                onClick={() => setShowDebugPanel(!showDebugPanel)}
-                className="text-xs text-blue-600 hover:text-blue-800 underline"
-              >
-                {showDebugPanel ? 'Hide' : 'Show'} Debug Info
-              </button>
-              {showDebugPanel && (
-                <div className="mt-2 text-left bg-gray-100 p-2 rounded text-xs max-w-md mx-auto">
-                  <div className="max-h-32 overflow-auto">
-                    {debugInfo.map((info, index) => (
-                      <div key={index} className={`mb-1 ${
-                        info.level === 'error' ? 'text-red-600' : 
-                        info.level === 'warn' ? 'text-yellow-600' : 'text-gray-600'
-                      }`}>
-                        <span className="font-mono">{info.timestamp}</span>: {info.message}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     );
   }
 
-  // Render error state
+  // Error state
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
@@ -530,49 +382,23 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
             <button 
               onClick={handleRetry}
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm mb-3"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {loading ? 'Retrying...' : `Try Again ${retryCount > 0 ? `(${retryCount}/${MAX_RETRIES})` : ''}`}
             </button>
           )}
           
           {retryCount >= MAX_RETRIES && (
-            <p className="text-xs text-gray-500 mb-3">
+            <p className="text-xs text-gray-500">
               Please refresh the page or contact support if the problem persists.
             </p>
-          )}
-          
-          {/* Debug panel only in development */}
-          {isDevelopment && debugInfo.length > 0 && (
-            <div className="mt-4">
-              <button
-                onClick={() => setShowDebugPanel(!showDebugPanel)}
-                className="text-xs text-blue-600 hover:text-blue-800 underline"
-              >
-                {showDebugPanel ? 'Hide' : 'Show'} Debug Info
-              </button>
-              {showDebugPanel && (
-                <div className="mt-2 text-left bg-gray-100 p-2 rounded text-xs max-w-md mx-auto">
-                  <div className="max-h-32 overflow-auto">
-                    {debugInfo.map((info, index) => (
-                      <div key={index} className={`mb-1 ${
-                        info.level === 'error' ? 'text-red-600' : 
-                        info.level === 'warn' ? 'text-yellow-600' : 'text-gray-600'
-                      }`}>
-                        <span className="font-mono">{info.timestamp}</span>: {info.message}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           )}
         </div>
       </div>
     );
   }
 
-  // Render payment interface
+  // Payment interface
   return (
     <div className="payment-container">
       <div className="text-center mb-4">
@@ -590,41 +416,15 @@ const PayPalIntegration: React.FC<PayPalIntegrationProps> = ({
         className="min-h-[50px] w-full"
       />
       
-      {/* Refresh button for when buttons don't appear */}
+      {/* Refresh button for troubleshooting */}
       {sdkLoaded && !loading && !error && clientId && (
         <div className="text-center mt-4">
           <button
-            onClick={forceRenderButtons}
+            onClick={refreshButtons}
             className="text-xs text-blue-600 hover:text-blue-800 underline"
           >
             Payment options not showing? Click to refresh
           </button>
-        </div>
-      )}
-      
-      {/* Debug panel only in development */}
-      {isDevelopment && debugInfo.length > 0 && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => setShowDebugPanel(!showDebugPanel)}
-            className="text-xs text-gray-500 hover:text-gray-700 underline"
-          >
-            {showDebugPanel ? '▲' : '▼'} Debug Info (Development Only)
-          </button>
-          {showDebugPanel && (
-            <div className="mt-2 text-left bg-gray-100 p-2 rounded text-xs max-w-md mx-auto">
-              <div className="max-h-32 overflow-auto">
-                {debugInfo.map((info, index) => (
-                  <div key={index} className={`mb-1 ${
-                    info.level === 'error' ? 'text-red-600' : 
-                    info.level === 'warn' ? 'text-yellow-600' : 'text-gray-600'
-                  }`}>
-                    <span className="font-mono">{info.timestamp}</span>: {info.message}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>
