@@ -99,7 +99,10 @@ export const useSubscription = (currentUserId: string) => {
               }
             }
             
-            setIsPremiumUser(existingSubscription.scan_count > 0 && existingSubscription.tier !== 'demo');
+            // Set premium status based on actual subscription data
+            const hasPaidTier = existingSubscription.tier !== 'demo';
+            const hasRemainingScans = existingSubscription.scan_count > 0;
+            setIsPremiumUser(hasPaidTier && hasRemainingScans);
             setCurrentSubscription(existingSubscription);
             return;
           }
@@ -136,16 +139,19 @@ export const useSubscription = (currentUserId: string) => {
           .eq('user_id', currentUserId)
           .maybeSingle();
         
-        if (subscription && subscription.status === 'active') {
-          // Only set as premium if user has remaining scans AND is not demo tier
+        console.log('Fetched subscription for user:', subscription);
+        
+        if (subscription) {
+          // Set premium status based on tier and remaining scans
           const hasPaidTier = subscription.tier !== 'demo';
           const hasRemainingScans = subscription.scan_count > 0;
+          const isActiveStatus = subscription.status === 'active';
           
-          setIsPremiumUser(hasPaidTier && hasRemainingScans);
+          setIsPremiumUser(hasPaidTier && hasRemainingScans && isActiveStatus);
           setCurrentSubscription(subscription);
         } else {
           setIsPremiumUser(false);
-          setCurrentSubscription(subscription);
+          setCurrentSubscription(null);
         }
       } catch (error) {
         console.error('Error checking subscription:', error);

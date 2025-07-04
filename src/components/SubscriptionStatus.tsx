@@ -13,12 +13,16 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   currentSubscription,
   getRemainingExports,
 }) => {
-  if (!isPremiumUser || !currentSubscription) {
+  // Only show if user has an active subscription
+  if (!currentSubscription || !currentSubscription.tier || currentSubscription.tier === 'demo') {
     return null;
   }
 
   const remainingExports = getRemainingExports ? getRemainingExports() : currentSubscription.scan_count;
   const isUnlimited = currentSubscription.tier === 'unlimited';
+  
+  // Get the actual tier name from the subscription
+  const tierName = currentSubscription.tier.charAt(0).toUpperCase() + currentSubscription.tier.slice(1);
 
   return (
     <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
@@ -26,7 +30,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
         <div className="flex items-center">
           <Shield className="h-5 w-5 text-green-600 mr-2" />
           <span className="font-medium text-green-800">
-            {currentSubscription.tier.charAt(0).toUpperCase() + currentSubscription.tier.slice(1)} Plan Active
+            {tierName} Plan Active
           </span>
         </div>
         <div className="flex items-center text-green-600 font-medium">
