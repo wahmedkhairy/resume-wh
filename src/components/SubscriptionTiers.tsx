@@ -47,10 +47,10 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
         period: "one-time payment",
         description: "Perfect for job seekers starting their career",
         features: [
-          "2 Resume editor exports",
-          "1 Targeted job resume (one-time)",
+          "2 Professional resume exports",
           "Basic ATS optimization",
           "PDF export",
+          "1 Targeted resume per month",
           "Email support"
         ],
         icon: <Zap className="h-6 w-6" />,
@@ -64,10 +64,11 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
         period: "one-time payment",
         description: "Most popular choice for serious job seekers",
         features: [
-          "6 Resume editor exports",
-          "3 Targeted job resumes (one-time)",
+          "All Basic features",
+          "6 Professional resume exports",
           "Advanced ATS analysis",
           "PDF & Word export",
+          "3 Targeted resumes per month",
           "Priority support",
           "Interview preparation tips"
         ],
@@ -82,8 +83,9 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
         period: "one-time payment",
         description: "For professionals who need maximum flexibility",
         features: [
-          "Unlimited resume editor exports",
-          "Unlimited targeted job resumes",
+          "All Premium features",
+          "Unlimited resume exports",
+          "Unlimited targeted resumes",
           "Advanced career insights",
           "1-on-1 career consultation",
           "Priority queue processing",
@@ -102,31 +104,32 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
     return currentSubscription?.tier === tierId && currentSubscription?.status === 'active';
   };
 
-  const canPurchase = (tierId: string) => {
-    // Users can always purchase/upgrade to any tier
-    return true;
+  const canResubscribe = (tierId: string) => {
+    if (!currentSubscription) return true;
+    
+    const noRemainingExports = currentSubscription.scan_count <= 0;
+    const isInactive = currentSubscription.status !== 'active';
+    
+    return isInactive || noRemainingExports;
   };
 
   const getButtonText = (tier: any) => {
-    if (isCurrentTier(tier.id)) {
+    if (isCurrentTier(tier.id) && currentSubscription?.scan_count > 0) {
       return "Current Plan";
+    }
+    
+    if (currentSubscription?.scan_count <= 0) {
+      if (currentSubscription?.tier === tier.id) {
+        return `Renew ${tier.name}`;
+      } else {
+        return `Switch to ${tier.name}`;
+      }
     }
     
     return tier.buttonText;
   };
 
-  const getButtonVariant = (tier: any) => {
-    if (isCurrentTier(tier.id)) {
-      return "secondary";
-    }
-    return "default";
-  };
-
   const handleTierClick = (tierId: string) => {
-    if (isCurrentTier(tierId)) {
-      return; // Don't allow clicking on current tier
-    }
-    
     if (onSubscriptionSelect) {
       onSubscriptionSelect(tierId);
     }
@@ -172,14 +175,19 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
             </ul>
             
             <div className="pt-4">
-              <Button 
-                className="w-full"
-                variant={getButtonVariant(tier)}
-                onClick={() => handleTierClick(tier.id)}
-                disabled={isCurrentTier(tier.id)}
-              >
-                {getButtonText(tier)}
-              </Button>
+              {isCurrentTier(tier.id) && currentSubscription?.scan_count > 0 ? (
+                <Button className="w-full" disabled>
+                  Current Plan
+                </Button>
+              ) : (
+                <Button 
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  onClick={() => handleTierClick(tier.id)}
+                  disabled={!canResubscribe(tier.id) && !isCurrentTier(tier.id)}
+                >
+                  {getButtonText(tier)}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

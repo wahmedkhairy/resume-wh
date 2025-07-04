@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { removeBackground, loadImage } from '@/utils/backgroundRemoval';
 import { useToast } from '@/hooks/use-toast';
 import { Download, Upload, Settings } from 'lucide-react';
-import JSZip from 'jszip';
 
 const FaviconProcessor: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -102,7 +101,7 @@ const FaviconProcessor: React.FC = () => {
       
       // Generate different sizes
       const sizes = [16, 32, 48];
-      const zip = new JSZip();
+      const zip = new JSZip(); // You'll need to install jszip
       
       for (const size of sizes) {
         const resizedBlob = await resizeImage(blob, size);
