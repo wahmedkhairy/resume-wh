@@ -13,99 +13,68 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   currentSubscription,
   getRemainingExports,
 }) => {
-  if (!isPremiumUser || !currentSubscription) {
+  // Don't show anything if there's no subscription
+  if (!currentSubscription) {
     return null;
   }
 
-  const remainingExports = getRemainingExports ? getRemainingExports() : currentSubscription.scan_count;
-  const isUnlimited = currentSubscription.tier === 'unlimited';
+  // Don't show for demo tier users
+  if (currentSubscription.tier === 'demo') {
+    return null;
+  }
+
+  const tier = currentSubscription.tier;
+  const isUnlimited = tier === 'unlimited';
   
-  // Get the proper plan name based on the actual tier
-  const getPlanName = (tier: string) => {
-    switch (tier) {
-      case 'basic':
-        return 'Basic Plan';
-      case 'premium':
-        return 'Premium Plan';
-      case 'unlimited':
-        return 'Unlimited Plan';
-      default:
-        return 'Plan';
+  // Calculate remaining exports
+  let remainingExports;
+  if (getRemainingExports) {
+    remainingExports = getRemainingExports();
+  } else {
+    remainingExports = isUnlimited ? 999 : (currentSubscription.scan_count || 0);
+  }
+
+  // Define tier configurations
+  const tierConfig = {
+    basic: {
+      name: 'Basic Plan',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
+      textColor: 'text-green-800',
+      iconColor: 'text-green-600',
+      exportsColor: 'text-green-600'
+    },
+    premium: {
+      name: 'Premium Plan',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      textColor: 'text-blue-800',
+      iconColor: 'text-blue-600',
+      exportsColor: 'text-blue-600'
+    },
+    unlimited: {
+      name: 'Unlimited Plan',
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-200',
+      textColor: 'text-yellow-800',
+      iconColor: 'text-yellow-600',
+      exportsColor: 'text-yellow-600'
     }
   };
 
-  // Get the appropriate background color based on tier
-  const getBackgroundColor = (tier: string) => {
-    switch (tier) {
-      case 'basic':
-        return 'bg-green-50 border-green-200';
-      case 'premium':
-        return 'bg-blue-50 border-blue-200';
-      case 'unlimited':
-        return 'bg-yellow-50 border-yellow-200';
-      default:
-        return 'bg-green-50 border-green-200';
-    }
-  };
-
-  // Get the appropriate text color based on tier
-  const getTextColor = (tier: string) => {
-    switch (tier) {
-      case 'basic':
-        return 'text-green-800';
-      case 'premium':
-        return 'text-blue-800';
-      case 'unlimited':
-        return 'text-yellow-800';
-      default:
-        return 'text-green-800';
-    }
-  };
-
-  // Get the appropriate icon color based on tier
-  const getIconColor = (tier: string) => {
-    switch (tier) {
-      case 'basic':
-        return 'text-green-600';
-      case 'premium':
-        return 'text-blue-600';
-      case 'unlimited':
-        return 'text-yellow-600';
-      default:
-        return 'text-green-600';
-    }
-  };
-
-  // Get the appropriate exports text color based on tier
-  const getExportsTextColor = (tier: string) => {
-    switch (tier) {
-      case 'basic':
-        return 'text-green-600';
-      case 'premium':
-        return 'text-blue-600';
-      case 'unlimited':
-        return 'text-yellow-600';
-      default:
-        return 'text-green-600';
-    }
-  };
-
-  const planName = getPlanName(currentSubscription.tier);
-  const backgroundColorClass = getBackgroundColor(currentSubscription.tier);
-  const textColorClass = getTextColor(currentSubscription.tier);
-  const iconColorClass = getIconColor(currentSubscription.tier);
-  const exportsTextColorClass = getExportsTextColor(currentSubscription.tier);
+  // Get current tier config or default to basic
+  const config = tierConfig[tier as keyof typeof tierConfig] || tierConfig.basic;
 
   return (
-    <div className={`${backgroundColorClass} border p-4 rounded-lg`}>
+    <div className={`${config.bgColor} ${config.borderColor} border p-4 rounded-lg`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <Shield className={`h-5 w-5 ${iconColorClass} mr-2`} />
-          <span className={`font-medium ${textColorClass}`}>
-            {planName} Active
+          <Shield className={`h-5 w-5 ${config.iconColor} mr-2`} />
+          <span className={`font-medium ${config.textColor}`}>
+            {config.name} Active
           </span>
         </div>
-        <div className={`flex items-center ${exportsTextColorClass} font-medium`}>
+        <div className={`flex items-center ${config.exportsColor} font-medium`}>
           {isUnlimited ? (
             <>
               <Infinity className="h-4 w-4 mr-1" />
