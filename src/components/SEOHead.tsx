@@ -23,7 +23,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   title, 
   description, 
   canonicalUrl,
-  keywords,
+  keywords = "resume builder, ATS resume builder, AI resume generator, resume builder Egypt, free resume maker, professional resume template, job-winning resume, Arabic English resume, resume builder pricing, export resume to PDF",
   ogTitle,
   ogDescription,
   ogImage = "/lovable-uploads/a962d0b8-93d6-44ee-bf91-1cb5a307f7c3.png",
@@ -40,7 +40,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
-      {keywords && <meta name="keywords" content={keywords} />}
+      <meta name="keywords" content={keywords} />
       <link rel="canonical" href={canonicalUrl} />
       
       {/* Open Graph Meta Tags */}

@@ -3,10 +3,9 @@ import React from "react";
 import ResumeData from "@/components/ResumeData";
 import PreviewSection from "@/components/PreviewSection";
 import ExportControls from "@/components/ExportControls";
+import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatusCard";
 import TailoredResumeNotice from "@/components/TailoredResumeNotice";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Download } from "lucide-react";
 
 interface Skill {
   id: string;
@@ -97,35 +96,12 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   canExport,
   getCurrentResumeData,
 }) => {
-  const getExportInfo = () => {
-    if (!currentSubscription) {
-      return {
-        remaining: 0,
-        isUnlimited: false
-      };
-    }
-
-    const isUnlimited = currentSubscription.tier === 'unlimited';
-    const remaining = isUnlimited ? 999 : (currentSubscription.scan_count || 0);
-    
-    return {
-      remaining,
-      isUnlimited
-    };
-  };
-
-  const exportInfo = getExportInfo();
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column - Editor */}
         <div className="lg:col-span-6 space-y-6">
           <div>
-            <h3 className="text-xl font-semibold mb-4 text-gray-900">
-              Resume Builder Tools - Create Your Professional CV
-            </h3>
-            
             {tailoredResumeData && (
               <TailoredResumeNotice onSwitchToOriginal={onClearTailoredResume} />
             )}
@@ -140,27 +116,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
               canExport={canExport()}
             />
 
-            {/* Simplified Export Status Card */}
-            <Card className="bg-blue-50 border-blue-200">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Download className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium text-blue-800">
-                      Export Status
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center text-blue-600 font-medium">
-                    {exportInfo.isUnlimited ? (
-                      <span>Unlimited exports available</span>
-                    ) : (
-                      <span>{exportInfo.remaining} exports remaining</span>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <SubscriptionStatusCard subscription={currentSubscription} />
           </div>
           
           <ResumeData
@@ -183,11 +139,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         <div className="lg:col-span-6">
           <div className="mb-4">
             <h3 className="text-xl font-semibold text-gray-900">
-              Live Resume Preview - ATS-Optimized Format
+              Resume Preview
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Preview your professional resume in real-time. This ATS-friendly template ensures compatibility with applicant tracking systems.
-            </p>
           </div>
           
           <PreviewSection

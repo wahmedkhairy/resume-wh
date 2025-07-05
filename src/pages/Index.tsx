@@ -169,26 +169,26 @@ const Index = () => {
       case "ats":
         return {
           title: "Free ATS Resume Scanner & Checker - Optimize for Applicant Tracking Systems",
-          description: "Test your resume against ATS systems for free. Our AI-powered scanner identifies optimization opportunities and ensures your CV passes applicant tracking software used by top employers.",
-          keywords: "ATS resume scanner, applicant tracking system checker, resume optimization, ATS-friendly resume template, job application scanner",
+          description: "Test your resume against ATS systems for free with our AI resume generator. Our ATS resume builder scanner identifies optimization opportunities for job-winning resumes in Egypt and globally.",
+          keywords: "ATS resume scanner, ATS resume builder, applicant tracking system checker, resume optimization, AI resume generator, free resume maker, job-winning resume",
           ogTitle: "Free ATS Resume Scanner - Check Your Resume Score",
-          ogDescription: "Scan your resume for ATS compatibility and get instant feedback on how to improve your job application success rate."
+          ogDescription: "Scan your resume for ATS compatibility with our professional resume builder and get instant feedback on optimization."
         };
       case "tailor":
         return {
           title: "AI Resume Tailor - Generate Targeted Resumes for Specific Jobs",
-          description: "Create job-specific resumes with our AI resume generator. Tailor your CV for each application and increase your chances of landing interviews with targeted resume content.",
-          keywords: "targeted resume generator, AI resume builder, job-specific resume, tailored CV maker, resume customization",
+          description: "Create job-specific resumes with our AI resume generator. Our resume builder Egypt helps you tailor professional resume templates for each application and increase interview chances.",
+          keywords: "AI resume generator, targeted resume generator, resume builder, job-specific resume, professional resume template, resume builder Egypt, Arabic English resume",
           ogTitle: "AI-Powered Targeted Resume Generator",
-          ogDescription: "Generate customized resumes for specific job applications using advanced AI technology."
+          ogDescription: "Generate customized resumes for specific job applications using our advanced AI resume builder technology."
         };
       default:
         return {
           title: "Professional Resume Builder - Create ATS-Optimized Resumes Online Free",
-          description: "Build professional, ATS-friendly resumes with our AI-powered resume builder. Create job-winning CVs, export to PDF/Word, and land more interviews. Free resume templates for all career levels.",
-          keywords: "resume builder, ATS resume builder, AI resume generator, online CV maker, professional resume template, free resume maker, job-winning resume",
+          description: "Build professional, ATS-friendly resumes with our AI-powered resume builder. Create job-winning CVs with free resume maker, export resume to PDF/Word, and land more interviews. Professional resume templates for Egypt and all career levels.",
+          keywords: "resume builder, ATS resume builder, AI resume generator, free resume maker, professional resume template, job-winning resume, resume builder Egypt, Arabic English resume, export resume to PDF, resume builder pricing",
           ogTitle: "Best ATS Resume Builder 2025 - Create Professional CVs Online",
-          ogDescription: "Create professional resumes that pass ATS systems and impress recruiters. Free resume builder with AI-powered optimization and professional templates."
+          ogDescription: "Create professional resumes that pass ATS systems with our AI resume generator. Free resume maker with job-winning resume templates for Egypt and global markets."
         };
     }
   };
