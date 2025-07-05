@@ -1,10 +1,12 @@
+
 import React from "react";
 import ResumeData from "@/components/ResumeData";
 import PreviewSection from "@/components/PreviewSection";
 import ExportControls from "@/components/ExportControls";
-import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatusCard";
 import TailoredResumeNotice from "@/components/TailoredResumeNotice";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Download } from "lucide-react";
 
 interface Skill {
   id: string;
@@ -95,27 +97,27 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   canExport,
   getCurrentResumeData,
 }) => {
+  const getExportInfo = () => {
+    if (!currentSubscription) {
+      return {
+        remaining: 0,
+        isUnlimited: false
+      };
+    }
+
+    const isUnlimited = currentSubscription.tier === 'unlimited';
+    const remaining = isUnlimited ? 999 : (currentSubscription.scan_count || 0);
+    
+    return {
+      remaining,
+      isUnlimited
+    };
+  };
+
+  const exportInfo = getExportInfo();
+
   return (
     <div className="space-y-6">
-      {/* SEO-optimized intro section */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border">
-        <div className="max-w-4xl">
-          <h2 className="text-2xl font-bold mb-3 text-gray-900">
-            Build Your Professional Resume with AI-Powered Resume Builder
-          </h2>
-          <p className="text-gray-700 mb-4">
-            Create an <strong>ATS-optimized resume</strong> that passes applicant tracking systems used by top employers. 
-            Our <strong>AI resume generator</strong> helps you build job-winning CVs with professional templates designed for 2025.
-          </p>
-          <div className="flex flex-wrap gap-2 text-sm">
-            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">✓ ATS-Friendly Templates</span>
-            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">✓ Export to PDF & Word</span>
-            <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">✓ AI-Powered Optimization</span>
-            <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full">✓ Free Resume Builder</span>
-          </div>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column - Editor */}
         <div className="lg:col-span-6 space-y-6">
@@ -138,7 +140,27 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
               canExport={canExport()}
             />
 
-            <SubscriptionStatusCard subscription={currentSubscription} />
+            {/* Simplified Export Status Card */}
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Download className="h-5 w-5 text-blue-600" />
+                    <span className="font-medium text-blue-800">
+                      Export Status
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center text-blue-600 font-medium">
+                    {exportInfo.isUnlimited ? (
+                      <span>Unlimited exports available</span>
+                    ) : (
+                      <span>{exportInfo.remaining} exports remaining</span>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
           
           <ResumeData
