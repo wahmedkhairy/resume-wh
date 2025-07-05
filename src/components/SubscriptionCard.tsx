@@ -26,6 +26,22 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onRef
     }
   };
 
+  // Helper function to get proper tier display name
+  const getTierDisplayName = (tier: string) => {
+    switch (tier) {
+      case 'basic':
+        return 'Basic';
+      case 'premium':
+        return 'Premium';
+      case 'unlimited':
+        return 'Unlimited';
+      case 'demo':
+        return 'Demo';
+      default:
+        return tier.charAt(0).toUpperCase() + tier.slice(1);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -42,7 +58,7 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onRef
               <label className="text-sm font-medium text-muted-foreground">Current Plan</label>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="outline" className="capitalize">
-                  {subscription.tier}
+                  {getTierDisplayName(subscription.tier)}
                 </Badge>
                 <Badge variant={getSubscriptionStatusVariant(subscription.status)}>
                   {subscription.status}

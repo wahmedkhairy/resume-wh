@@ -18,8 +18,24 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({ subscri
     const isUnlimited = tier === 'unlimited';
     const remainingExports = isUnlimited ? 999 : (subscription.scan_count || 0);
     
+    // Properly capitalize tier names
+    let displayName = '';
+    switch (tier) {
+      case 'basic':
+        displayName = 'Basic';
+        break;
+      case 'premium':
+        displayName = 'Premium';
+        break;
+      case 'unlimited':
+        displayName = 'Unlimited';
+        break;
+      default:
+        displayName = tier.charAt(0).toUpperCase() + tier.slice(1);
+    }
+    
     return {
-      name: tier.charAt(0).toUpperCase() + tier.slice(1),
+      name: displayName,
       isUnlimited,
       remainingExports,
       isActive: subscription.status === 'active'

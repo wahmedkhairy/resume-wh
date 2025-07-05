@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { FileText, CreditCard, LogIn, UserPlus, Zap } from "lucide-react";
+import { CreditCard, LogIn, UserPlus, Zap } from "lucide-react";
 import LiveSubscriptionDialog from "@/components/LiveSubscriptionDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -43,7 +43,11 @@ const Header = () => {
     <header className="bg-white dark:bg-gray-900 border-b py-4 px-6">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <FileText className="h-8 w-8 text-resume-primary" />
+          <img 
+            src="/lovable-uploads/a962d0b8-93d6-44ee-bf91-1cb5a307f7c3.png" 
+            alt="Resume Builder Logo" 
+            className="h-8 w-8"
+          />
           <span className="text-xl font-bold">
             Resume<span className="text-resume-primary"> Builder</span>
           </span>
