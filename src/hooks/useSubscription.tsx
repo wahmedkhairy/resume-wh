@@ -14,142 +14,74 @@ export const useSubscription = (currentUserId: string) => {
       if (!currentUserId) return;
 
       try {
-        // Check if this is one of the special free users
+        console.log('Checking subscription for user:', currentUserId);
+        
+        // Get current user email for special user handling
         const { data: { user } } = await supabase.auth.getUser();
+        console.log('Current user email:', user?.email);
+        
+        // Check if this is one of the special free users
         const specialFreeUsers = [
           "ahmedkhairyabdelfatah@gmail.com",
           "ahmedz.khairy@gmail.com"
         ];
         const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
+        console.log('Is special unlimited user:', isSpecialUser);
         
         // Check if this is the basic plan user
         const basicPlanUsers = ["ahmedz.khairy88@gmail.com"];
         const isBasicUser = user?.email && basicPlanUsers.includes(user.email);
+        console.log('Is basic plan user:', isBasicUser);
         
         if (isSpecialUser) {
-          // Check if subscription exists in database first
-          const { data: existingSubscription } = await supabase
-            .from('subscriptions')
-            .select('*')
-            .eq('user_id', currentUserId)
-            .maybeSingle();
-
-          if (existingSubscription) {
-            setIsPremiumUser(true);
-            setCurrentSubscription(existingSubscription);
-            return;
-          }
-
-          // Create unlimited subscription in database if it doesn't exist
-          const { data: newSubscription, error } = await supabase
-            .from('subscriptions')
-            .insert({
-              user_id: currentUserId,
-              tier: 'unlimited',
-              scan_count: 999,
-              max_scans: 999,
-              status: 'active'
-            })
-            .select()
-            .single();
-
-          if (error) {
-            console.error('Error creating unlimited subscription:', error);
-            return;
-          }
-
+          // Handle unlimited users
+          let subscription = await getOrCreateSubscription(currentUserId, 'unlimited', 999, 999);
           setIsPremiumUser(true);
-          setCurrentSubscription(newSubscription);
+          setCurrentSubscription(subscription);
           return;
         }
         
         if (isBasicUser) {
-          console.log('Processing basic plan user:', user.email);
-          
-          // Check if subscription exists in database first
-          const { data: existingSubscription } = await supabase
-            .from('subscriptions')
-            .select('*')
-            .eq('user_id', currentUserId)
-            .maybeSingle();
-
-          if (existingSubscription) {
-            console.log('Found existing subscription for basic user:', existingSubscription);
-            
-            // Ensure they have the correct basic plan setup
-            if (existingSubscription.tier !== 'basic' || existingSubscription.max_scans !== 2) {
-              const { data: updatedSubscription, error: updateError } = await supabase
-                .from('subscriptions')
-                .update({
-                  tier: 'basic',
-                  scan_count: Math.max(existingSubscription.scan_count, 2),
-                  max_scans: 2,
-                  status: 'active'
-                })
-                .eq('user_id', currentUserId)
-                .select()
-                .single();
-              
-              if (updateError) {
-                console.error('Error updating basic subscription:', updateError);
-              } else {
-                setCurrentSubscription(updatedSubscription);
-                setIsPremiumUser(true);
-                return;
-              }
-            }
-            
-            // Set premium status based on actual subscription data
-            const hasPaidTier = existingSubscription.tier !== 'demo';
-            const hasRemainingScans = existingSubscription.scan_count > 0;
-            setIsPremiumUser(hasPaidTier && hasRemainingScans);
-            setCurrentSubscription(existingSubscription);
-            return;
-          }
-
-          // Create basic subscription in database if it doesn't exist
-          console.log('Creating new basic subscription for user');
-          const { data: newSubscription, error } = await supabase
-            .from('subscriptions')
-            .insert({
-              user_id: currentUserId,
-              tier: 'basic',
-              scan_count: 2,
-              max_scans: 2,
-              status: 'active'
-            })
-            .select()
-            .single();
-
-          if (error) {
-            console.error('Error creating basic subscription:', error);
-            return;
-          }
-
-          console.log('Created basic subscription:', newSubscription);
+          // Handle basic plan user
+          let subscription = await getOrCreateSubscription(currentUserId, 'basic', 2, 2);
           setIsPremiumUser(true);
-          setCurrentSubscription(newSubscription);
+          setCurrentSubscription(subscription);
           return;
         }
 
-        // For all other users, fetch from database
-        const { data: subscription } = await supabase
+        // For all other users, fetch actual subscription from database
+        const { data: subscription, error } = await supabase
           .from('subscriptions')
           .select('*')
           .eq('user_id', currentUserId)
           .maybeSingle();
         
-        console.log('Fetched subscription for user:', subscription);
+        if (error) {
+          console.error('Error fetching subscription:', error);
+          return;
+        }
+        
+        console.log('Fetched subscription from database:', subscription);
         
         if (subscription) {
-          // Set premium status based on tier and remaining scans
-          const hasPaidTier = subscription.tier !== 'demo';
+          // Determine premium status based on actual subscription data
+          const hasPaidTier = subscription.tier !== 'demo' && subscription.tier !== null;
           const hasRemainingScans = subscription.scan_count > 0;
           const isActiveStatus = subscription.status === 'active';
+          
+          console.log('Subscription analysis:', {
+            tier: subscription.tier,
+            hasPaidTier,
+            scanCount: subscription.scan_count,
+            hasRemainingScans,
+            status: subscription.status,
+            isActiveStatus
+          });
           
           setIsPremiumUser(hasPaidTier && hasRemainingScans && isActiveStatus);
           setCurrentSubscription(subscription);
         } else {
+          console.log('No subscription found, user is not premium');
           setIsPremiumUser(false);
           setCurrentSubscription(null);
         }
@@ -160,6 +92,60 @@ export const useSubscription = (currentUserId: string) => {
 
     checkSubscription();
   }, [currentUserId]);
+
+  // Helper function to get or create subscription for special users
+  const getOrCreateSubscription = async (userId: string, tier: string, scanCount: number, maxScans: number) => {
+    // Check if subscription exists
+    const { data: existingSubscription } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (existingSubscription) {
+      // Update if tier or limits don't match
+      if (existingSubscription.tier !== tier || existingSubscription.max_scans !== maxScans) {
+        const { data: updatedSubscription, error } = await supabase
+          .from('subscriptions')
+          .update({
+            tier,
+            scan_count: Math.max(existingSubscription.scan_count, scanCount),
+            max_scans: maxScans,
+            status: 'active'
+          })
+          .eq('user_id', userId)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Error updating subscription:', error);
+          return existingSubscription;
+        }
+        return updatedSubscription;
+      }
+      return existingSubscription;
+    }
+
+    // Create new subscription
+    const { data: newSubscription, error } = await supabase
+      .from('subscriptions')
+      .insert({
+        user_id: userId,
+        tier,
+        scan_count: scanCount,
+        max_scans: maxScans,
+        status: 'active'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating subscription:', error);
+      return null;
+    }
+
+    return newSubscription;
+  };
 
   const canExport = () => {
     if (!currentSubscription) return false;

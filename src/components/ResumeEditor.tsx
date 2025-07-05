@@ -4,7 +4,6 @@ import ResumeData from "@/components/ResumeData";
 import PreviewSection from "@/components/PreviewSection";
 import ExportControls from "@/components/ExportControls";
 import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatusCard";
-import CallToAction from "@/components/CallToAction";
 import TailoredResumeNotice from "@/components/TailoredResumeNotice";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
 
@@ -116,16 +115,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         />
 
         <SubscriptionStatusCard subscription={currentSubscription} />
-
-        {/* Success CTA after resume completion */}
-        {personalInfo.name && workExperience.length > 0 && (
-          <CallToAction 
-            variant="success"
-            onPrimaryClick={onExport}
-            onSecondaryClick={() => {}}
-            secondaryAction="Run ATS Analysis"
-          />
-        )}
         
         <ResumeData
           personalInfo={personalInfo}
