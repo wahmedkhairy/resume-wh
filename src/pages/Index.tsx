@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -218,18 +219,6 @@ const Index = () => {
       
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
-          {currentSection === "editor" && (
-            <div className="mb-8 text-center">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                Professional ATS Resume Builder - Create Job-Winning CVs Online
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                Build ATS-optimized resumes with our AI-powered resume generator. Create professional CVs that pass applicant tracking systems and land more interviews. 
-                <span className="font-semibold"> Free resume templates</span> for freshers and experienced professionals.
-              </p>
-            </div>
-          )}
-
           <MainContent
             currentSection={currentSection}
             personalInfo={personalInfo}

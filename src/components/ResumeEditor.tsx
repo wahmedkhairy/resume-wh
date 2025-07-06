@@ -3,7 +3,6 @@ import React from "react";
 import ResumeData from "@/components/ResumeData";
 import PreviewSection from "@/components/PreviewSection";
 import ExportControls from "@/components/ExportControls";
-import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatusCard";
 import TailoredResumeNotice from "@/components/TailoredResumeNotice";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
 
@@ -115,8 +114,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
               isExporting={isExporting}
               canExport={canExport()}
             />
-
-            <SubscriptionStatusCard subscription={currentSubscription} />
           </div>
           
           <ResumeData

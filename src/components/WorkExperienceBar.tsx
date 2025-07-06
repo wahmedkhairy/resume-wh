@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Briefcase, Plus, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Briefcase, Plus, Trash2, List, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface WorkExperience {
@@ -16,6 +17,7 @@ interface WorkExperience {
   endDate: string;
   location: string;
   responsibilities: string[];
+  responsibilityFormat?: 'bullets' | 'paragraph';
 }
 
 interface WorkExperienceBarProps {
@@ -38,7 +40,8 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
       startDate: "",
       endDate: "",
       location: "",
-      responsibilities: [""]
+      responsibilities: [""],
+      responsibilityFormat: 'bullets'
     };
     
     const updatedExperiences = [...experiences, newExperience];
@@ -60,6 +63,35 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
     const updatedExperiences = experiences.map(exp =>
       exp.id === id ? { ...exp, [field]: value } : exp
     );
+    setExperiences(updatedExperiences);
+    if (onExperienceChange) {
+      onExperienceChange(updatedExperiences);
+    }
+  };
+
+  const updateResponsibilityFormat = (expId: string, format: 'bullets' | 'paragraph') => {
+    const updatedExperiences = experiences.map(exp => {
+      if (exp.id === expId) {
+        // Convert between formats
+        let newResponsibilities = exp.responsibilities;
+        if (format === 'paragraph' && exp.responsibilities.length > 1) {
+          // Join bullet points into paragraph
+          newResponsibilities = [exp.responsibilities.join(' ')];
+        } else if (format === 'bullets' && exp.responsibilities.length === 1) {
+          // Split paragraph into bullet points by sentences
+          const sentences = exp.responsibilities[0].split(/[.!?]+/).filter(s => s.trim());
+          newResponsibilities = sentences.length > 1 ? sentences.map(s => s.trim()) : exp.responsibilities;
+        }
+        
+        return { 
+          ...exp, 
+          responsibilityFormat: format,
+          responsibilities: newResponsibilities
+        };
+      }
+      return exp;
+    });
+    
     setExperiences(updatedExperiences);
     if (onExperienceChange) {
       onExperienceChange(updatedExperiences);
@@ -184,33 +216,71 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
               </div>
               
               <div className="space-y-2">
-                <Label>Responsibilities</Label>
-                {experience.responsibilities.map((responsibility, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Textarea
-                      placeholder="Describe your responsibility..."
-                      value={responsibility}
-                      onChange={(e) => updateResponsibility(experience.id, index, e.target.value)}
-                      className="min-h-[60px]"
-                    />
+                <div className="flex items-center justify-between">
+                  <Label>Responsibilities</Label>
+                  <Select
+                    value={experience.responsibilityFormat || 'bullets'}
+                    onValueChange={(value: 'bullets' | 'paragraph') => 
+                      updateResponsibilityFormat(experience.id, value)
+                    }
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bullets">
+                        <div className="flex items-center gap-2">
+                          <List className="h-4 w-4" />
+                          Bullet Points
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="paragraph">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          Paragraph
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {experience.responsibilityFormat === 'paragraph' ? (
+                  <Textarea
+                    placeholder="Describe your responsibilities in paragraph format..."
+                    value={experience.responsibilities[0] || ''}
+                    onChange={(e) => updateResponsibility(experience.id, 0, e.target.value)}
+                    className="min-h-[120px]"
+                  />
+                ) : (
+                  <>
+                    {experience.responsibilities.map((responsibility, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Textarea
+                          placeholder="• Describe your responsibility..."
+                          value={responsibility}
+                          onChange={(e) => updateResponsibility(experience.id, index, e.target.value)}
+                          className="min-h-[60px]"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeResponsibility(experience.id, index)}
+                          disabled={experience.responsibilities.length === 1}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => removeResponsibility(experience.id, index)}
-                      disabled={experience.responsibilities.length === 1}
+                      onClick={() => addResponsibility(experience.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Responsibility
                     </Button>
-                  </div>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addResponsibility(experience.id)}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Responsibility
-                </Button>
+                  </>
+                )}
               </div>
             </div>
           ))}
