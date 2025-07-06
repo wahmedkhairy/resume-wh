@@ -161,6 +161,13 @@ const LivePaymentModal: React.FC<LivePaymentModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Complete Your Payment</DialogTitle>
+          <DialogDescription>
+            Secure live payment processing for your {selectedTier} plan
+          </DialogDescription>
+        </DialogHeader>
+
         <div className="mt-6 space-y-4">
           <div className="border rounded-lg p-4 bg-muted/50">
             <h3 className="font-semibold text-lg mb-2">

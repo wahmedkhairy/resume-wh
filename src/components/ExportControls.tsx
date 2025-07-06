@@ -1,86 +1,134 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Crown, Download } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Save, Download, FileText, Crown } from "lucide-react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import LiveSubscriptionDialog from "@/components/LiveSubscriptionDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface ExportControlsProps {
   onSave: () => void;
   isSaving: boolean;
-  isTailoredResume: boolean;
-  onExport: () => void;
-  onExportWord: () => void;
-  isExporting: boolean;
-  canExport: boolean;
-  remainingExports?: number;
-  isPremiumUser?: boolean;
+  isTailoredResume?: boolean;
+  onExport?: () => void;
+  onExportWord?: () => void;
+  isExporting?: boolean;
+  canExport?: boolean;
 }
 
 const ExportControls: React.FC<ExportControlsProps> = ({
   onSave,
   isSaving,
-  isTailoredResume,
+  isTailoredResume = false,
   onExport,
   onExportWord,
-  isExporting,
-  canExport,
-  remainingExports = 0,
-  isPremiumUser = false,
+  isExporting = false,
+  canExport = false,
 }) => {
-  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleExportClick = () => {
-    if (!isPremiumUser) {
-      navigate('/subscription');
+  const handleExportClick = async () => {
+    if (isExporting || !canExport || !onExport) {
+      if (!canExport) {
+        toast({
+          title: "Export Not Available",
+          description: "Please upgrade to export your resume.",
+          variant: "destructive",
+        });
+      }
       return;
     }
-    
-    // For premium users, show export options
-    if (canExport) {
-      // Create a simple dropdown or modal for PDF/Word selection
-      const choice = window.confirm("Choose export format:\nOK for PDF\nCancel for Word");
-      if (choice) {
-        onExport();
-      } else {
-        onExportWord();
+
+    try {
+      await onExport();
+    } catch (error) {
+      toast({
+        title: "Export Failed", 
+        description: "There was an error exporting your resume.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleWordExportClick = async () => {
+    if (isExporting || !canExport || !onExportWord) {
+      if (!canExport) {
+        toast({
+          title: "Export Not Available",
+          description: "Please upgrade to export your resume.",
+          variant: "destructive",
+        });
       }
+      return;
+    }
+
+    try {
+      await onExportWord();
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting your resume as Word.",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <div className="flex gap-4 mb-6">
-      <Button
-        onClick={onSave}
-        disabled={isSaving || isTailoredResume}
-        variant="outline"
-        className="flex items-center gap-2"
-      >
-        📄 {isSaving ? "Saving..." : "Save"}
-      </Button>
-      
-      <Button
-        onClick={handleExportClick}
-        disabled={isExporting}
-        className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-      >
-        {isPremiumUser ? (
-          <>
-            <Download className="h-4 w-4" />
-            {isExporting ? "Exporting..." : "Export Resume"}
-          </>
-        ) : (
-          <>
-            <Crown className="h-4 w-4" />
-            Export Resume
-          </>
-        )}
-      </Button>
-      
-      {isPremiumUser && (
-        <div className="text-sm bg-blue-100 text-blue-800 px-3 py-2 rounded-lg flex items-center">
-          {remainingExports} exports remaining
+    <div className="space-y-4">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-bold">
+            {isTailoredResume ? "Targeted Resume Editor" : "ATS Resume Editor"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {isTailoredResume ? "Your customized resume for the job" : "Professional resume template"}
+          </p>
         </div>
-      )}
+        <div className="flex gap-2">
+          <Button 
+            onClick={onSave}
+            disabled={isSaving}
+            variant="outline"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {isSaving ? "Saving..." : "Save"}
+          </Button>
+          
+          {/* Export Controls */}
+          {canExport ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button disabled={isExporting}>
+                  <Download className="mr-2 h-4 w-4" />
+                  {isExporting ? "Exporting..." : "Export Resume"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportClick} disabled={isExporting}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleWordExportClick} disabled={isExporting}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Export as Word (.DOCX)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <LiveSubscriptionDialog>
+              <Button>
+                <Crown className="mr-2 h-4 w-4" />
+                Export Resume
+              </Button>
+            </LiveSubscriptionDialog>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

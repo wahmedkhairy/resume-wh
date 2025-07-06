@@ -1,53 +1,47 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import UserManagement from "@/components/UserManagement";
+import Header from "@/components/Header";
+import UserSettings from "@/components/UserSettings";
+import SitemapUploader from "@/components/SitemapUploader";
+import PayPalLiveSettings from "@/components/PayPalLiveSettings";
 import AdminAnalytics from "@/components/AdminAnalytics";
+import AdminUserManagement from "@/components/AdminUserManagement";
+import AIIntegrationTester from "@/components/AIIntegrationTester";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Shield, Settings, FileText, CreditCard, BarChart, Users, TestTube, UserCog } from "lucide-react";
 
 const Admin = () => {
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    checkAdminAccess();
+    checkAuth();
   }, []);
 
-  const checkAdminAccess = async () => {
+  const checkAuth = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        navigate('/auth');
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to access the admin panel.",
+          variant: "destructive",
+        });
+        navigate("/auth");
         return;
       }
 
-      // Check if user has admin role or is a specific admin user
-      const adminEmails = [
-        'admin@resumewh.com',
-        'support@resumewh.com',
-        user.email // Allow the current user for development
-      ];
-
-      if (adminEmails.includes(user.email || '')) {
-        setIsAuthorized(true);
-      } else {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to access this page.",
-          variant: "destructive",
-        });
-        navigate('/');
-      }
+      setUser(user);
     } catch (error) {
-      console.error('Error checking admin access:', error);
-      navigate('/auth');
+      console.error("Auth check error:", error);
+      navigate("/auth");
     } finally {
       setIsLoading(false);
     }
@@ -55,57 +49,138 @@ const Admin = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  if (!isAuthorized) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-96">
-          <CardContent className="p-6 text-center">
-            <Shield className="h-16 w-16 mx-auto mb-4 text-red-500" />
-            <h2 className="text-xl font-bold mb-2">Access Denied</h2>
-            <p className="text-muted-foreground">You don't have permission to access this page.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  if (!user) {
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">
-            Manage users, monitor system performance, and view analytics
-          </p>
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <Header />
+      
+      <main className="flex-1 p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Admin Panel</h1>
+            <p className="text-muted-foreground">Comprehensive platform management and user administration</p>
+          </div>
+
+          <Tabs defaultValue="user-management" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-8">
+              <TabsTrigger value="user-management" className="flex items-center gap-2">
+                <UserCog className="h-4 w-4" />
+                User Management
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-2">
+                <BarChart className="h-4 w-4" />
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Users
+              </TabsTrigger>
+              <TabsTrigger value="ai-testing" className="flex items-center gap-2">
+                <TestTube className="h-4 w-4" />
+                AI Testing
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Settings
+              </TabsTrigger>
+              <TabsTrigger value="paypal" className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                PayPal
+              </TabsTrigger>
+              <TabsTrigger value="sitemap" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Sitemap
+              </TabsTrigger>
+              <TabsTrigger value="security" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Security
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="user-management">
+              <AdminUserManagement />
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              <AdminAnalytics />
+            </TabsContent>
+
+            <TabsContent value="users">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    User Overview
+                  </CardTitle>
+                  <CardDescription>
+                    Basic user statistics and information
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Use the "User Management" tab for comprehensive user administration features.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="ai-testing">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TestTube className="h-5 w-5" />
+                    AI Integration Status
+                  </CardTitle>
+                  <CardDescription>
+                    Monitor and test AI-powered features to ensure they are working correctly
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AIIntegrationTester />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="settings">
+              <UserSettings />
+            </TabsContent>
+
+            <TabsContent value="paypal">
+              <PayPalLiveSettings />
+            </TabsContent>
+
+            <TabsContent value="sitemap">
+              <SitemapUploader />
+            </TabsContent>
+
+            <TabsContent value="security">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Security Settings
+                  </CardTitle>
+                  <CardDescription>Advanced security and authentication settings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Additional security features will be available in future updates.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
-
-        <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              User Management
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="users">
-            <UserManagement />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <AdminAnalytics />
-          </TabsContent>
-        </Tabs>
-      </div>
+      </main>
     </div>
   );
 };
