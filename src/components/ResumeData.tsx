@@ -99,12 +99,8 @@ const ResumeData: React.FC<ResumeDataProps> = ({
       />
 
       <SummaryEditor
-        initialSummary={summary}
+        summary={summary}
         onSummaryChange={onSummaryChange}
-        workExperience={workExperience}
-        education={education}
-        skills={skills}
-        personalInfo={personalInfo}
       />
       
       <KeywordMatcher />
