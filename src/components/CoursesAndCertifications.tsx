@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Award, Plus, Trash2, List, FileText } from "lucide-react";
+import { Award, Plus, List, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Course {
@@ -49,14 +49,6 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     }
   };
 
-  const removeCourse = (id: string) => {
-    const updatedCourses = courses.filter(course => course.id !== id);
-    setCourses(updatedCourses);
-    if (onCoursesChange) {
-      onCoursesChange(updatedCourses);
-    }
-  };
-
   const updateCourse = (id: string, field: keyof Course, value: string) => {
     const updatedCourses = courses.map(course =>
       course.id === id ? { ...course, [field]: value } : course
@@ -93,16 +85,7 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
       <CardContent>
         <div className="space-y-6">
           {courses.map((course) => (
-            <div key={course.id} className="border border-gray-200 rounded-lg p-4 relative">
-              <Button
-                variant="outline"
-                size="sm"
-                className="absolute top-2 right-2"
-                onClick={() => removeCourse(course.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              
+            <div key={course.id} className="border border-gray-200 rounded-lg p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
                   <Label htmlFor={`title-${course.id}`}>Title</Label>

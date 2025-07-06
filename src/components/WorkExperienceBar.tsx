@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Briefcase, Plus, Trash2, List, FileText } from "lucide-react";
+import { Briefcase, Plus, List, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface WorkExperience {
@@ -47,14 +47,6 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
     };
     
     const updatedExperiences = [...experiences, newExperience];
-    setExperiences(updatedExperiences);
-    if (onExperienceChange) {
-      onExperienceChange(updatedExperiences);
-    }
-  };
-
-  const removeExperience = (id: string) => {
-    const updatedExperiences = experiences.filter(exp => exp.id !== id);
     setExperiences(updatedExperiences);
     if (onExperienceChange) {
       onExperienceChange(updatedExperiences);
@@ -127,21 +119,6 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
     }
   };
 
-  const removeResponsibility = (expId: string, index: number) => {
-    const updatedExperiences = experiences.map(exp =>
-      exp.id === expId 
-        ? { 
-            ...exp, 
-            responsibilities: exp.responsibilities.filter((_, i) => i !== index)
-          }
-        : exp
-    );
-    setExperiences(updatedExperiences);
-    if (onExperienceChange) {
-      onExperienceChange(updatedExperiences);
-    }
-  };
-
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -151,16 +128,7 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
       <CardContent>
         <div className="space-y-6">
           {experiences.map((experience) => (
-            <div key={experience.id} className="border border-gray-200 rounded-lg p-4 relative">
-              <Button
-                variant="outline"
-                size="sm"
-                className="absolute top-2 right-2"
-                onClick={() => removeExperience(experience.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              
+            <div key={experience.id} className="border border-gray-200 rounded-lg p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
                   <Label htmlFor={`jobTitle-${experience.id}`}>Job Title</Label>
@@ -185,25 +153,6 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                     onChange={(e) => updateExperience(experience.id, "company", e.target.value)}
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`experienceType-${experience.id}`}>Experience Type</Label>
-                  <Select
-                    value={experience.experienceType || 'full-time'}
-                    onValueChange={(value: 'internship' | 'full-time' | 'remote') => 
-                      updateExperience(experience.id, 'experienceType', value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full-time">Full-time</SelectItem>
-                      <SelectItem value="internship">Internship</SelectItem>
-                      <SelectItem value="remote">Remote</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor={`location-${experience.id}`}>Location</Label>
@@ -213,6 +162,24 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                     value={experience.location}
                     onChange={(e) => updateExperience(experience.id, "location", e.target.value)}
                   />
+                </div>
+                
+                <div className="space-y-2">
+                  <Select
+                    value={experience.experienceType || 'full-time'}
+                    onValueChange={(value: 'internship' | 'full-time' | 'remote') => 
+                      updateExperience(experience.id, 'experienceType', value)
+                    }
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full-time">Full-time</SelectItem>
+                      <SelectItem value="internship">Internship</SelectItem>
+                      <SelectItem value="remote">Remote</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="space-y-2">
@@ -282,14 +249,6 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                           onChange={(e) => updateResponsibility(experience.id, index, e.target.value)}
                           className="min-h-[60px]"
                         />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeResponsibility(experience.id, index)}
-                          disabled={experience.responsibilities.length === 1}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </div>
                     ))}
                     <Button
