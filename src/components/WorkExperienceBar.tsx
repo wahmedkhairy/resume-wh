@@ -63,7 +63,10 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
     }
   };
 
-  const updateResponsibilityFormat = (expId: string, format: 'bullets' | 'paragraph') => {
+  const updateResponsibilityFormat = (expId: string, format: 'bullets' | 'paragraph', event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
     const updatedExperiences = experiences.map(exp => {
       if (exp.id === expId) {
         // Convert between formats
@@ -86,6 +89,19 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
       return exp;
     });
     
+    setExperiences(updatedExperiences);
+    if (onExperienceChange) {
+      onExperienceChange(updatedExperiences);
+    }
+  };
+
+  const updateExperienceType = (expId: string, type: 'internship' | 'full-time' | 'remote', event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const updatedExperiences = experiences.map(exp =>
+      exp.id === expId ? { ...exp, experienceType: type } : exp
+    );
     setExperiences(updatedExperiences);
     if (onExperienceChange) {
       onExperienceChange(updatedExperiences);
@@ -130,6 +146,25 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
           {experiences.map((experience) => (
             <div key={experience.id} className="border border-gray-200 rounded-lg p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                {/* Experience Type - First */}
+                <div className="space-y-2">
+                  <Select
+                    value={experience.experienceType || 'full-time'}
+                    onValueChange={(value: 'internship' | 'full-time' | 'remote') => 
+                      updateExperience(experience.id, 'experienceType', value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full-time">Full-time</SelectItem>
+                      <SelectItem value="internship">Internship</SelectItem>
+                      <SelectItem value="remote">Remote</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor={`jobTitle-${experience.id}`}>Job Title</Label>
                   <div className="relative">
@@ -165,25 +200,6 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Experience Type</Label>
-                  <Select
-                    value={experience.experienceType || 'full-time'}
-                    onValueChange={(value: 'internship' | 'full-time' | 'remote') => 
-                      updateExperience(experience.id, 'experienceType', value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full-time">Full-time</SelectItem>
-                      <SelectItem value="internship">Internship</SelectItem>
-                      <SelectItem value="remote">Remote</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
                   <Label htmlFor={`startDate-${experience.id}`}>Start Date</Label>
                   <Input
                     id={`startDate-${experience.id}`}
@@ -207,30 +223,26 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Responsibilities</Label>
-                  <Select
-                    value={experience.responsibilityFormat || 'bullets'}
-                    onValueChange={(value: 'bullets' | 'paragraph') => 
-                      updateResponsibilityFormat(experience.id, value)
-                    }
-                  >
-                    <SelectTrigger className="w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bullets">
-                        <div className="flex items-center gap-2">
-                          <List className="h-4 w-4" />
-                          Bullet Points
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="paragraph">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          Paragraph
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={experience.responsibilityFormat === 'bullets' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={(e) => updateResponsibilityFormat(experience.id, 'bullets', e)}
+                    >
+                      <List className="h-4 w-4 mr-1" />
+                      Bullet Points
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={experience.responsibilityFormat === 'paragraph' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={(e) => updateResponsibilityFormat(experience.id, 'paragraph', e)}
+                    >
+                      <FileText className="h-4 w-4 mr-1" />
+                      Paragraph
+                    </Button>
+                  </div>
                 </div>
                 
                 {experience.responsibilityFormat === 'paragraph' ? (

@@ -5,6 +5,8 @@ import PreviewSection from "@/components/PreviewSection";
 import ExportControls from "@/components/ExportControls";
 import TailoredResumeNotice from "@/components/TailoredResumeNotice";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Skill {
   id: string;
@@ -96,6 +98,43 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   getCurrentResumeData,
 }) => {
   const remainingExports = currentSubscription?.scan_count || 0;
+  const { toast } = useToast();
+
+  const handleSave = async () => {
+    try {
+      const resumeData = {
+        personal_info: personalInfo,
+        summary: summary,
+        experience: workExperience,
+        education: education,
+        skills: skills,
+        courses: coursesAndCertifications
+      };
+
+      const { error } = await supabase
+        .from('resumes')
+        .upsert({
+          user_id: currentUserId,
+          title: personalInfo.name ? `${personalInfo.name}'s Resume` : 'My Resume',
+          ...resumeData,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Resume Saved",
+        description: "Your resume has been saved successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving resume:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save your resume. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -108,7 +147,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
             )}
 
             <ExportControls
-              onSave={onSave}
+              onSave={handleSave}
               isSaving={isSaving}
               isTailoredResume={!!tailoredResumeData}
               onExport={onExport}
@@ -116,6 +155,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
               isExporting={isExporting}
               canExport={canExport()}
               remainingExports={remainingExports}
+              isPremiumUser={isPremiumUser}
             />
           </div>
           

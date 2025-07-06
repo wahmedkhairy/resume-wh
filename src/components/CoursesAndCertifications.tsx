@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Award, Plus, List, FileText } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Award, Plus, Trash2 } from "lucide-react";
 
 interface Course {
   id: string;
@@ -29,7 +29,6 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
   initialCourses = []
 }) => {
   const [courses, setCourses] = useState<Course[]>(initialCourses);
-  const { toast } = useToast();
 
   const addCourse = () => {
     const newCourse: Course = {
@@ -49,6 +48,14 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     }
   };
 
+  const removeCourse = (id: string) => {
+    const updatedCourses = courses.filter(course => course.id !== id);
+    setCourses(updatedCourses);
+    if (onCoursesChange) {
+      onCoursesChange(updatedCourses);
+    }
+  };
+
   const updateCourse = (id: string, field: keyof Course, value: string) => {
     const updatedCourses = courses.map(course =>
       course.id === id ? { ...course, [field]: value } : course
@@ -59,7 +66,10 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     }
   };
 
-  const updateDescriptionFormat = (courseId: string, format: 'bullets' | 'paragraph') => {
+  const updateDescriptionFormat = (courseId: string, format: 'bullets' | 'paragraph', event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
     const updatedCourses = courses.map(course => {
       if (course.id === courseId) {
         return { 
@@ -80,105 +90,114 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     <Card className="mb-6">
       <CardHeader>
         <CardTitle>Courses & Certifications</CardTitle>
-        <CardDescription>Add your professional courses and certifications</CardDescription>
+        <CardDescription>Add relevant courses and certifications to enhance your resume. Changes are automatically reflected in the preview.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {courses.map((course) => (
-            <div key={course.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`title-${course.id}`}>Title</Label>
-                  <div className="relative">
-                    <Award className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id={`title-${course.id}`}
-                      placeholder="Course/Certification Title"
-                      className="pl-9"
-                      value={course.title}
-                      onChange={(e) => updateCourse(course.id, "title", e.target.value)}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor={`provider-${course.id}`}>Provider</Label>
-                  <Input
-                    id={`provider-${course.id}`}
-                    placeholder="Institution/Organization"
-                    value={course.provider}
-                    onChange={(e) => updateCourse(course.id, "provider", e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor={`date-${course.id}`}>Date</Label>
-                  <Input
-                    id={`date-${course.id}`}
-                    placeholder="Month Year"
-                    value={course.date}
-                    onChange={(e) => updateCourse(course.id, "date", e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor={`type-${course.id}`}>Type</Label>
-                  <Select
+          {courses.map((course, index) => (
+            <div key={course.id} className="border border-gray-200 rounded-lg p-4 relative">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-medium text-green-600 flex items-center gap-2">
+                  📚 Course #{index + 1}
+                </h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeCourse(course.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label>Type</Label>
+                  <RadioGroup
                     value={course.type}
                     onValueChange={(value: "course" | "certification") => 
                       updateCourse(course.id, "type", value)
                     }
+                    className="flex gap-6 mt-2"
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="course">Course</SelectItem>
-                      <SelectItem value="certification">Certification</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="course" id={`course-${course.id}`} />
+                      <Label htmlFor={`course-${course.id}`} className="flex items-center gap-1">
+                        📚 Course
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="certification" id={`cert-${course.id}`} />
+                      <Label htmlFor={`cert-${course.id}`} className="flex items-center gap-1">
+                        🏆 Certification
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor={`description-${course.id}`}>Description</Label>
-                  <Select
-                    value={course.descriptionFormat || 'paragraph'}
-                    onValueChange={(value: 'bullets' | 'paragraph') => 
-                      updateDescriptionFormat(course.id, value)
-                    }
-                  >
-                    <SelectTrigger className="w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="paragraph">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          Paragraph
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="bullets">
-                        <div className="flex items-center gap-2">
-                          <List className="h-4 w-4" />
-                          Bullet Points
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`title-${course.id}`}>Title</Label>
+                    <Input
+                      id={`title-${course.id}`}
+                      placeholder="e.g., Advanced React Development"
+                      value={course.title}
+                      onChange={(e) => updateCourse(course.id, "title", e.target.value)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor={`provider-${course.id}`}>Provider</Label>
+                    <Input
+                      id={`provider-${course.id}`}
+                      placeholder="e.g., Udemy, Coursera"
+                      value={course.provider}
+                      onChange={(e) => updateCourse(course.id, "provider", e.target.value)}
+                    />
+                  </div>
                 </div>
-                
-                <Textarea
-                  id={`description-${course.id}`}
-                  placeholder={course.descriptionFormat === 'bullets' 
-                    ? "• Key topic 1\n• Key topic 2\n• Key topic 3" 
-                    : "Brief description of what you learned or achieved..."
-                  }
-                  value={course.description}
-                  onChange={(e) => updateCourse(course.id, "description", e.target.value)}
-                  className="min-h-[80px]"
-                />
+
+                <div>
+                  <Label htmlFor={`date-${course.id}`}>Completion Date</Label>
+                  <Input
+                    id={`date-${course.id}`}
+                    placeholder="e.g., May 2023"
+                    value={course.date}
+                    onChange={(e) => updateCourse(course.id, "date", e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor={`description-${course.id}`}>Description (Optional)</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={course.descriptionFormat === 'paragraph' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={(e) => updateDescriptionFormat(course.id, 'paragraph', e)}
+                      >
+                        Paragraph
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={course.descriptionFormat === 'bullets' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={(e) => updateDescriptionFormat(course.id, 'bullets', e)}
+                      >
+                        Bullet Points
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Textarea
+                    id={`description-${course.id}`}
+                    placeholder="Brief description of what you learned or achieved"
+                    value={course.description}
+                    onChange={(e) => updateCourse(course.id, "description", e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -189,7 +208,7 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
             className="w-full"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add Course/Certification
+            Add Another Course/Certification
           </Button>
         </div>
       </CardContent>

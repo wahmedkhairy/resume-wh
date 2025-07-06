@@ -56,6 +56,9 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
   education,
   coursesAndCertifications,
 }) => {
+  // Fixed summary text when empty
+  const displaySummary = summary || "Generate your professional summary using AI by clicking the 'Generate Summary' button.";
+
   return (
     <div className="max-w-4xl mx-auto bg-white p-8 shadow-lg relative" style={{ fontFamily: 'Times New Roman, serif' }}>
       {watermark && (
@@ -69,12 +72,12 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       {/* Header Section */}
       <div className="text-center mb-8">
         {personalInfo.name && (
-          <h1 className="font-bold text-black mb-3" style={{ fontSize: '28pt' }}>
+          <h1 className="font-bold text-black mb-3" style={{ fontSize: '20pt' }}>
             {personalInfo.name}
           </h1>
         )}
         
-        <div className="text-black mb-2" style={{ fontSize: '14pt' }}>
+        <div className="text-black mb-2" style={{ fontSize: '12pt' }}>
           {personalInfo.jobTitle && personalInfo.location && (
             <span>{personalInfo.jobTitle} | {personalInfo.location}</span>
           )}
@@ -86,7 +89,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
           )}
         </div>
         
-        <div className="text-black" style={{ fontSize: '14pt' }}>
+        <div className="text-black" style={{ fontSize: '12pt' }}>
           {personalInfo.email && personalInfo.phone && (
             <span>{personalInfo.email} | {personalInfo.phone}</span>
           )}
@@ -99,22 +102,20 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </div>
       </div>
 
-      {/* Summary Section */}
-      {summary && (
-        <div className="mb-8">
-          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '18pt' }}>
-            Summary
-          </h2>
-          <div className="text-black leading-relaxed" style={{ fontSize: '12pt' }}>
-            {summary}
-          </div>
+      {/* Summary Section - Always show */}
+      <div className="mb-8">
+        <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '14pt' }}>
+          Summary
+        </h2>
+        <div className="text-black leading-relaxed" style={{ fontSize: '12pt' }}>
+          {displaySummary}
         </div>
-      )}
+      </div>
 
       {/* Experience Section */}
       {workExperience.length > 0 && (
         <div className="mb-8">
-          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '18pt' }}>
+          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '14pt' }}>
             Experience
           </h2>
           {workExperience.map((job, index) => (
@@ -154,7 +155,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       {/* Education Section */}
       {education.length > 0 && (
         <div className="mb-8">
-          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '18pt' }}>
+          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '14pt' }}>
             Education
           </h2>
           {education.map((edu, index) => (
@@ -186,7 +187,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       {/* Courses and Certifications Section */}
       {coursesAndCertifications.length > 0 && (
         <div className="mb-6">
-          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '18pt' }}>
+          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '14pt' }}>
             Certifications & Courses
           </h2>
           {coursesAndCertifications.map((course, index) => (

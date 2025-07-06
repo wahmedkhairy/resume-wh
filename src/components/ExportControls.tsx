@@ -1,7 +1,8 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Crown } from "lucide-react";
+import { Crown, Download } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ExportControlsProps {
   onSave: () => void;
@@ -12,6 +13,7 @@ interface ExportControlsProps {
   isExporting: boolean;
   canExport: boolean;
   remainingExports?: number;
+  isPremiumUser?: boolean;
 }
 
 const ExportControls: React.FC<ExportControlsProps> = ({
@@ -23,32 +25,62 @@ const ExportControls: React.FC<ExportControlsProps> = ({
   isExporting,
   canExport,
   remainingExports = 0,
+  isPremiumUser = false,
 }) => {
+  const navigate = useNavigate();
+
+  const handleExportClick = () => {
+    if (!isPremiumUser) {
+      navigate('/subscription');
+      return;
+    }
+    
+    // For premium users, show export options
+    if (canExport) {
+      // Create a simple dropdown or modal for PDF/Word selection
+      const choice = window.confirm("Choose export format:\nOK for PDF\nCancel for Word");
+      if (choice) {
+        onExport();
+      } else {
+        onExportWord();
+      }
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex gap-4">
-        <Button
-          onClick={onSave}
-          disabled={isSaving || isTailoredResume}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          📄 Save
-        </Button>
-        
-        <Button
-          onClick={onExport}
-          disabled={isExporting || !canExport}
-          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-        >
-          <Crown className="h-4 w-4" />
-          {isExporting ? "Exporting..." : "Export Resume"}
-        </Button>
-      </div>
+    <div className="flex gap-4 mb-6">
+      <Button
+        onClick={onSave}
+        disabled={isSaving || isTailoredResume}
+        variant="outline"
+        className="flex items-center gap-2"
+      >
+        📄 {isSaving ? "Saving..." : "Save"}
+      </Button>
       
-      <div className="text-sm bg-blue-100 text-blue-800 px-3 py-2 rounded-lg">
-        {remainingExports} exports remaining
-      </div>
+      <Button
+        onClick={handleExportClick}
+        disabled={isExporting}
+        className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+      >
+        {isPremiumUser ? (
+          <>
+            <Download className="h-4 w-4" />
+            {isExporting ? "Exporting..." : "Export Resume"}
+          </>
+        ) : (
+          <>
+            <Crown className="h-4 w-4" />
+            Export Resume
+          </>
+        )}
+      </Button>
+      
+      {isPremiumUser && (
+        <div className="text-sm bg-blue-100 text-blue-800 px-3 py-2 rounded-lg flex items-center">
+          {remainingExports} exports remaining
+        </div>
+      )}
     </div>
   );
 };
