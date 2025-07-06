@@ -11,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Save, User, CreditCard } from "lucide-react";
 import UserInfoCard from "./UserInfoCard";
 import PasswordChangeCard from "./PasswordChangeCard";
-import SubscriptionCard from "./SubscriptionCard";
 
 const UserSettings: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string>("");
@@ -112,18 +111,27 @@ const UserSettings: React.FC = () => {
 
       <Separator />
 
-      {/* Subscription - moved before password */}
+      {/* Subscription Status */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <CreditCard className="h-5 w-5" />
-          <h2 className="text-xl font-semibold">Subscription</h2>
+          <h2 className="text-xl font-semibold">Subscription Status</h2>
         </div>
-        <SubscriptionCard subscription={subscription} onRefreshSubscription={handleRefreshSubscription} />
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Subscription Status</span>
+              <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                {subscription?.scan_count || 0} exports remaining
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Separator />
 
-      {/* Password Change - moved after subscription */}
+      {/* Password Change */}
       <div className="space-y-4">
         <PasswordChangeCard />
       </div>

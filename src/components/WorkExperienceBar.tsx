@@ -18,6 +18,7 @@ interface WorkExperience {
   location: string;
   responsibilities: string[];
   responsibilityFormat?: 'bullets' | 'paragraph';
+  experienceType?: 'internship' | 'full-time' | 'remote';
 }
 
 interface WorkExperienceBarProps {
@@ -41,7 +42,8 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
       endDate: "",
       location: "",
       responsibilities: [""],
-      responsibilityFormat: 'bullets'
+      responsibilityFormat: 'bullets',
+      experienceType: 'full-time'
     };
     
     const updatedExperiences = [...experiences, newExperience];
@@ -183,6 +185,35 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                     onChange={(e) => updateExperience(experience.id, "company", e.target.value)}
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`experienceType-${experience.id}`}>Experience Type</Label>
+                  <Select
+                    value={experience.experienceType || 'full-time'}
+                    onValueChange={(value: 'internship' | 'full-time' | 'remote') => 
+                      updateExperience(experience.id, 'experienceType', value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full-time">Full-time</SelectItem>
+                      <SelectItem value="internship">Internship</SelectItem>
+                      <SelectItem value="remote">Remote</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`location-${experience.id}`}>Location</Label>
+                  <Input
+                    id={`location-${experience.id}`}
+                    placeholder="New York, NY"
+                    value={experience.location}
+                    onChange={(e) => updateExperience(experience.id, "location", e.target.value)}
+                  />
+                </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor={`startDate-${experience.id}`}>Start Date</Label>
@@ -201,16 +232,6 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                     placeholder="Present"
                     value={experience.endDate}
                     onChange={(e) => updateExperience(experience.id, "endDate", e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor={`location-${experience.id}`}>Location</Label>
-                  <Input
-                    id={`location-${experience.id}`}
-                    placeholder="New York, NY"
-                    value={experience.location}
-                    onChange={(e) => updateExperience(experience.id, "location", e.target.value)}
                   />
                 </div>
               </div>

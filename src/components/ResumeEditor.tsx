@@ -95,6 +95,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   canExport,
   getCurrentResumeData,
 }) => {
+  const remainingExports = currentSubscription?.scan_count || 0;
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -113,6 +115,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
               onExportWord={onExportWord}
               isExporting={isExporting}
               canExport={canExport()}
+              remainingExports={remainingExports}
             />
           </div>
           
