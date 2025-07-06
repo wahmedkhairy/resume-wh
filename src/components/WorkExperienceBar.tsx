@@ -165,13 +165,14 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                 </div>
                 
                 <div className="space-y-2">
+                  <Label>Experience Type</Label>
                   <Select
                     value={experience.experienceType || 'full-time'}
                     onValueChange={(value: 'internship' | 'full-time' | 'remote') => 
                       updateExperience(experience.id, 'experienceType', value)
                     }
                   >
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

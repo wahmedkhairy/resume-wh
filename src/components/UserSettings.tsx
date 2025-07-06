@@ -119,11 +119,8 @@ const UserSettings: React.FC = () => {
         </div>
         <Card>
           <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Subscription Status</span>
-              <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                {subscription?.scan_count || 0} exports remaining
-              </span>
+            <div className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              {subscription?.scan_count || 0} exports remaining
             </div>
           </CardContent>
         </Card>

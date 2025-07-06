@@ -1,8 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Download, Crown } from "lucide-react";
-import SubscriptionStatus from "@/components/SubscriptionStatus";
+import { Crown } from "lucide-react";
 
 interface ExportControlsProps {
   onSave: () => void;
@@ -27,8 +26,6 @@ const ExportControls: React.FC<ExportControlsProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <SubscriptionStatus remainingExports={remainingExports} />
-      
       <div className="flex gap-4">
         <Button
           onClick={onSave}
@@ -47,6 +44,10 @@ const ExportControls: React.FC<ExportControlsProps> = ({
           <Crown className="h-4 w-4" />
           {isExporting ? "Exporting..." : "Export Resume"}
         </Button>
+      </div>
+      
+      <div className="text-sm bg-blue-100 text-blue-800 px-3 py-2 rounded-lg">
+        {remainingExports} exports remaining
       </div>
     </div>
   );

@@ -67,81 +67,82 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       )}
       
       {/* Header Section */}
-      <div className="text-center mb-6">
+      <div className="text-center mb-8">
         {personalInfo.name && (
-          <h1 className="font-bold text-gray-900 mb-2" style={{ fontSize: '24pt' }}>
+          <h1 className="font-bold text-black mb-3" style={{ fontSize: '28pt' }}>
             {personalInfo.name}
           </h1>
         )}
         
-        <div className="flex flex-wrap justify-center items-center gap-2 text-gray-700" style={{ fontSize: '12pt' }}>
-          {personalInfo.jobTitle && (
+        <div className="text-black mb-2" style={{ fontSize: '14pt' }}>
+          {personalInfo.jobTitle && personalInfo.location && (
+            <span>{personalInfo.jobTitle} | {personalInfo.location}</span>
+          )}
+          {personalInfo.jobTitle && !personalInfo.location && (
             <span>{personalInfo.jobTitle}</span>
           )}
-          {personalInfo.jobTitle && (personalInfo.location || personalInfo.email || personalInfo.phone) && (
-            <span>•</span>
-          )}
-          {personalInfo.location && (
+          {!personalInfo.jobTitle && personalInfo.location && (
             <span>{personalInfo.location}</span>
           )}
-          {personalInfo.location && (personalInfo.email || personalInfo.phone) && (
-            <span>•</span>
+        </div>
+        
+        <div className="text-black" style={{ fontSize: '14pt' }}>
+          {personalInfo.email && personalInfo.phone && (
+            <span>{personalInfo.email} | {personalInfo.phone}</span>
           )}
-          {personalInfo.email && (
+          {personalInfo.email && !personalInfo.phone && (
             <span>{personalInfo.email}</span>
           )}
-          {personalInfo.email && personalInfo.phone && (
-            <span>•</span>
-          )}
-          {personalInfo.phone && (
+          {!personalInfo.email && personalInfo.phone && (
             <span>{personalInfo.phone}</span>
           )}
         </div>
       </div>
 
-      {/* Professional Summary */}
+      {/* Summary Section */}
       {summary && (
-        <div className="mb-6">
-          <h2 className="font-bold text-gray-900 mb-3 underline" style={{ fontSize: '16pt' }}>
+        <div className="mb-8">
+          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '18pt' }}>
             Summary
           </h2>
-          <p className="text-gray-700 leading-relaxed" style={{ fontSize: '12pt' }}>
+          <div className="text-black leading-relaxed" style={{ fontSize: '12pt' }}>
             {summary}
-          </p>
+          </div>
         </div>
       )}
 
-      {/* Work Experience */}
+      {/* Experience Section */}
       {workExperience.length > 0 && (
-        <div className="mb-6">
-          <h2 className="font-bold text-gray-900 mb-3 underline" style={{ fontSize: '16pt' }}>
+        <div className="mb-8">
+          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '18pt' }}>
             Experience
           </h2>
           {workExperience.map((job, index) => (
-            <div key={job.id} className="mb-4">
+            <div key={job.id} className="mb-6">
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h3 className="font-semibold text-gray-900" style={{ fontSize: '14pt' }}>
+                  <h3 className="font-bold text-black" style={{ fontSize: '14pt' }}>
                     {job.jobTitle} - {job.company}
                   </h3>
                 </div>
-                <div className="text-right text-gray-600 italic" style={{ fontSize: '12pt' }}>
-                  <p>{job.startDate} - {job.endDate}</p>
-                </div>
+              </div>
+              
+              <div className="text-black italic mb-3" style={{ fontSize: '12pt' }}>
+                {job.startDate} - {job.endDate}
               </div>
               
               {job.responsibilities.length > 0 && (
-                <div className="text-gray-700 ml-4" style={{ fontSize: '12pt' }}>
+                <div className="text-black" style={{ fontSize: '12pt' }}>
                   {job.responsibilityFormat === 'paragraph' ? (
-                    <p className="leading-relaxed">{job.responsibilities[0]}</p>
+                    <div className="leading-relaxed">{job.responsibilities[0]}</div>
                   ) : (
-                    <ul className="list-disc list-inside space-y-1">
+                    <div className="space-y-1">
                       {job.responsibilities.map((responsibility, idx) => (
-                        <li key={idx} className="leading-relaxed">
+                        <div key={idx} className="leading-relaxed">
                           {responsibility}
-                        </li>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
               )}
@@ -150,29 +151,29 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </div>
       )}
 
-      {/* Education */}
+      {/* Education Section */}
       {education.length > 0 && (
-        <div className="mb-6">
-          <h2 className="font-bold text-gray-900 mb-3 underline" style={{ fontSize: '16pt' }}>
+        <div className="mb-8">
+          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '18pt' }}>
             Education
           </h2>
           {education.map((edu, index) => (
-            <div key={edu.id} className="mb-3">
+            <div key={edu.id} className="mb-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-semibold text-gray-900" style={{ fontSize: '14pt' }}>
+                  <h3 className="font-bold text-black" style={{ fontSize: '14pt' }}>
                     {edu.degree}
                   </h3>
-                  <p className="text-gray-700" style={{ fontSize: '12pt' }}>
+                  <p className="text-black" style={{ fontSize: '12pt' }}>
                     {edu.institution}
                   </p>
                   {edu.gpa && (
-                    <p className="text-gray-600" style={{ fontSize: '12pt' }}>
+                    <p className="text-black" style={{ fontSize: '12pt' }}>
                       GPA: {edu.gpa}
                     </p>
                   )}
                 </div>
-                <div className="text-right text-gray-600 italic" style={{ fontSize: '12pt' }}>
+                <div className="text-right text-black italic" style={{ fontSize: '12pt' }}>
                   <p>{edu.graduationYear}</p>
                   {edu.location && <p>{edu.location}</p>}
                 </div>
@@ -182,29 +183,29 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </div>
       )}
 
-      {/* Courses and Certifications */}
+      {/* Courses and Certifications Section */}
       {coursesAndCertifications.length > 0 && (
         <div className="mb-6">
-          <h2 className="font-bold text-gray-900 mb-3 underline" style={{ fontSize: '16pt' }}>
+          <h2 className="font-bold text-black mb-3 border-b border-black" style={{ fontSize: '18pt' }}>
             Certifications & Courses
           </h2>
           {coursesAndCertifications.map((course, index) => (
-            <div key={course.id} className="mb-3">
+            <div key={course.id} className="mb-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-semibold text-gray-900" style={{ fontSize: '14pt' }}>
+                  <h3 className="font-bold text-black" style={{ fontSize: '14pt' }}>
                     {course.title}
                   </h3>
-                  <p className="text-gray-700" style={{ fontSize: '12pt' }}>
+                  <p className="text-black" style={{ fontSize: '12pt' }}>
                     {course.provider}
                   </p>
                   {course.description && (
-                    <p className="text-gray-600 mt-1" style={{ fontSize: '12pt' }}>
+                    <p className="text-black mt-1" style={{ fontSize: '12pt' }}>
                       {course.description}
                     </p>
                   )}
                 </div>
-                <div className="text-gray-600 italic" style={{ fontSize: '12pt' }}>
+                <div className="text-black italic" style={{ fontSize: '12pt' }}>
                   <p>{course.date}</p>
                 </div>
               </div>
