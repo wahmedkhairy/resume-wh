@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Briefcase, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +17,8 @@ interface WorkExperience {
   endDate: string;
   location: string;
   responsibilities: string[];
+  experienceType: "fulltime" | "remote" | "internship";
+  writingStyle: "bullets" | "paragraph";
 }
 
 interface WorkExperienceBarProps {
@@ -38,7 +41,9 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
       startDate: "",
       endDate: "",
       location: "",
-      responsibilities: [""]
+      responsibilities: [""],
+      experienceType: "fulltime",
+      writingStyle: "bullets"
     };
     
     const updatedExperiences = [...experiences, newExperience];
@@ -56,7 +61,7 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
     }
   };
 
-  const updateExperience = (id: string, field: keyof WorkExperience, value: string | string[]) => {
+  const updateExperience = (id: string, field: keyof WorkExperience, value: string | string[] | "fulltime" | "remote" | "internship" | "bullets" | "paragraph") => {
     const updatedExperiences = experiences.map(exp =>
       exp.id === id ? { ...exp, [field]: value } : exp
     );
@@ -127,6 +132,34 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                 <Trash2 className="h-4 w-4" />
               </Button>
               
+              {/* Experience Type Selection */}
+              <div className="mb-4">
+                <RadioGroup
+                  value={experience.experienceType}
+                  onValueChange={(value) => updateExperience(experience.id, "experienceType", value as "fulltime" | "remote" | "internship")}
+                  className="flex space-x-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="fulltime" id={`fulltime-${experience.id}`} />
+                    <Label htmlFor={`fulltime-${experience.id}`} className="cursor-pointer">
+                      Full Time Job
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="remote" id={`remote-${experience.id}`} />
+                    <Label htmlFor={`remote-${experience.id}`} className="cursor-pointer">
+                      Remote Job
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="internship" id={`internship-${experience.id}`} />
+                    <Label htmlFor={`internship-${experience.id}`} className="cursor-pointer">
+                      Internship
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
                   <Label htmlFor={`jobTitle-${experience.id}`}>Job Title</Label>
@@ -184,33 +217,66 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
               </div>
               
               <div className="space-y-2">
-                <Label>Responsibilities</Label>
-                {experience.responsibilities.map((responsibility, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Textarea
-                      placeholder="Describe your responsibility..."
-                      value={responsibility}
-                      onChange={(e) => updateResponsibility(experience.id, index, e.target.value)}
-                      className="min-h-[60px]"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeResponsibility(experience.id, index)}
-                      disabled={experience.responsibilities.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addResponsibility(experience.id)}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Responsibility
-                </Button>
+                <div className="flex justify-between items-center">
+                  <Label>Responsibilities</Label>
+                  <RadioGroup
+                    value={experience.writingStyle}
+                    onValueChange={(value) => updateExperience(experience.id, "writingStyle", value as "bullets" | "paragraph")}
+                    className="flex space-x-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="bullets" id={`bullets-${experience.id}`} />
+                      <Label htmlFor={`bullets-${experience.id}`} className="cursor-pointer text-sm">
+                        Bullet Points
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="paragraph" id={`paragraph-${experience.id}`} />
+                      <Label htmlFor={`paragraph-${experience.id}`} className="cursor-pointer text-sm">
+                        Paragraph
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                
+                {experience.writingStyle === "bullets" ? (
+                  experience.responsibilities.map((responsibility, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Textarea
+                        placeholder="Describe your responsibility..."
+                        value={responsibility}
+                        onChange={(e) => updateResponsibility(experience.id, index, e.target.value)}
+                        className="min-h-[60px]"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeResponsibility(experience.id, index)}
+                        disabled={experience.responsibilities.length === 1}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <Textarea
+                    placeholder="Describe your responsibilities in paragraph format..."
+                    value={experience.responsibilities[0] || ""}
+                    onChange={(e) => updateExperience(experience.id, "responsibilities", [e.target.value])}
+                    className="min-h-[120px]"
+                  />
+                )}
+                
+                {experience.writingStyle === "bullets" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addResponsibility(experience.id)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Responsibility
+                  </Button>
+                )}
               </div>
             </div>
           ))}
