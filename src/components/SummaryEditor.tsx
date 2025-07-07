@@ -4,9 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Wand2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { Clock } from "lucide-react";
 
 interface SummaryEditorProps {
   initialSummary?: string;
@@ -26,74 +24,10 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({
   personalInfo = {}
 }) => {
   const [summary, setSummary] = useState(initialSummary);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
 
   const handleSummaryChange = (value: string) => {
     setSummary(value);
     onSummaryChange(value);
-  };
-
-  const handleGenerateWithAI = async () => {
-    console.log('=== Generate Summary AI Called ===');
-    console.log('Work Experience:', workExperience);
-    console.log('Education:', education);
-    console.log('Skills:', skills);
-    console.log('Personal Info:', personalInfo);
-
-    if (workExperience.length === 0) {
-      toast({
-        title: "No Experience Data",
-        description: "Please add work experience details first to generate a relevant summary.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-
-    try {
-      console.log('Calling generate-summary edge function...');
-      
-      const { data, error } = await supabase.functions.invoke('generate-summary', {
-        body: { 
-          experience: workExperience,
-          education: education,
-          skills: skills,
-          personalInfo: personalInfo
-        }
-      });
-      
-      console.log('Generate summary response:', { data, error });
-      
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(error.message || 'Failed to generate summary');
-      }
-      
-      if (data?.summary) {
-        const generatedSummary = data.summary;
-        console.log('Generated summary:', generatedSummary);
-        setSummary(generatedSummary);
-        onSummaryChange(generatedSummary);
-        toast({
-          title: "Summary Generated",
-          description: "Your professional summary has been generated using AI.",
-        });
-      } else {
-        console.error('No summary in response:', data);
-        throw new Error('No summary received from AI service');
-      }
-    } catch (error) {
-      console.error('Error generating summary:', error);
-      toast({
-        title: "Generation Failed",
-        description: error.message || "There was an error generating your summary. Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   return (
@@ -114,13 +48,12 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({
         </div>
         
         <Button 
-          variant="outline" 
-          onClick={handleGenerateWithAI} 
-          disabled={isGenerating}
-          className="w-full"
+          variant="default"
+          disabled={true}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
         >
-          <Wand2 className="mr-2 h-4 w-4" />
-          {isGenerating ? "Generating..." : "Generate with AI"}
+          <Clock className="mr-2 h-4 w-4" />
+          Generate with AI - Coming Soon
         </Button>
         
         <div className="text-xs text-muted-foreground">

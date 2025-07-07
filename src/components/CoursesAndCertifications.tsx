@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Trash2, Award, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import WritingStyleSelector from "./WritingStyleSelector";
 
 interface Course {
   id: string;
@@ -22,6 +23,7 @@ interface Course {
   date: string;
   description: string;
   type: "course" | "certification";
+  writingStyle?: "bullet" | "paragraph";
 }
 
 interface CoursesAndCertificationsProps {
@@ -46,6 +48,7 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
         date: "",
         description: "",
         type: "course",
+        writingStyle: "bullet",
       };
       setCourses([defaultCourse]);
     }
@@ -62,7 +65,7 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     }
   }, [courses, onCoursesChange]);
 
-  const updateCourse = (id: string, field: keyof Course, value: string | ("course" | "certification")) => {
+  const updateCourse = (id: string, field: keyof Course, value: string | ("course" | "certification") | ("bullet" | "paragraph")) => {
     setCourses(prevCourses => 
       prevCourses.map(course => 
         course.id === id 
@@ -80,6 +83,7 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
       date: "",
       description: "",
       type: "course",
+      writingStyle: "bullet",
     };
     setCourses([...courses, newCourse]);
   };
@@ -181,6 +185,11 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
                   placeholder="e.g., May 2023"
                 />
               </div>
+
+              <WritingStyleSelector
+                value={course.writingStyle || "bullet"}
+                onChange={(value) => updateCourse(course.id, 'writingStyle', value)}
+              />
 
               <div className="space-y-2">
                 <Label htmlFor={`description-${course.id}`}>Description (Optional)</Label>

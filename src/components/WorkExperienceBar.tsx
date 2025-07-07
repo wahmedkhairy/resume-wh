@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Briefcase, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import WritingStyleSelector from "./WritingStyleSelector";
+import ExperienceTypeSelector from "./ExperienceTypeSelector";
 
 interface WorkExperience {
   id: string;
@@ -16,6 +18,8 @@ interface WorkExperience {
   endDate: string;
   location: string;
   responsibilities: string[];
+  experienceType?: string;
+  writingStyle?: "bullet" | "paragraph";
 }
 
 interface WorkExperienceBarProps {
@@ -38,7 +42,9 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
       startDate: "",
       endDate: "",
       location: "",
-      responsibilities: [""]
+      responsibilities: [""],
+      experienceType: "full-time",
+      writingStyle: "bullet"
     };
     
     const updatedExperiences = [...experiences, newExperience];
@@ -56,7 +62,7 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
     }
   };
 
-  const updateExperience = (id: string, field: keyof WorkExperience, value: string | string[]) => {
+  const updateExperience = (id: string, field: keyof WorkExperience, value: string | string[] | "bullet" | "paragraph") => {
     const updatedExperiences = experiences.map(exp =>
       exp.id === id ? { ...exp, [field]: value } : exp
     );
@@ -172,7 +178,7 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                   />
                 </div>
                 
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
                   <Label htmlFor={`location-${experience.id}`}>Location</Label>
                   <Input
                     id={`location-${experience.id}`}
@@ -181,7 +187,21 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                     onChange={(e) => updateExperience(experience.id, "location", e.target.value)}
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label>Experience Type</Label>
+                  <ExperienceTypeSelector
+                    value={experience.experienceType || "full-time"}
+                    onChange={(value) => updateExperience(experience.id, "experienceType", value)}
+                  />
+                </div>
               </div>
+
+              <WritingStyleSelector
+                value={experience.writingStyle || "bullet"}
+                onChange={(value) => updateExperience(experience.id, "writingStyle", value)}
+                className="mb-4"
+              />
               
               <div className="space-y-2">
                 <Label>Responsibilities</Label>

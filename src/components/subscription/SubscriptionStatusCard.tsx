@@ -18,24 +18,7 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({ subscri
     const isUnlimited = tier === 'unlimited';
     const remainingExports = isUnlimited ? 999 : (subscription.scan_count || 0);
     
-    // Properly capitalize tier names
-    let displayName = '';
-    switch (tier) {
-      case 'basic':
-        displayName = 'Basic';
-        break;
-      case 'premium':
-        displayName = 'Premium';
-        break;
-      case 'unlimited':
-        displayName = 'Unlimited';
-        break;
-      default:
-        displayName = tier.charAt(0).toUpperCase() + tier.slice(1);
-    }
-    
     return {
-      name: displayName,
       isUnlimited,
       remainingExports,
       isActive: subscription.status === 'active'
@@ -51,7 +34,7 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({ subscri
           <div className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-red-600" />
             <span className="font-medium text-red-800">
-              {tierInfo.name} Plan - Inactive
+              Subscription Status - Inactive
             </span>
           </div>
         </CardContent>
@@ -66,7 +49,7 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({ subscri
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-green-600" />
             <span className="font-medium text-green-800">
-              {tierInfo.name} Plan Active
+              Subscription Status
             </span>
           </div>
           

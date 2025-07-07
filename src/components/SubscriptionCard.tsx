@@ -26,22 +26,6 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onRef
     }
   };
 
-  // Helper function to get proper tier display name
-  const getTierDisplayName = (tier: string) => {
-    switch (tier) {
-      case 'basic':
-        return 'Basic';
-      case 'premium':
-        return 'Premium';
-      case 'unlimited':
-        return 'Unlimited';
-      case 'demo':
-        return 'Demo';
-      default:
-        return tier.charAt(0).toUpperCase() + tier.slice(1);
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -49,17 +33,14 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onRef
           <CreditCard className="h-5 w-5" />
           Subscription Status
         </CardTitle>
-        <CardDescription>Your current plan and export credits</CardDescription>
+        <CardDescription>Your subscription status and export credits</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {subscription ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Current Plan</label>
+              <label className="text-sm font-medium text-muted-foreground">Status</label>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className="capitalize">
-                  {getTierDisplayName(subscription.tier)}
-                </Badge>
                 <Badge variant={getSubscriptionStatusVariant(subscription.status)}>
                   {subscription.status}
                 </Badge>
@@ -69,12 +50,6 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onRef
               <label className="text-sm font-medium text-muted-foreground">Exports Remaining</label>
               <p className="text-lg font-semibold text-green-600 mt-1">
                 {subscription.tier === 'unlimited' ? '∞' : subscription.scan_count || 0}
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Total Credits</label>
-              <p className="text-sm mt-1">
-                {subscription.tier === 'unlimited' ? 'Unlimited' : subscription.max_scans || 0}
               </p>
             </div>
           </div>

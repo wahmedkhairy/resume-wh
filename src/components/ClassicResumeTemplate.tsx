@@ -1,4 +1,3 @@
-
 import React from "react";
 
 interface PersonalInfo {
@@ -17,6 +16,8 @@ interface WorkExperience {
   endDate: string;
   location: string;
   responsibilities: string[];
+  experienceType?: string;
+  writingStyle?: "bullet" | "paragraph";
 }
 
 interface Education {
@@ -35,6 +36,7 @@ interface Course {
   date: string;
   description: string;
   type: "course" | "certification";
+  writingStyle?: "bullet" | "paragraph";
 }
 
 interface ClassicResumeTemplateProps {
@@ -54,6 +56,99 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
   education,
   coursesAndCertifications,
 }) => {
+  const getExperienceTypeDisplay = (type?: string) => {
+    switch (type) {
+      case "full-time":
+        return "Full Time";
+      case "remote":
+        return "Remote";
+      case "internship":
+        return "Internship";
+      default:
+        return "";
+    }
+  };
+
+  const renderResponsibilities = (responsibilities: string[], writingStyle?: "bullet" | "paragraph") => {
+    const validResponsibilities = responsibilities.filter(resp => resp.trim());
+    
+    if (!validResponsibilities.length) return null;
+
+    if (writingStyle === "paragraph") {
+      return (
+        <div 
+          style={{ 
+            fontSize: '14pt',
+            margin: '4pt 0',
+            color: '#000000',
+            lineHeight: '1.3',
+            direction: 'ltr',
+            textAlign: 'left'
+          }}
+        >
+          {validResponsibilities.join('. ')}
+        </div>
+      );
+    }
+
+    return (
+      <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
+        {validResponsibilities.map((responsibility, respIndex) => (
+          <li 
+            key={respIndex} 
+            style={{ 
+              fontSize: '14pt',
+              margin: '4pt 0',
+              color: '#000000',
+              lineHeight: '1.3',
+              direction: 'ltr',
+              textAlign: 'left'
+            }}
+          >
+            {responsibility}
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
+  const renderCourseDescription = (description: string, writingStyle?: "bullet" | "paragraph") => {
+    if (!description.trim()) return null;
+
+    if (writingStyle === "paragraph") {
+      return (
+        <div 
+          style={{ 
+            fontSize: '14pt',
+            margin: '2pt 0 0 0',
+            color: '#000000',
+            direction: 'ltr',
+            textAlign: 'left'
+          }}
+        >
+          {description}
+        </div>
+      );
+    }
+
+    return (
+      <ul style={{ margin: '2pt 0 0 0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
+        <li 
+          style={{ 
+            fontSize: '14pt',
+            margin: '2pt 0',
+            color: '#000000',
+            lineHeight: '1.3',
+            direction: 'ltr',
+            textAlign: 'left'
+          }}
+        >
+          {description}
+        </li>
+      </ul>
+    );
+  };
+
   return (
     <div 
       className="resume-container bg-white relative"
@@ -132,7 +227,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         <h2 
           style={{ 
             fontSize: '16pt',
-            fontWeight: 'bold', // Changed from 'normal' to 'bold'
+            fontWeight: 'bold',
             margin: '0 0 10pt 0',
             color: '#000000',
             textAlign: 'left',
@@ -203,29 +298,10 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
             >
               {job.startDate} - {job.endDate}
               {job.location && <span> | {job.location}</span>}
+              {job.experienceType && <span> | {getExperienceTypeDisplay(job.experienceType)}</span>}
             </div>
             
-            {job.responsibilities.length > 0 && (
-              <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
-                {job.responsibilities
-                  .filter(resp => resp.trim())
-                  .map((responsibility, respIndex) => (
-                  <li 
-                    key={respIndex} 
-                    style={{ 
-                      fontSize: '14pt',
-                      margin: '4pt 0',
-                      color: '#000000',
-                      lineHeight: '1.3',
-                      direction: 'ltr',
-                      textAlign: 'left'
-                    }}
-                  >
-                    {responsibility}
-                  </li>
-                ))}
-              </ul>
-            )}
+            {renderResponsibilities(job.responsibilities, job.writingStyle)}
           </div>
         )) : (
           <div style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
@@ -252,7 +328,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
                 textAlign: 'left'
               }}
             >
-              January 2020 - Present
+              January 2020 - Present | Full Time
             </div>
             
             <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
@@ -371,6 +447,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
                   >
                     <strong>{item.title}</strong> - {item.provider} ({item.date})
                   </div>
+                  {renderCourseDescription(item.description, item.writingStyle)}
                 </div>
               ))}
             </>
