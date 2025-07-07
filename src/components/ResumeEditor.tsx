@@ -97,65 +97,55 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   getCurrentResumeData,
 }) => {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column - Editor */}
-        <div className="lg:col-span-6 space-y-6">
-          <div>
-            {tailoredResumeData && (
-              <TailoredResumeNotice onSwitchToOriginal={onClearTailoredResume} />
-            )}
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Left Column - Editor */}
+      <div className="lg:col-span-6 space-y-6">
+        {tailoredResumeData && (
+          <TailoredResumeNotice onSwitchToOriginal={onClearTailoredResume} />
+        )}
 
-            <ExportControls
-              onSave={onSave}
-              isSaving={isSaving}
-              isTailoredResume={!!tailoredResumeData}
-              onExport={onExport}
-              onExportWord={onExportWord}
-              isExporting={isExporting}
-              canExport={canExport()}
-            />
+        <ExportControls
+          onSave={onSave}
+          isSaving={isSaving}
+          isTailoredResume={!!tailoredResumeData}
+          onExport={onExport}
+          onExportWord={onExportWord}
+          isExporting={isExporting}
+          canExport={canExport()}
+        />
 
-            <SubscriptionStatusCard subscription={currentSubscription} />
-          </div>
-          
-          <ResumeData
-            personalInfo={personalInfo}
-            onPersonalInfoChange={onPersonalInfoChange}
-            workExperience={workExperience}
-            onWorkExperienceChange={onWorkExperienceChange}
-            education={education}
-            onEducationChange={onEducationChange}
-            skills={skills}
-            onSkillsChange={onSkillsChange}
-            coursesAndCertifications={coursesAndCertifications}
-            onCoursesChange={onCoursesChange}
-            summary={summary}
-            onSummaryChange={onSummaryChange}
-          />
-        </div>
+        <SubscriptionStatusCard subscription={currentSubscription} />
         
-        {/* Right Column - Preview */}
-        <div className="lg:col-span-6">
-          <div className="mb-4">
-            <h3 className="text-xl font-semibold text-gray-900">
-              Resume Preview
-            </h3>
-          </div>
-          
-          <PreviewSection
-            personalInfo={getCurrentResumeData.personalInfo}
-            summary={getCurrentResumeData.summary}
-            workExperience={getCurrentResumeData.workExperience}
-            education={getCurrentResumeData.education}
-            skills={getCurrentResumeData.skills}
-            coursesAndCertifications={getCurrentResumeData.coursesAndCertifications}
-            onSummaryChange={onSummaryChange}
-            isPremiumUser={isPremiumUser}
-            currentUserId={currentUserId}
-            sessionId={sessionId}
-          />
-        </div>
+        <ResumeData
+          personalInfo={personalInfo}
+          onPersonalInfoChange={onPersonalInfoChange}
+          workExperience={workExperience}
+          onWorkExperienceChange={onWorkExperienceChange}
+          education={education}
+          onEducationChange={onEducationChange}
+          skills={skills}
+          onSkillsChange={onSkillsChange}
+          coursesAndCertifications={coursesAndCertifications}
+          onCoursesChange={onCoursesChange}
+          summary={summary}
+          onSummaryChange={onSummaryChange}
+        />
+      </div>
+      
+      {/* Right Column - Preview */}
+      <div className="lg:col-span-6">
+        <PreviewSection
+          personalInfo={getCurrentResumeData.personalInfo}
+          summary={getCurrentResumeData.summary}
+          workExperience={getCurrentResumeData.workExperience}
+          education={getCurrentResumeData.education}
+          skills={getCurrentResumeData.skills}
+          coursesAndCertifications={getCurrentResumeData.coursesAndCertifications}
+          onSummaryChange={onSummaryChange}
+          isPremiumUser={isPremiumUser}
+          currentUserId={currentUserId}
+          sessionId={sessionId}
+        />
       </div>
     </div>
   );
