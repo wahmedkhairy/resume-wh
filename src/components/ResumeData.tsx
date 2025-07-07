@@ -21,7 +21,6 @@ interface Course {
   date: string;
   description: string;
   type: "course" | "certification";
-  writingStyle?: "bullets" | "paragraph";
 }
 
 interface WorkExperience {
@@ -32,8 +31,6 @@ interface WorkExperience {
   endDate: string;
   location: string;
   responsibilities: string[];
-  experienceType?: "fulltime" | "remote" | "internship";
-  writingStyle?: "bullets" | "paragraph";
 }
 
 interface Education {

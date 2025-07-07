@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Shield, Infinity } from "lucide-react";
+import { Shield, Infinity, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface SubscriptionStatusCardProps {
@@ -18,7 +18,24 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({ subscri
     const isUnlimited = tier === 'unlimited';
     const remainingExports = isUnlimited ? 999 : (subscription.scan_count || 0);
     
+    // Properly capitalize tier names
+    let displayName = '';
+    switch (tier) {
+      case 'basic':
+        displayName = 'Basic';
+        break;
+      case 'premium':
+        displayName = 'Premium';
+        break;
+      case 'unlimited':
+        displayName = 'Unlimited';
+        break;
+      default:
+        displayName = tier.charAt(0).toUpperCase() + tier.slice(1);
+    }
+    
     return {
+      name: displayName,
       isUnlimited,
       remainingExports,
       isActive: subscription.status === 'active'
@@ -32,9 +49,9 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({ subscri
       <Card className="bg-red-50 border-red-200">
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-red-600" />
+            <AlertCircle className="h-5 w-5 text-red-600" />
             <span className="font-medium text-red-800">
-              Subscription Status - Inactive
+              {tierInfo.name} Plan - Inactive
             </span>
           </div>
         </CardContent>
@@ -49,7 +66,7 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({ subscri
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-green-600" />
             <span className="font-medium text-green-800">
-              Subscription Status
+              {tierInfo.name} Plan Active
             </span>
           </div>
           

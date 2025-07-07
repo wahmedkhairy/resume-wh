@@ -22,7 +22,6 @@ interface Course {
   date: string;
   description: string;
   type: "course" | "certification";
-  writingStyle: "bullets" | "paragraph";
 }
 
 interface CoursesAndCertificationsProps {
@@ -47,7 +46,6 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
         date: "",
         description: "",
         type: "course",
-        writingStyle: "bullets",
       };
       setCourses([defaultCourse]);
     }
@@ -64,7 +62,7 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     }
   }, [courses, onCoursesChange]);
 
-  const updateCourse = (id: string, field: keyof Course, value: string | ("course" | "certification") | ("bullets" | "paragraph")) => {
+  const updateCourse = (id: string, field: keyof Course, value: string | ("course" | "certification")) => {
     setCourses(prevCourses => 
       prevCourses.map(course => 
         course.id === id 
@@ -82,7 +80,6 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
       date: "",
       description: "",
       type: "course",
-      writingStyle: "bullets",
     };
     setCourses([...courses, newCourse]);
   };
@@ -186,36 +183,13 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor={`description-${course.id}`}>Description</Label>
-                  <RadioGroup
-                    value={course.writingStyle}
-                    onValueChange={(value) => updateCourse(course.id, 'writingStyle', value as "bullets" | "paragraph")}
-                    className="flex space-x-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="bullets" id={`bullets-desc-${course.id}`} />
-                      <Label htmlFor={`bullets-desc-${course.id}`} className="cursor-pointer text-sm">
-                        Bullet Points
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="paragraph" id={`paragraph-desc-${course.id}`} />
-                      <Label htmlFor={`paragraph-desc-${course.id}`} className="cursor-pointer text-sm">
-                        Paragraph
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+                <Label htmlFor={`description-${course.id}`}>Description (Optional)</Label>
                 <Textarea
                   id={`description-${course.id}`}
                   value={course.description}
                   onChange={(e) => updateCourse(course.id, 'description', e.target.value)}
-                  placeholder={course.writingStyle === "bullets" 
-                    ? "• Key learning point 1\n• Key learning point 2\n• Key learning point 3" 
-                    : "Brief description of what you learned or achieved"
-                  }
-                  rows={course.writingStyle === "bullets" ? 3 : 2}
+                  placeholder="Brief description of what you learned or achieved"
+                  rows={2}
                 />
               </div>
             </div>
