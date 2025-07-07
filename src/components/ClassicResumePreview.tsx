@@ -79,7 +79,6 @@ const ClassicResumePreview: React.FC<ClassicResumePreviewProps> = ({
 
   const formatDescription = (description: string, writingStyle?: string) => {
     if (writingStyle === "bullets" && description) {
-      // Split by bullet points or newlines and format as list
       const points = description.split(/[•\n]/).filter(point => point.trim());
       return points;
     }
@@ -99,120 +98,101 @@ const ClassicResumePreview: React.FC<ClassicResumePreviewProps> = ({
         </div>
       )}
       
-      {/* Header */}
-      <div className="text-center mb-6 border-b-2 border-gray-800 pb-4">
-        <h1 className="text-2xl font-bold text-gray-800 mb-1">{personalInfo.name || "Your Name"}</h1>
-        <p className="text-lg text-gray-600 mb-2">{personalInfo.jobTitle || "Job Title"}</p>
-        <div className="text-sm text-gray-600 space-x-4">
-          <span>{personalInfo.location || "Location"}</span>
-          <span>•</span>
-          <span>{personalInfo.email || "email@example.com"}</span>
-          <span>•</span>
-          <span>{personalInfo.phone || "Phone Number"}</span>
-        </div>
+      {/* Header - Exact format from image */}
+      <div className="text-center mb-6">
+        <h1 className="text-3xl font-bold text-black mb-2">{personalInfo.name || "Your Name"}</h1>
+        <p className="text-lg text-black mb-3">{personalInfo.jobTitle || "Job Title"} | {personalInfo.location || "Location"}</p>
+        <p className="text-base text-black">{personalInfo.email || "email@example.com"} | {personalInfo.phone || "Phone Number"}</p>
       </div>
 
-      {/* Summary */}
-      {summary && (
-        <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-2 border-b border-gray-400">PROFESSIONAL SUMMARY</h2>
-          <p className="text-sm text-gray-700 leading-relaxed">{summary}</p>
-        </div>
-      )}
+      {/* Summary Section - Exact format from image */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-black mb-2 border-b-2 border-black pb-1">Summary</h2>
+        <p className="text-base text-black leading-relaxed">
+          {summary || "Generate your professional summary using AI by clicking the 'Generate Summary' button."}
+        </p>
+      </div>
 
-      {/* Work Experience */}
-      {workExperience.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-3 border-b border-gray-400">WORK EXPERIENCE</h2>
-          {workExperience.map((exp) => (
-            <div key={exp.id} className="mb-4">
-              <div className="flex justify-between items-start mb-1">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800">{exp.jobTitle || "Job Title"}</h3>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-gray-700">{exp.company || "Company Name"}</p>
-                    {exp.experienceType && (
-                      <>
-                        <span className="text-gray-500">•</span>
-                        <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                          {getExperienceTypeDisplay(exp.experienceType)}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">{exp.startDate || "Start"} - {exp.endDate || "End"}</p>
-                  <p className="text-sm text-gray-600">{exp.location || "Location"}</p>
-                </div>
-              </div>
-              
-              {exp.responsibilities && exp.responsibilities.length > 0 && (
-                <div className="ml-0 mt-2">
-                  {exp.writingStyle === "paragraph" ? (
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {formatResponsibilities(exp.responsibilities, exp.writingStyle)}
-                    </p>
-                  ) : (
-                    <ul className="list-disc list-inside space-y-1">
-                      {(formatResponsibilities(exp.responsibilities, exp.writingStyle) as string[]).map((resp: string, index: number) => (
-                        resp.trim() && <li key={index} className="text-sm text-gray-700">{resp.trim()}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+      {/* Experience Section - Exact format from image */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-black mb-4 border-b-2 border-black pb-1">Experience</h2>
+        {workExperience.length > 0 ? workExperience.map((exp) => (
+          <div key={exp.id} className="mb-6">
+            <div className="mb-2">
+              <h3 className="text-lg font-bold text-black">{exp.jobTitle || "Job Title"} - {exp.company || "Company Name"}</h3>
+              {exp.experienceType && (
+                <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded ml-2">
+                  {getExperienceTypeDisplay(exp.experienceType)}
+                </span>
               )}
+              <p className="text-base text-black italic">{exp.startDate || "Start"} - {exp.endDate || "End"}</p>
             </div>
-          ))}
-        </div>
-      )}
+            
+            {exp.responsibilities && exp.responsibilities.length > 0 && (
+              <div className="ml-0">
+                {exp.writingStyle === "paragraph" ? (
+                  <p className="text-base text-black leading-relaxed">
+                    {formatResponsibilities(exp.responsibilities, exp.writingStyle)}
+                  </p>
+                ) : (
+                  <ul className="list-none space-y-1">
+                    {(formatResponsibilities(exp.responsibilities, exp.writingStyle) as string[]).map((resp: string, index: number) => (
+                      resp.trim() && <li key={index} className="text-base text-black">• {resp.trim()}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+        )) : (
+          <div className="mb-6">
+            <h3 className="text-lg font-bold text-black">Senior Frontend Developer - Tech Solutions Inc.</h3>
+            <p className="text-base text-black italic">January 2020 - Present</p>
+            <ul className="list-none space-y-1 mt-2">
+              <li className="text-base text-black">• Led development of company's flagship SaaS product using React and TypeScript</li>
+              <li className="text-base text-black">• Improved application performance by <strong>40%</strong> through code optimization and efficient state management</li>
+              <li className="text-base text-black">• Collaborated with cross-functional teams to deliver high-quality user experiences</li>
+            </ul>
+          </div>
+        )}
+      </div>
 
-      {/* Education */}
+      {/* Education Section - Exact format from image */}
       {education.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-3 border-b border-gray-400">EDUCATION</h2>
+          <h2 className="text-xl font-bold text-black mb-4 border-b-2 border-black pb-1">Education</h2>
           {education.map((edu) => (
-            <div key={edu.id} className="mb-2">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800">{edu.degree || "Degree"}</h3>
-                  <p className="text-sm text-gray-700">{edu.institution || "Institution"}</p>
-                  <p className="text-sm text-gray-600">{edu.location || "Location"}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">{edu.graduationYear || "Year"}</p>
-                  {edu.gpa && <p className="text-sm text-gray-600">GPA: {edu.gpa}</p>}
-                </div>
-              </div>
+            <div key={edu.id} className="mb-4">
+              <h3 className="text-lg font-bold text-black">{edu.degree || "Degree"}</h3>
+              <p className="text-base text-black">{edu.institution || "Institution"} - {edu.graduationYear || "Year"}</p>
+              <p className="text-base text-black">{edu.location || "Location"}</p>
+              {edu.gpa && <p className="text-base text-black">GPA: {edu.gpa}</p>}
             </div>
           ))}
         </div>
       )}
 
-      {/* Courses & Certifications */}
+      {/* Courses & Certifications Section */}
       {coursesAndCertifications.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-3 border-b border-gray-400">COURSES & CERTIFICATIONS</h2>
+          <h2 className="text-xl font-bold text-black mb-4 border-b-2 border-black pb-1">Courses & Certifications</h2>
           {coursesAndCertifications.map((course) => (
-            <div key={course.id} className="mb-3">
-              <div className="flex justify-between items-start mb-1">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800">{course.title || "Course/Certification Title"}</h3>
-                  <p className="text-sm text-gray-700">{course.provider || "Provider"}</p>
-                </div>
-                <p className="text-sm text-gray-600">{course.date || "Date"}</p>
+            <div key={course.id} className="mb-4">
+              <div className="mb-1">
+                <h3 className="text-lg font-bold text-black">{course.title || "Course/Certification Title"}</h3>
+                <p className="text-base text-black">{course.provider || "Provider"} - {course.date || "Date"}</p>
               </div>
               
               {course.description && (
-                <div className="ml-0 mt-1">
+                <div className="ml-0">
                   {course.writingStyle === "bullets" && course.description.includes("•") ? (
-                    <ul className="list-disc list-inside space-y-1">
+                    <ul className="list-none space-y-1">
                       {(formatDescription(course.description, course.writingStyle) as string[]).map((point: string, index: number) => (
-                        point.trim() && <li key={index} className="text-sm text-gray-700">{point.trim()}</li>
+                        point.trim() && <li key={index} className="text-base text-black">• {point.trim()}</li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-gray-700 leading-relaxed">{course.description}</p>
+                    <p className="text-base text-black leading-relaxed">{course.description}</p>
                   )}
                 </div>
               )}
