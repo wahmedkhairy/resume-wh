@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +5,7 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import MainContent from "@/components/MainContent";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useResumeData } from "@/hooks/useResumeData";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -166,6 +166,17 @@ const Index = () => {
   if (isPageLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <SEOHead
+          title="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
+          description="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters. Generate targeted job resumes for specific applications with our AI resume builder."
+          canonicalUrl="https://resumewh.com/"
+          keywords="resume builder, ATS resume builder, AI resume generator, professional resume template, job-winning resume, online CV maker, targeted resume generator, best ATS-friendly resume template 2025, AI resume builder for marketing manager, free cover letter and resume builder"
+          ogTitle="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
+          ogDescription="Create resumes that pass any Applicant Tracking System with a 100% success rate. Generate targeted job resumes for specific applications."
+          ogUrl="https://resumewh.com/"
+          twitterTitle="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
+          twitterDescription="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters."
+        />
         <Header />
         <Navigation onSectionChange={() => {}} currentSection="editor" />
         <main className="flex-1 p-6">
@@ -179,6 +190,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <SEOHead
+        title="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
+        description="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters. Generate targeted job resumes for specific applications with our AI resume builder."
+        canonicalUrl="https://resumewh.com/"
+        keywords="resume builder, ATS resume builder, AI resume generator, professional resume template, job-winning resume, online CV maker, targeted resume generator, best ATS-friendly resume template 2025, AI resume builder for marketing manager, free cover letter and resume builder"
+        ogTitle="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
+        ogDescription="Create resumes that pass any Applicant Tracking System with a 100% success rate. Generate targeted job resumes for specific applications."
+        ogUrl="https://resumewh.com/"
+        twitterTitle="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
+        twitterDescription="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters."
+      />
       <Header />
       <Navigation onSectionChange={handleSectionChange} currentSection={currentSection} />
       

@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import SubscriptionTiers from "@/components/SubscriptionTiers";
 import PaymentSection from "@/components/PaymentSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -178,6 +179,17 @@ const Subscription = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <SEOHead
+          title="Resume Builder Pricing - Affordable ATS Resume Builder Plans Under $5"
+          description="Choose from our affordable resume builder plans starting under $5 per month. Get AI-powered resume generation, ATS optimization, and PDF/Word export with PayPal checkout."
+          canonicalUrl="https://resumewh.com/subscription"
+          keywords="resume builder pricing under $5 per month, free resume maker, ATS resume builder, export resume to PDF and Word online, cloud resume builder with PayPal checkout"
+          ogTitle="Resume Builder Pricing - Affordable Plans Under $5"
+          ogDescription="Choose from our affordable resume builder plans starting under $5 per month. Get AI-powered resume generation and ATS optimization."
+          ogUrl="https://resumewh.com/subscription"
+          twitterTitle="Resume Builder Pricing - Affordable Plans Under $5"
+          twitterDescription="Choose from our affordable resume builder plans starting under $5 per month."
+        />
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -191,6 +203,17 @@ const Subscription = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <SEOHead
+        title="Resume Builder Pricing - Affordable ATS Resume Builder Plans Under $5"
+        description="Choose from our affordable resume builder plans starting under $5 per month. Get AI-powered resume generation, ATS optimization, and PDF/Word export with PayPal checkout."
+        canonicalUrl="https://resumewh.com/subscription"
+        keywords="resume builder pricing under $5 per month, free resume maker, ATS resume builder, export resume to PDF and Word online, cloud resume builder with PayPal checkout"
+        ogTitle="Resume Builder Pricing - Affordable Plans Under $5"
+        ogDescription="Choose from our affordable resume builder plans starting under $5 per month. Get AI-powered resume generation and ATS optimization."
+        ogUrl="https://resumewh.com/subscription"
+        twitterTitle="Resume Builder Pricing - Affordable Plans Under $5"
+        twitterDescription="Choose from our affordable resume builder plans starting under $5 per month."
+      />
       <Header />
       
       <main className="flex-1 p-6">
