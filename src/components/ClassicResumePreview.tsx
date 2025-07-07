@@ -155,7 +155,7 @@ const ClassicResumePreview: React.FC<ClassicResumePreviewProps> = ({
                     </p>
                   ) : (
                     <ul className="list-disc list-inside space-y-1">
-                      {formatResponsibilities(exp.responsibilities, exp.writingStyle).map((resp: string, index: number) => (
+                      {(formatResponsibilities(exp.responsibilities, exp.writingStyle) as string[]).map((resp: string, index: number) => (
                         resp.trim() && <li key={index} className="text-sm text-gray-700">{resp.trim()}</li>
                       ))}
                     </ul>
@@ -207,7 +207,7 @@ const ClassicResumePreview: React.FC<ClassicResumePreviewProps> = ({
                 <div className="ml-0 mt-1">
                   {course.writingStyle === "bullets" && course.description.includes("•") ? (
                     <ul className="list-disc list-inside space-y-1">
-                      {formatDescription(course.description, course.writingStyle).map((point: string, index: number) => (
+                      {(formatDescription(course.description, course.writingStyle) as string[]).map((point: string, index: number) => (
                         point.trim() && <li key={index} className="text-sm text-gray-700">{point.trim()}</li>
                       ))}
                     </ul>
