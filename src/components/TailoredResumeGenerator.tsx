@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Sparkles, Clock } from "lucide-react";
 
 interface TailoredResumeGeneratorProps {
@@ -20,6 +22,8 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   currentSubscription,
   onTailoredResumeGenerated,
 }) => {
+  const [jobDescription, setJobDescription] = useState("");
+
   return (
     <div className="space-y-6">
       <Card className="w-full">
@@ -33,13 +37,29 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col items-center justify-center py-12 space-y-4">
-            <Clock className="h-16 w-16 text-gray-400" />
-            <h3 className="text-xl font-semibold text-gray-700">Coming Soon</h3>
-            <p className="text-gray-500 text-center max-w-md">
-              We're working hard to bring you an amazing AI-powered resume targeting feature. 
-              Stay tuned for updates!
-            </p>
+          <div>
+            <Label htmlFor="job-description">Job Description</Label>
+            <Textarea
+              id="job-description"
+              placeholder="Paste the job description here to get a targeted resume optimized for this specific position..."
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              rows={6}
+              className="mt-2"
+            />
+          </div>
+          
+          <Button 
+            variant="default"
+            disabled={true}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Clock className="mr-2 h-4 w-4" />
+            Generate Targeted Resume - Coming Back Soon
+          </Button>
+          
+          <div className="text-xs text-muted-foreground text-center">
+            <p>We're working hard to bring you an amazing AI-powered resume targeting feature. Stay tuned for updates!</p>
           </div>
         </CardContent>
       </Card>

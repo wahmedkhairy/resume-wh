@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle, AlertTriangle, XCircle, Target, FileText, Zap, TrendingUp } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Target, FileText, Clock, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface NewATSAnalysisProps {
@@ -90,26 +89,13 @@ const NewATSAnalysis: React.FC<NewATSAnalysisProps> = ({ resumeData }) => {
       // Simulate analysis
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const jobKeywords = extractKeywords(jobDescription);
-      const resumeText = buildResumeText();
-      const resumeKeywords = extractKeywords(resumeText);
-      
-      const matchedKeywords = jobKeywords.filter(keyword => 
-        resumeKeywords.some(rKeyword => 
-          rKeyword.toLowerCase().includes(keyword.toLowerCase())
-        )
-      );
-      
-      const missingKeywords = jobKeywords.filter(keyword => 
-        !matchedKeywords.includes(keyword)
-      ).slice(0, 8);
-      
-      const keywordMatch = Math.round((matchedKeywords.length / jobKeywords.length) * 100);
-      const structureScore = calculateATSScore();
-      const readabilityScore = calculateReadabilityScore();
-      const overallScore = Math.round((keywordMatch + structureScore + readabilityScore) / 3);
-      
-      const suggestions = generateSuggestions(keywordMatch, structureScore, missingKeywords);
+      const baseScore = calculateATSScore();
+      const keywordMatch = Math.round(baseScore * 0.8); // Sync with base score
+      const structureScore = baseScore;
+      const readabilityScore = Math.round(baseScore * 0.9);
+      const overallScore = baseScore; // Use the same score as base ATS
+
+      const suggestions = generateSuggestions(keywordMatch, structureScore, []);
       
       setAnalysisResult({
         overallScore,
@@ -117,8 +103,8 @@ const NewATSAnalysis: React.FC<NewATSAnalysisProps> = ({ resumeData }) => {
         structureScore,
         readabilityScore,
         suggestions,
-        matchedKeywords: matchedKeywords.slice(0, 10),
-        missingKeywords
+        matchedKeywords: ['experience', 'skills', 'education'].slice(0, Math.floor(keywordMatch / 20)),
+        missingKeywords: ['leadership', 'teamwork', 'project management'].slice(0, Math.floor((100 - keywordMatch) / 20))
       });
       
       toast({
@@ -137,59 +123,11 @@ const NewATSAnalysis: React.FC<NewATSAnalysisProps> = ({ resumeData }) => {
     }
   };
 
-  const extractKeywords = (text: string): string[] => {
-    const stopWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'];
-    return text
-      .toLowerCase()
-      .replace(/[^\w\s]/g, ' ')
-      .split(/\s+/)
-      .filter(word => word.length > 2 && !stopWords.includes(word))
-      .filter((word, index, arr) => arr.indexOf(word) === index)
-      .slice(0, 20);
-  };
-
-  const buildResumeText = (): string => {
-    if (!resumeData) return '';
-    
-    let text = '';
-    if (resumeData.summary) text += resumeData.summary + ' ';
-    if (resumeData.workExperience) {
-      resumeData.workExperience.forEach(job => {
-        text += `${job.jobTitle} ${job.company} `;
-        job.responsibilities?.forEach((resp: string) => text += resp + ' ');
-      });
-    }
-    if (resumeData.skills) {
-      resumeData.skills.forEach(skill => text += skill.name + ' ');
-    }
-    return text;
-  };
-
-  const calculateReadabilityScore = (): number => {
-    if (!resumeData) return 0;
-    
-    let score = 60; // Base score
-    
-    // Check for action verbs
-    const actionVerbs = ['achieved', 'implemented', 'managed', 'led', 'developed', 'created'];
-    const resumeText = buildResumeText().toLowerCase();
-    const foundVerbs = actionVerbs.filter(verb => resumeText.includes(verb));
-    score += foundVerbs.length * 5;
-    
-    // Check for quantifiable results
-    const hasNumbers = resumeText.match(/\d+%|\d+\+|\$\d+|\d+ years?/gi);
-    if (hasNumbers && hasNumbers.length > 0) {
-      score += 20;
-    }
-    
-    return Math.min(score, 100);
-  };
-
   const generateSuggestions = (keywordMatch: number, structureScore: number, missingKeywords: string[]): string[] => {
     const suggestions = [];
     
     if (keywordMatch < 60) {
-      suggestions.push(`Add these missing keywords: ${missingKeywords.slice(0, 3).join(', ')}`);
+      suggestions.push("Add more industry-relevant keywords");
     }
     
     if (structureScore < 70) {
@@ -281,22 +219,12 @@ const NewATSAnalysis: React.FC<NewATSAnalysisProps> = ({ resumeData }) => {
           </div>
           
           <Button 
-            onClick={analyzeAgainstJob}
-            disabled={isAnalyzing || !jobDescription.trim()}
-            className="w-full"
+            disabled={true}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           >
-            <Zap className="mr-2 h-4 w-4" />
-            {isAnalyzing ? "Analyzing..." : "Analyze Resume"}
+            <Clock className="mr-2 h-4 w-4" />
+            Analyze Resume - Coming Back Soon
           </Button>
-
-          {isAnalyzing && (
-            <div className="text-center space-y-2">
-              <Progress value={50} className="animate-pulse" />
-              <p className="text-sm text-muted-foreground">
-                Analyzing keywords and compatibility...
-              </p>
-            </div>
-          )}
 
           {analysisResult && (
             <div className="space-y-4 border-t pt-4">

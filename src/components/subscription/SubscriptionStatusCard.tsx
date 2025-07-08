@@ -34,7 +34,7 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({ subscri
           <div className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-red-600" />
             <span className="font-medium text-red-800">
-              Subscription Status - Inactive
+              Subscription Inactive
             </span>
           </div>
         </CardContent>
@@ -49,7 +49,7 @@ const SubscriptionStatusCard: React.FC<SubscriptionStatusCardProps> = ({ subscri
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-green-600" />
             <span className="font-medium text-green-800">
-              Subscription Status
+              Subscription
             </span>
           </div>
           

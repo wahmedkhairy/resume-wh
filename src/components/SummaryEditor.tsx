@@ -53,7 +53,7 @@ const SummaryEditor: React.FC<SummaryEditorProps> = ({
           className="w-full bg-blue-600 hover:bg-blue-700 text-white"
         >
           <Clock className="mr-2 h-4 w-4" />
-          Generate with AI - Coming Soon
+          Generate with AI - Coming Back Soon
         </Button>
         
         <div className="text-xs text-muted-foreground">

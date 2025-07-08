@@ -1,6 +1,11 @@
 
-import React from "react";
+import React, { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClassicResumePreview from "@/components/ClassicResumePreview";
+import ATSProResumePreview from "@/components/ATSProResumePreview";
+import SummaryEditor from "@/components/SummaryEditor";
 
 interface PersonalInfo {
   name: string;
@@ -52,8 +57,24 @@ interface ResumePreviewProps {
   education: Education[];
   skills: Skill[];
   coursesAndCertifications: Course[];
-  onSummaryChange?: (summary: string) => void;
+  onSummaryChange: (summary: string) => void;
 }
+
+const getSummaryDisplayText = (summary: string) => {
+  if (!summary || summary.trim().length === 0) {
+    return `💡 Professional Summary Writing Tips:
+
+• Start with your job title or professional identity
+• Highlight 2-3 key achievements with specific numbers or percentages  
+• Mention your most relevant skills for the target role
+• Keep it concise: 3-4 sentences or 100-150 words maximum
+• Use action verbs like "achieved," "led," "improved," or "developed"
+• Tailor it to match keywords from the job description
+
+Example: "Marketing Manager with 5+ years driving digital campaigns that increased revenue by 30%. Expert in SEO, social media marketing, and data analytics. Led cross-functional teams of 8+ members to launch successful product campaigns reaching 2M+ customers."`;
+  }
+  return summary;
+};
 
 const ResumePreview: React.FC<ResumePreviewProps> = ({
   watermark = false,
@@ -63,18 +84,66 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   education,
   skills,
   coursesAndCertifications,
+  onSummaryChange,
 }) => {
-  // Use the new Classic template
-  // Note: Skills are intentionally not passed to the preview as they're for AI input only
+  const [selectedTemplate, setSelectedTemplate] = useState("classic");
+
+  const displaySummary = getSummaryDisplayText(summary);
+
+  const commonProps = {
+    watermark,
+    personalInfo,
+    summary: displaySummary,
+    workExperience,
+    education,
+    skills,
+    coursesAndCertifications,
+  };
+
   return (
-    <ClassicResumePreview
-      watermark={watermark}
-      personalInfo={personalInfo}
-      summary={summary}
-      workExperience={workExperience}
-      education={education}
-      coursesAndCertifications={coursesAndCertifications}
-    />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Resume Templates</h3>
+        <div className="flex gap-2">
+          <Badge variant={selectedTemplate === "classic" ? "default" : "outline"}>
+            Professional
+          </Badge>
+          <Badge variant={selectedTemplate === "ats-pro" ? "default" : "outline"}>
+            ATS Optimized
+          </Badge>
+        </div>
+      </div>
+
+      <Tabs value={selectedTemplate} onValueChange={setSelectedTemplate} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="classic">Classic Professional</TabsTrigger>
+          <TabsTrigger value="ats-pro">ATS Pro</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="classic" className="mt-4">
+          <div className="border rounded-lg bg-white overflow-hidden">
+            <ClassicResumePreview {...commonProps} />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="ats-pro" className="mt-4">
+          <div className="border rounded-lg bg-white overflow-hidden">
+            <ATSProResumePreview {...commonProps} />
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {!summary && (
+        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800 mb-2">
+            📝 <strong>Ready to add your professional summary?</strong>
+          </p>
+          <p className="text-xs text-blue-600">
+            A well-written summary can increase your interview chances by 40%. Use the tips shown above to craft a compelling introduction that highlights your unique value proposition.
+          </p>
+        </div>
+      )}
+    </div>
   );
 };
 
