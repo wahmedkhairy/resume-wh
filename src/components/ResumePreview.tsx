@@ -64,14 +64,8 @@ const getSummaryDisplayText = (summary: string) => {
   if (!summary || summary.trim().length === 0) {
     return `💡 Professional Summary Writing Tips:
 
-• Start with your job title or professional identity
-• Highlight 2-3 key achievements with specific numbers or percentages  
-• Mention your most relevant skills for the target role
-• Keep it concise: 3-4 sentences or 100-150 words maximum
-• Use action verbs like "achieved," "led," "improved," or "developed"
-• Tailor it to match keywords from the job description
-
-Example: "Marketing Manager with 5+ years driving digital campaigns that increased revenue by 30%. Expert in SEO, social media marketing, and data analytics. Led cross-functional teams of 8+ members to launch successful product campaigns reaching 2M+ customers."`;
+• Start with your job title and highlight 2-3 key achievements with specific numbers
+• Mention your most relevant skills for the target role and keep it to 3-4 sentences maximum`;
   }
   return summary;
 };
@@ -139,7 +133,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             📝 <strong>Ready to add your professional summary?</strong>
           </p>
           <p className="text-xs text-blue-600">
-            A well-written summary can increase your interview chances by 40%. Use the tips shown above to craft a compelling introduction that highlights your unique value proposition.
+            A well-written summary can increase your interview chances by 40%. Use the tips shown above to craft a compelling introduction.
           </p>
         </div>
       )}

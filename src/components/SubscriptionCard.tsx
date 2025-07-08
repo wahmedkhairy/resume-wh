@@ -2,7 +2,6 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { CreditCard } from "lucide-react";
 
 interface SubscriptionCardProps {
@@ -11,21 +10,6 @@ interface SubscriptionCardProps {
 }
 
 const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onRefreshSubscription }) => {
-  // Helper function to get proper badge variant for subscription status
-  const getSubscriptionStatusVariant = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'default';
-      case 'inactive':
-      case 'cancelled':
-        return 'destructive';
-      case 'pending':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -38,14 +22,6 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onRef
       <CardContent className="space-y-4">
         {subscription ? (
           <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Status</label>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant={getSubscriptionStatusVariant(subscription.status)}>
-                  {subscription.status}
-                </Badge>
-              </div>
-            </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Exports Remaining</label>
               <p className="text-lg font-semibold text-green-600 mt-1">
