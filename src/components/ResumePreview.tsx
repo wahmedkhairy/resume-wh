@@ -1,11 +1,7 @@
 
 import React, { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClassicResumePreview from "@/components/ClassicResumePreview";
 import ATSProResumePreview from "@/components/ATSProResumePreview";
-import SummaryEditor from "@/components/SummaryEditor";
 
 interface PersonalInfo {
   name: string;
@@ -80,7 +76,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   coursesAndCertifications,
   onSummaryChange,
 }) => {
-  const [selectedTemplate, setSelectedTemplate] = useState("classic");
+  const [selectedTemplate] = useState("classic");
 
   const displaySummary = getSummaryDisplayText(summary);
 
@@ -95,47 +91,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Resume Templates</h3>
-        <div className="flex gap-2">
-          <Badge variant={selectedTemplate === "classic" ? "default" : "outline"}>
-            Professional
-          </Badge>
-          <Badge variant={selectedTemplate === "ats-pro" ? "default" : "outline"}>
-            ATS Optimized
-          </Badge>
-        </div>
-      </div>
-
-      <Tabs value={selectedTemplate} onValueChange={setSelectedTemplate} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="classic">Classic Professional</TabsTrigger>
-          <TabsTrigger value="ats-pro">ATS Pro</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="classic" className="mt-4">
-          <div className="border rounded-lg bg-white overflow-hidden">
-            <ClassicResumePreview {...commonProps} />
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="ats-pro" className="mt-4">
-          <div className="border rounded-lg bg-white overflow-hidden">
-            <ATSProResumePreview {...commonProps} />
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {!summary && (
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800 mb-2">
-            📝 <strong>Ready to add your professional summary?</strong>
-          </p>
-          <p className="text-xs text-blue-600">
-            A well-written summary can increase your interview chances by 40%. Use the tips shown above to craft a compelling introduction.
-          </p>
-        </div>
+    <div className="border rounded-lg bg-white overflow-hidden">
+      {selectedTemplate === "classic" ? (
+        <ClassicResumePreview {...commonProps} />
+      ) : (
+        <ATSProResumePreview {...commonProps} />
       )}
     </div>
   );
