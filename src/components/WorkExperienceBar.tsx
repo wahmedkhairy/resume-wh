@@ -114,6 +114,13 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
     }
   };
 
+  const getPlaceholderText = (writingStyle: string) => {
+    if (writingStyle === "bullet") {
+      return "• Developed and maintained web applications using React and TypeScript\n• Collaborated with cross-functional teams to deliver high-quality solutions\n• Improved application performance by 30% through code optimization";
+    }
+    return "Developed and maintained web applications using React and TypeScript. Collaborated with cross-functional teams to deliver high-quality solutions and improved application performance by 30% through code optimization.";
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -208,10 +215,10 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                 {experience.responsibilities.map((responsibility, index) => (
                   <div key={index} className="flex gap-2">
                     <Textarea
-                      placeholder="Describe your responsibility..."
+                      placeholder={getPlaceholderText(experience.writingStyle || "bullet")}
                       value={responsibility}
                       onChange={(e) => updateResponsibility(experience.id, index, e.target.value)}
-                      className="min-h-[60px]"
+                      className="min-h-[80px]"
                     />
                     <Button
                       variant="outline"

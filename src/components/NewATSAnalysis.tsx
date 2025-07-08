@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle, AlertTriangle, XCircle, Target, FileText, Zap, TrendingUp } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Target, FileText, Zap, TrendingUp, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface NewATSAnalysisProps {
@@ -27,183 +27,140 @@ interface AnalysisResult {
   suggestions: string[];
   matchedKeywords: string[];
   missingKeywords: string[];
+  strengths: string[];
 }
 
 const NewATSAnalysis: React.FC<NewATSAnalysisProps> = ({ resumeData }) => {
   const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [baseATSResult, setBaseATSResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
 
-  const calculateATSScore = () => {
-    if (!resumeData) return 0;
-    
-    let score = 0;
-    
-    // Contact information (20%)
-    if (resumeData.personalInfo?.name && resumeData.personalInfo?.email && resumeData.personalInfo?.phone) {
-      score += 20;
+  // Calculate and update base ATS analysis whenever resumeData changes
+  useEffect(() => {
+    if (resumeData) {
+      const result = performBaseATSAnalysis();
+      setBaseATSResult(result);
+    }
+  }, [resumeData]);
+
+  const performBaseATSAnalysis = (): AnalysisResult => {
+    if (!resumeData) {
+      return {
+        overallScore: 0,
+        keywordMatch: 0,
+        structureScore: 0,
+        readabilityScore: 0,
+        suggestions: ["Add resume content to get analysis"],
+        matchedKeywords: [],
+        missingKeywords: [],
+        strengths: []
+      };
     }
     
-    // Summary (20%)
+    let structureScore = 0;
+    let keywordScore = 0;
+    let readabilityScore = 60; // Base score
+    const suggestions = [];
+    const strengths = [];
+    
+    // Contact information (25%)
+    if (resumeData.personalInfo?.name && resumeData.personalInfo?.email && resumeData.personalInfo?.phone) {
+      structureScore += 25;
+      strengths.push("Complete contact information");
+    } else {
+      suggestions.push("Complete all contact information fields");
+    }
+    
+    // Summary (25%)
     if (resumeData.summary && resumeData.summary.length > 50) {
-      score += 20;
+      structureScore += 25;
+      if (resumeData.summary.length >= 80 && resumeData.summary.length <= 120) {
+        strengths.push("Well-sized professional summary");
+      }
+    } else {
+      suggestions.push("Add a professional summary (80-120 words)");
     }
     
     // Work experience (30%)
     if (resumeData.workExperience && resumeData.workExperience.length > 0) {
-      score += 15;
+      structureScore += 15;
       const hasDetailedExp = resumeData.workExperience.some(exp => 
         exp.responsibilities && exp.responsibilities.length > 2
       );
-      if (hasDetailedExp) score += 15;
+      if (hasDetailedExp) {
+        structureScore += 15;
+        strengths.push("Detailed work experience");
+      } else {
+        suggestions.push("Add more detailed job responsibilities");
+      }
+    } else {
+      suggestions.push("Add work experience");
     }
     
-    // Skills (15%)
-    if (resumeData.skills && resumeData.skills.length >= 5) {
-      score += 15;
-    } else if (resumeData.skills && resumeData.skills.length > 0) {
-      score += 8;
-    }
-    
-    // Education (15%)
+    // Education (20%)
     if (resumeData.education && resumeData.education.length > 0) {
-      score += 15;
+      structureScore += 20;
+      strengths.push("Education information included");
+    } else {
+      suggestions.push("Add education information");
     }
     
-    return Math.min(score, 100);
+    // Keyword analysis based on content
+    const allText = [
+      resumeData.summary || '',
+      ...(resumeData.workExperience?.flatMap(exp => exp.responsibilities || []) || []),
+      ...(resumeData.skills?.map(skill => skill.name) || [])
+    ].join(' ').toLowerCase();
+    
+    // Common professional keywords
+    const professionalKeywords = ['manage', 'lead', 'develop', 'create', 'implement', 'achieve', 'improve'];
+    const foundKeywords = professionalKeywords.filter(keyword => allText.includes(keyword));
+    keywordScore = Math.min((foundKeywords.length / professionalKeywords.length) * 100, 100);
+    
+    if (keywordScore > 60) {
+      strengths.push("Good use of action words");
+    } else {
+      suggestions.push("Use more action verbs (manage, lead, develop, etc.)");
+    }
+    
+    // Check for quantifiable results
+    const hasNumbers = allText.match(/\d+%|\d+\+|\$\d+|\d+ years?/gi);
+    if (hasNumbers && hasNumbers.length > 0) {
+      readabilityScore += 20;
+      strengths.push("Includes quantifiable achievements");
+    } else {
+      suggestions.push("Add quantifiable achievements with numbers");
+    }
+    
+    // Skills assessment
+    if (resumeData.skills && resumeData.skills.length >= 5) {
+      keywordScore += 15;
+      strengths.push("Comprehensive skills section");
+    } else {
+      suggestions.push("Add more relevant skills (aim for 5+)");
+    }
+    
+    const overallScore = Math.round((structureScore + keywordScore + readabilityScore) / 3);
+    
+    return {
+      overallScore: Math.min(overallScore, 100),
+      keywordMatch: Math.min(keywordScore, 100),
+      structureScore: Math.min(structureScore, 100),
+      readabilityScore: Math.min(readabilityScore, 100),
+      suggestions: suggestions.slice(0, 5), // Limit to top 5 suggestions
+      matchedKeywords: foundKeywords,
+      missingKeywords: professionalKeywords.filter(kw => !foundKeywords.includes(kw)).slice(0, 5),
+      strengths: strengths.slice(0, 5) // Limit to top 5 strengths
+    };
   };
 
   const analyzeAgainstJob = async () => {
-    if (!jobDescription.trim()) {
-      toast({
-        title: "Job Description Required",
-        description: "Please enter a job description to analyze against.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsAnalyzing(true);
-    
-    try {
-      // Simulate analysis
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const jobKeywords = extractKeywords(jobDescription);
-      const resumeText = buildResumeText();
-      const resumeKeywords = extractKeywords(resumeText);
-      
-      const matchedKeywords = jobKeywords.filter(keyword => 
-        resumeKeywords.some(rKeyword => 
-          rKeyword.toLowerCase().includes(keyword.toLowerCase())
-        )
-      );
-      
-      const missingKeywords = jobKeywords.filter(keyword => 
-        !matchedKeywords.includes(keyword)
-      ).slice(0, 8);
-      
-      const keywordMatch = Math.round((matchedKeywords.length / jobKeywords.length) * 100);
-      const structureScore = calculateATSScore();
-      const readabilityScore = calculateReadabilityScore();
-      const overallScore = Math.round((keywordMatch + structureScore + readabilityScore) / 3);
-      
-      const suggestions = generateSuggestions(keywordMatch, structureScore, missingKeywords);
-      
-      setAnalysisResult({
-        overallScore,
-        keywordMatch,
-        structureScore,
-        readabilityScore,
-        suggestions,
-        matchedKeywords: matchedKeywords.slice(0, 10),
-        missingKeywords
-      });
-      
-      toast({
-        title: "Analysis Complete",
-        description: `Your resume scored ${overallScore}% for this position.`,
-      });
-      
-    } catch (error) {
-      toast({
-        title: "Analysis Failed",
-        description: "Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const extractKeywords = (text: string): string[] => {
-    const stopWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'];
-    return text
-      .toLowerCase()
-      .replace(/[^\w\s]/g, ' ')
-      .split(/\s+/)
-      .filter(word => word.length > 2 && !stopWords.includes(word))
-      .filter((word, index, arr) => arr.indexOf(word) === index)
-      .slice(0, 20);
-  };
-
-  const buildResumeText = (): string => {
-    if (!resumeData) return '';
-    
-    let text = '';
-    if (resumeData.summary) text += resumeData.summary + ' ';
-    if (resumeData.workExperience) {
-      resumeData.workExperience.forEach(job => {
-        text += `${job.jobTitle} ${job.company} `;
-        job.responsibilities?.forEach((resp: string) => text += resp + ' ');
-      });
-    }
-    if (resumeData.skills) {
-      resumeData.skills.forEach(skill => text += skill.name + ' ');
-    }
-    return text;
-  };
-
-  const calculateReadabilityScore = (): number => {
-    if (!resumeData) return 0;
-    
-    let score = 60; // Base score
-    
-    // Check for action verbs
-    const actionVerbs = ['achieved', 'implemented', 'managed', 'led', 'developed', 'created'];
-    const resumeText = buildResumeText().toLowerCase();
-    const foundVerbs = actionVerbs.filter(verb => resumeText.includes(verb));
-    score += foundVerbs.length * 5;
-    
-    // Check for quantifiable results
-    const hasNumbers = resumeText.match(/\d+%|\d+\+|\$\d+|\d+ years?/gi);
-    if (hasNumbers && hasNumbers.length > 0) {
-      score += 20;
-    }
-    
-    return Math.min(score, 100);
-  };
-
-  const generateSuggestions = (keywordMatch: number, structureScore: number, missingKeywords: string[]): string[] => {
-    const suggestions = [];
-    
-    if (keywordMatch < 60) {
-      suggestions.push(`Add these missing keywords: ${missingKeywords.slice(0, 3).join(', ')}`);
-    }
-    
-    if (structureScore < 70) {
-      suggestions.push("Complete all sections (contact info, summary, experience, education, skills)");
-    }
-    
-    if (!resumeData?.summary || resumeData.summary.length < 100) {
-      suggestions.push("Add a compelling professional summary (100-200 words)");
-    }
-    
-    suggestions.push("Use action verbs and quantifiable achievements");
-    suggestions.push("Tailor your experience descriptions to match job requirements");
-    
-    return suggestions;
+    toast({
+      title: "Feature Coming Back Soon",
+      description: "Job-specific resume analysis will be available again shortly!",
+    });
   };
 
   const getScoreColor = (score: number) => {
@@ -218,40 +175,106 @@ const NewATSAnalysis: React.FC<NewATSAnalysisProps> = ({ resumeData }) => {
     return <XCircle className="h-5 w-5 text-red-600" />;
   };
 
-  const baseScore = calculateATSScore();
+  const currentResult = baseATSResult || {
+    overallScore: 0,
+    keywordMatch: 0,
+    structureScore: 0,
+    readabilityScore: 0,
+    suggestions: [],
+    matchedKeywords: [],
+    missingKeywords: [],
+    strengths: []
+  };
 
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-4">ATS Analysis</h2>
         <p className="text-lg text-muted-foreground">
-          Optimize your resume for Applicant Tracking Systems and get real-time feedback.
+          Real-time analysis of your resume's compatibility with Applicant Tracking Systems.
         </p>
       </div>
 
-      {/* Base ATS Score */}
+      {/* Base ATS Score - Real-time updates */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Current ATS Score
+            Current ATS Compatibility Score
           </CardTitle>
           <CardDescription>
-            Based on your resume content and structure
+            Live analysis based on your resume content and structure
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center space-y-4">
-            <div className={`text-4xl font-bold ${getScoreColor(baseScore)}`}>
-              {baseScore}%
+            <div className="flex items-center justify-center gap-2">
+              {getScoreIcon(currentResult.overallScore)}
+              <div className={`text-4xl font-bold ${getScoreColor(currentResult.overallScore)}`}>
+                {currentResult.overallScore}%
+              </div>
             </div>
-            <Progress value={baseScore} className="h-3" />
+            <Progress value={currentResult.overallScore} className="h-3" />
             <p className="text-sm text-muted-foreground">
-              {baseScore >= 80 ? "Excellent ATS compatibility!" :
-               baseScore >= 60 ? "Good, but room for improvement" :
-               "Needs significant optimization"}
+              {currentResult.overallScore >= 80 ? "Excellent ATS compatibility!" :
+               currentResult.overallScore >= 60 ? "Good, with room for improvement" :
+               "Needs optimization for ATS systems"}
             </p>
           </div>
+
+          <div className="grid grid-cols-3 gap-4 mt-6">
+            <div className="text-center">
+              <div className={`text-lg font-semibold ${getScoreColor(currentResult.structureScore)}`}>
+                {currentResult.structureScore}%
+              </div>
+              <p className="text-xs text-muted-foreground">Structure</p>
+            </div>
+            <div className="text-center">
+              <div className={`text-lg font-semibold ${getScoreColor(currentResult.keywordMatch)}`}>
+                {currentResult.keywordMatch}%
+              </div>
+              <p className="text-xs text-muted-foreground">Keywords</p>
+            </div>
+            <div className="text-center">
+              <div className={`text-lg font-semibold ${getScoreColor(currentResult.readabilityScore)}`}>
+                {currentResult.readabilityScore}%
+              </div>
+              <p className="text-xs text-muted-foreground">Readability</p>
+            </div>
+          </div>
+
+          {currentResult.strengths.length > 0 && (
+            <div className="mt-4">
+              <h4 className="font-medium text-green-700 mb-2 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                Strengths
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {currentResult.strengths.map((strength, index) => (
+                  <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
+                    {strength}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {currentResult.suggestions.length > 0 && (
+            <div className="mt-4">
+              <h4 className="font-medium text-blue-700 mb-2 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Improvement Suggestions
+              </h4>
+              <ul className="space-y-1">
+                {currentResult.suggestions.map((suggestion, index) => (
+                  <li key={index} className="flex items-start gap-2 text-sm">
+                    <span className="text-blue-500 mt-1">•</span>
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -280,98 +303,21 @@ const NewATSAnalysis: React.FC<NewATSAnalysisProps> = ({ resumeData }) => {
             />
           </div>
           
-          <Button 
-            onClick={analyzeAgainstJob}
-            disabled={isAnalyzing || !jobDescription.trim()}
-            className="w-full"
-          >
-            <Zap className="mr-2 h-4 w-4" />
-            {isAnalyzing ? "Analyzing..." : "Analyze Resume"}
-          </Button>
-
-          {isAnalyzing && (
-            <div className="text-center space-y-2">
-              <Progress value={50} className="animate-pulse" />
-              <p className="text-sm text-muted-foreground">
-                Analyzing keywords and compatibility...
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>Coming Back Soon</span>
             </div>
-          )}
-
-          {analysisResult && (
-            <div className="space-y-4 border-t pt-4">
-              <div className="text-center">
-                <div className={`text-3xl font-bold ${getScoreColor(analysisResult.overallScore)}`}>
-                  {analysisResult.overallScore}%
-                </div>
-                <p className="text-sm text-muted-foreground">Job Match Score</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className={`text-lg font-semibold ${getScoreColor(analysisResult.keywordMatch)}`}>
-                    {analysisResult.keywordMatch}%
-                  </div>
-                  <p className="text-xs text-muted-foreground">Keywords</p>
-                </div>
-                <div className="text-center">
-                  <div className={`text-lg font-semibold ${getScoreColor(analysisResult.structureScore)}`}>
-                    {analysisResult.structureScore}%
-                  </div>
-                  <p className="text-xs text-muted-foreground">Structure</p>
-                </div>
-                <div className="text-center">
-                  <div className={`text-lg font-semibold ${getScoreColor(analysisResult.readabilityScore)}`}>
-                    {analysisResult.readabilityScore}%
-                  </div>
-                  <p className="text-xs text-muted-foreground">Readability</p>
-                </div>
-              </div>
-
-              {analysisResult.matchedKeywords.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-green-700 mb-2">✓ Matched Keywords</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {analysisResult.matchedKeywords.map((keyword, index) => (
-                      <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
-                        {keyword}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {analysisResult.missingKeywords.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-red-700 mb-2">⚠ Missing Keywords</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {analysisResult.missingKeywords.map((keyword, index) => (
-                      <Badge key={index} variant="outline" className="border-red-200 text-red-700">
-                        {keyword}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {analysisResult.suggestions.length > 0 && (
-                <div>
-                  <h4 className="font-medium mb-2 flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Improvement Suggestions
-                  </h4>
-                  <ul className="space-y-1">
-                    {analysisResult.suggestions.map((suggestion, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm">
-                        <span className="text-blue-500 mt-1">•</span>
-                        {suggestion}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
+            
+            <Button 
+              onClick={analyzeAgainstJob}
+              disabled={true}
+              className="w-full max-w-sm"
+            >
+              <Zap className="mr-2 h-4 w-4" />
+              Coming Back Soon
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

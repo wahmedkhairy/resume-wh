@@ -1,3 +1,4 @@
+
 import React from "react";
 
 interface PersonalInfo {
@@ -16,7 +17,6 @@ interface WorkExperience {
   endDate: string;
   location: string;
   responsibilities: string[];
-  experienceType?: string;
   writingStyle?: "bullet" | "paragraph";
 }
 
@@ -54,406 +54,186 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
   summary,
   workExperience,
   education,
-  coursesAndCertifications,
+  coursesAndCertifications
 }) => {
-  const getExperienceTypeDisplay = (type?: string) => {
-    switch (type) {
-      case "full-time":
-        return "Full Time";
-      case "remote":
-        return "Remote";
-      case "internship":
-        return "Internship";
-      default:
-        return "";
-    }
-  };
-
-  const renderResponsibilities = (responsibilities: string[], writingStyle?: "bullet" | "paragraph") => {
-    const validResponsibilities = responsibilities.filter(resp => resp.trim());
+  const formatResponsibilities = (responsibilities: string[], writingStyle: "bullet" | "paragraph" = "bullet") => {
+    const filteredResponsibilities = responsibilities.filter(resp => resp.trim());
     
-    if (!validResponsibilities.length) return null;
-
+    if (filteredResponsibilities.length === 0) return null;
+    
     if (writingStyle === "paragraph") {
+      // Join all responsibilities into a single paragraph
+      const combinedText = filteredResponsibilities.join('. ').replace(/\.\./g, '.');
+      return <p className="text-sm text-gray-700 leading-relaxed">{combinedText}</p>;
+    } else {
+      // Display as bullet points, but handle cases where user already added bullets
       return (
-        <div 
-          style={{ 
-            fontSize: '14pt',
-            margin: '4pt 0',
-            color: '#000000',
-            lineHeight: '1.3',
-            direction: 'ltr',
-            textAlign: 'left'
-          }}
-        >
-          {validResponsibilities.join('. ')}
-        </div>
+        <ul className="text-sm text-gray-700 space-y-1">
+          {filteredResponsibilities.map((responsibility, index) => {
+            // Clean up the responsibility text and handle existing bullets
+            let cleanText = responsibility.trim();
+            // Remove existing bullet points or dashes at the start
+            cleanText = cleanText.replace(/^[•\-\*\+]\s*/, '');
+            
+            return (
+              <li key={index} className="flex items-start">
+                <span className="mr-2 mt-1.5 w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0"></span>
+                <span className="leading-relaxed">{cleanText}</span>
+              </li>
+            );
+          })}
+        </ul>
       );
     }
-
-    return (
-      <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
-        {validResponsibilities.map((responsibility, respIndex) => (
-          <li 
-            key={respIndex} 
-            style={{ 
-              fontSize: '14pt',
-              margin: '4pt 0',
-              color: '#000000',
-              lineHeight: '1.3',
-              direction: 'ltr',
-              textAlign: 'left'
-            }}
-          >
-            {responsibility}
-          </li>
-        ))}
-      </ul>
-    );
   };
 
-  const renderCourseDescription = (description: string, writingStyle?: "bullet" | "paragraph") => {
+  const formatDescription = (description: string, writingStyle: "bullet" | "paragraph" = "bullet") => {
     if (!description.trim()) return null;
-
+    
     if (writingStyle === "paragraph") {
+      return <p className="text-sm text-gray-700 leading-relaxed">{description}</p>;
+    } else {
+      // Split by lines or bullet points for bullet format
+      const lines = description.split(/\n|•/).filter(line => line.trim());
+      
+      if (lines.length === 1) {
+        // Single line, display as paragraph
+        return <p className="text-sm text-gray-700 leading-relaxed">{description}</p>;
+      }
+      
       return (
-        <div 
-          style={{ 
-            fontSize: '14pt',
-            margin: '2pt 0 0 0',
-            color: '#000000',
-            direction: 'ltr',
-            textAlign: 'left'
-          }}
-        >
-          {description}
-        </div>
+        <ul className="text-sm text-gray-700 space-y-1">
+          {lines.map((line, index) => {
+            const cleanText = line.trim().replace(/^[•\-\*\+]\s*/, '');
+            if (!cleanText) return null;
+            
+            return (
+              <li key={index} className="flex items-start">
+                <span className="mr-2 mt-1.5 w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0"></span>
+                <span className="leading-relaxed">{cleanText}</span>
+              </li>
+            );
+          }).filter(Boolean)}
+        </ul>
       );
     }
-
-    return (
-      <ul style={{ margin: '2pt 0 0 0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
-        <li 
-          style={{ 
-            fontSize: '14pt',
-            margin: '2pt 0',
-            color: '#000000',
-            lineHeight: '1.3',
-            direction: 'ltr',
-            textAlign: 'left'
-          }}
-        >
-          {description}
-        </li>
-      </ul>
-    );
   };
 
   return (
-    <div 
-      className="resume-container bg-white relative"
-      style={{ 
-        fontFamily: 'Times, serif',
-        fontSize: '14pt',
-        lineHeight: '1.3',
-        color: '#000000',
-        padding: '0.5in',
-        margin: '0 auto',
-        maxWidth: '8.5in',
-        minHeight: '11in',
-        boxSizing: 'border-box',
-        textAlign: 'center',
-        direction: 'ltr',
-        unicodeBidi: 'embed'
-      }}
-      data-resume-preview="true"
-    >
-      {/* Watermark for non-premium users */}
+    <div className="max-w-4xl mx-auto bg-white shadow-lg relative overflow-hidden" style={{ minHeight: '11in' }}>
       {watermark && (
-        <div className="watermark absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-          <div className="text-gray-200 text-6xl font-bold transform rotate-45 opacity-10">
-            DEMO VERSION
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div className="text-gray-200 text-6xl font-bold transform rotate-45 opacity-20">
+            RESUME BUILDER
           </div>
         </div>
       )}
-
-      {/* Header */}
-      <header style={{ marginBottom: '24pt', direction: 'ltr' }}>
-        <h1 
-          style={{ 
-            fontSize: '22pt',
-            fontWeight: 'bold',
-            margin: '0 0 10pt 0',
-            color: '#000000',
-            direction: 'ltr',
-            textAlign: 'center'
-          }}
-        >
-          {personalInfo.name || "Your Name"}
-        </h1>
-        
-        {personalInfo.jobTitle && (
-          <div 
-            style={{ 
-              fontSize: '16pt',
-              margin: '0 0 10pt 0',
-              color: '#000000',
-              direction: 'ltr',
-              textAlign: 'center'
-            }}
-          >
-            {personalInfo.jobTitle}
-            {personalInfo.location && <span> | {personalInfo.location}</span>}
-          </div>
-        )}
-        
-        <div 
-          style={{ 
-            fontSize: '14pt',
-            color: '#000000',
-            lineHeight: '1.3',
-            direction: 'ltr',
-            textAlign: 'center'
-          }}
-        >
-          {personalInfo.email && <span>{personalInfo.email}</span>}
-          {personalInfo.email && personalInfo.phone && <span> | </span>}
-          {personalInfo.phone && <span>{personalInfo.phone}</span>}
-        </div>
-      </header>
-
-      {/* Summary Section */}
-      <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
-        <h2 
-          style={{ 
-            fontSize: '16pt',
-            fontWeight: 'bold',
-            margin: '0 0 10pt 0',
-            color: '#000000',
-            textAlign: 'left',
-            borderBottom: '1pt solid #000000',
-            paddingBottom: '3pt',
-            direction: 'ltr'
-          }}
-        >
-          Summary
-        </h2>
-        
-        <div 
-          style={{ 
-            fontSize: '14pt',
-            lineHeight: '1.4',
-            margin: '0',
-            color: '#000000',
-            textAlign: 'left',
-            direction: 'ltr',
-            unicodeBidi: 'embed'
-          }}
-        >
-          {summary || "Generate your professional summary using AI by clicking the 'Generate Summary' button."}
-        </div>
-      </section>
-
-      {/* Experience Section */}
-      <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
-        <h2 
-          style={{ 
-            fontSize: '16pt',
-            fontWeight: 'bold',
-            margin: '0 0 14pt 0',
-            color: '#000000',
-            textAlign: 'left',
-            borderBottom: '1pt solid #000000',
-            paddingBottom: '3pt',
-            direction: 'ltr'
-          }}
-        >
-          Experience
-        </h2>
-        
-        {workExperience.length > 0 ? workExperience.map((job, index) => (
-          <div key={job.id} style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
-            <h3 
-              style={{ 
-                fontSize: '14pt',
-                fontWeight: 'bold',
-                margin: '0 0 5pt 0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              {job.jobTitle} - {job.company}
-            </h3>
-            
-            <div 
-              style={{ 
-                fontSize: '14pt',
-                margin: '0 0 8pt 0',
-                color: '#000000',
-                fontStyle: 'italic',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              {job.startDate} - {job.endDate}
-              {job.location && <span> | {job.location}</span>}
-              {job.experienceType && <span> | {getExperienceTypeDisplay(job.experienceType)}</span>}
-            </div>
-            
-            {renderResponsibilities(job.responsibilities, job.writingStyle)}
-          </div>
-        )) : (
-          <div style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
-            <h3 
-              style={{ 
-                fontSize: '14pt',
-                fontWeight: 'bold',
-                margin: '0 0 5pt 0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              Senior Frontend Developer - Tech Solutions Inc.
-            </h3>
-            
-            <div 
-              style={{ 
-                fontSize: '14pt',
-                margin: '0 0 8pt 0',
-                color: '#000000',
-                fontStyle: 'italic',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              January 2020 - Present | Full Time
-            </div>
-            
-            <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
-              <li style={{ fontSize: '14pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
-                Led development of company's flagship SaaS product using React and TypeScript
-              </li>
-              <li style={{ fontSize: '14pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
-                Improved application performance by <strong>40%</strong> through code optimization and efficient state management
-              </li>
-              <li style={{ fontSize: '14pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
-                Collaborated with cross-functional teams to deliver high-quality user experiences
-              </li>
-            </ul>
-          </div>
-        )}
-      </section>
-
-      {/* Education Section */}
-      {(education.length > 0 || coursesAndCertifications.length > 0) && (
-        <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
-          <h2 
-            style={{ 
-              fontSize: '16pt',
-              fontWeight: 'bold',
-              margin: '0 0 14pt 0',
-              color: '#000000',
-              textAlign: 'left',
-              borderBottom: '1pt solid #000000',
-              paddingBottom: '3pt',
-              direction: 'ltr'
-            }}
-          >
-            Education
-          </h2>
-          
-          {education.length > 0 ? education.map((edu, index) => (
-            <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
-              <div 
-                style={{ 
-                  fontSize: '14pt',
-                  fontWeight: 'bold',
-                  margin: '0 0 5pt 0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                {edu.degree}
-              </div>
-              <div 
-                style={{ 
-                  fontSize: '14pt',
-                  margin: '0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                {edu.institution} - {edu.graduationYear}
-                {edu.location && <span> | {edu.location}</span>}
-              </div>
-            </div>
-          )) : (
-            <div style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
-              <div 
-                style={{ 
-                  fontSize: '14pt',
-                  fontWeight: 'bold',
-                  margin: '0 0 5pt 0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                Bachelor of Science in Computer Science
-              </div>
-              <div 
-                style={{ 
-                  fontSize: '14pt',
-                  margin: '0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                University Name - 2020
-              </div>
-            </div>
+      
+      <div className="p-8 relative z-20">
+        {/* Header */}
+        <div className="text-center border-b-2 border-gray-200 pb-6 mb-6">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            {personalInfo.name || "Your Name"}
+          </h1>
+          {personalInfo.jobTitle && (
+            <h2 className="text-xl text-gray-600 mb-3">{personalInfo.jobTitle}</h2>
           )}
+          <div className="flex flex-wrap justify-center items-center gap-4 text-sm text-gray-600">
+            {personalInfo.email && <span>{personalInfo.email}</span>}
+            {personalInfo.phone && <span>{personalInfo.phone}</span>}
+            {personalInfo.location && <span>{personalInfo.location}</span>}
+          </div>
+        </div>
 
-          {coursesAndCertifications.length > 0 && (
-            <>
-              <h3 
-                style={{ 
-                  fontSize: '14pt',
-                  fontWeight: 'bold',
-                  margin: '18pt 0 10pt 0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                Courses & Certifications
-              </h3>
-              {coursesAndCertifications.map((item, index) => (
-                <div key={item.id} style={{ marginBottom: '10pt', direction: 'ltr', textAlign: 'left' }}>
-                  <div 
-                    style={{ 
-                      fontSize: '14pt',
-                      fontWeight: 'normal',
-                      margin: '0',
-                      color: '#000000',
-                      direction: 'ltr',
-                      textAlign: 'left'
-                    }}
-                  >
-                    <strong>{item.title}</strong> - {item.provider} ({item.date})
+        {/* Professional Summary */}
+        {summary && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-300 pb-2 mb-3">
+              PROFESSIONAL SUMMARY
+            </h3>
+            <p className="text-sm text-gray-700 leading-relaxed">{summary}</p>
+          </div>
+        )}
+
+        {/* Work Experience */}
+        {workExperience.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-300 pb-2 mb-4">
+              PROFESSIONAL EXPERIENCE
+            </h3>
+            <div className="space-y-4">
+              {workExperience.map((job) => (
+                <div key={job.id} className="mb-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-800">{job.jobTitle}</h4>
+                      <p className="text-gray-600 font-medium">{job.company}</p>
+                    </div>
+                    <div className="text-right text-sm text-gray-600">
+                      <p>{job.startDate} - {job.endDate}</p>
+                      {job.location && <p>{job.location}</p>}
+                    </div>
                   </div>
-                  {renderCourseDescription(item.description, item.writingStyle)}
+                  {formatResponsibilities(job.responsibilities, job.writingStyle)}
                 </div>
               ))}
-            </>
-          )}
-        </section>
-      )}
+            </div>
+          </div>
+        )}
+
+        {/* Education */}
+        {education.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-300 pb-2 mb-4">
+              EDUCATION
+            </h3>
+            <div className="space-y-3">
+              {education.map((edu) => (
+                <div key={edu.id} className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
+                    <p className="text-gray-600">{edu.institution}</p>
+                    {edu.gpa && <p className="text-sm text-gray-600">GPA: {edu.gpa}</p>}
+                  </div>
+                  <div className="text-right text-sm text-gray-600">
+                    <p>{edu.graduationYear}</p>
+                    {edu.location && <p>{edu.location}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Courses & Certifications */}
+        {coursesAndCertifications.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-300 pb-2 mb-4">
+              COURSES & CERTIFICATIONS
+            </h3>
+            <div className="space-y-3">
+              {coursesAndCertifications.map((course) => (
+                <div key={course.id}>
+                  <div className="flex justify-between items-start mb-1">
+                    <div>
+                      <h4 className="font-semibold text-gray-800">{course.title}</h4>
+                      <p className="text-gray-600">{course.provider}</p>
+                    </div>
+                    <div className="text-right text-sm text-gray-600">
+                      <p>{course.date}</p>
+                    </div>
+                  </div>
+                  {course.description && (
+                    <div className="mt-2">
+                      {formatDescription(course.description, course.writingStyle)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

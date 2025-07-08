@@ -100,6 +100,13 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     }
   };
 
+  const getPlaceholderText = (writingStyle: string) => {
+    if (writingStyle === "bullet") {
+      return "• Comprehensive web development course covering React, Node.js, and MongoDB\n• Hands-on projects building real-world applications\n• Certificate of completion with distinction";
+    }
+    return "Comprehensive web development course covering React, Node.js, and MongoDB with hands-on projects building real-world applications. Received certificate of completion with distinction.";
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -197,8 +204,8 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
                   id={`description-${course.id}`}
                   value={course.description}
                   onChange={(e) => updateCourse(course.id, 'description', e.target.value)}
-                  placeholder="Brief description of what you learned or achieved"
-                  rows={2}
+                  placeholder={getPlaceholderText(course.writingStyle || "bullet")}
+                  rows={3}
                 />
               </div>
             </div>
