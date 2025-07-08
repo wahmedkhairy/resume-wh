@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -181,14 +182,14 @@ const Subscription = () => {
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <SEOHead
           title="Resume Builder Pricing - Affordable ATS Resume Builder Plans Under $5"
-          description="Choose from our affordable resume builder plans starting under $5 per month. Get AI-powered resume generation, ATS optimization, and PDF/Word export with PayPal checkout."
+          description="Choose from our affordable resume builder plans with ATS optimization features. Includes AI-powered resume check to improve resume for applicant tracking systems."
           canonicalUrl="https://resumewh.com/subscription"
-          keywords="resume builder pricing under $5 per month, free resume maker, ATS resume builder, export resume to PDF and Word online, cloud resume builder with PayPal checkout"
+          keywords="resume builder pricing under $5 per month, free resume maker, ATS resume builder, export resume to PDF and Word online, cloud resume builder with PayPal checkout, ATS resume checker, optimize resume for ATS, ATS compatibility test, improve resume for applicant tracking system"
           ogTitle="Resume Builder Pricing - Affordable Plans Under $5"
-          ogDescription="Choose from our affordable resume builder plans starting under $5 per month. Get AI-powered resume generation and ATS optimization."
+          ogDescription="Affordable resume builder with ATS optimization features starting under $5 per month. Includes free ATS resume scan to check if resume passes ATS."
           ogUrl="https://resumewh.com/subscription"
           twitterTitle="Resume Builder Pricing - Affordable Plans Under $5"
-          twitterDescription="Choose from our affordable resume builder plans starting under $5 per month."
+          twitterDescription="Affordable resume builder with ATS score calculator and AI-powered resume check for applicant tracking systems."
         />
         <Header />
         <main className="flex-1 flex items-center justify-center">
@@ -205,14 +206,14 @@ const Subscription = () => {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <SEOHead
         title="Resume Builder Pricing - Affordable ATS Resume Builder Plans Under $5"
-        description="Choose from our affordable resume builder plans starting under $5 per month. Get AI-powered resume generation, ATS optimization, and PDF/Word export with PayPal checkout."
+        description="Choose from our affordable resume builder plans with ATS optimization features. Includes AI-powered resume check to improve resume for applicant tracking systems."
         canonicalUrl="https://resumewh.com/subscription"
-        keywords="resume builder pricing under $5 per month, free resume maker, ATS resume builder, export resume to PDF and Word online, cloud resume builder with PayPal checkout"
+        keywords="resume builder pricing under $5 per month, free resume maker, ATS resume builder, export resume to PDF and Word online, cloud resume builder with PayPal checkout, ATS resume checker, optimize resume for ATS, ATS compatibility test, improve resume for applicant tracking system"
         ogTitle="Resume Builder Pricing - Affordable Plans Under $5"
-        ogDescription="Choose from our affordable resume builder plans starting under $5 per month. Get AI-powered resume generation and ATS optimization."
+        ogDescription="Affordable resume builder with ATS optimization features starting under $5 per month. Includes free ATS resume scan to check if resume passes ATS."
         ogUrl="https://resumewh.com/subscription"
         twitterTitle="Resume Builder Pricing - Affordable Plans Under $5"
-        twitterDescription="Choose from our affordable resume builder plans starting under $5 per month."
+        twitterDescription="Affordable resume builder with ATS score calculator and AI-powered resume check for applicant tracking systems."
       />
       <Header />
       

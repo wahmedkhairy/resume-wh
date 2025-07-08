@@ -15,14 +15,14 @@ const FreeATSScannerPage = () => {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <SEOHead
         title="Free ATS Scanner - Test Your Resume for ATS Compatibility"
-        description="Upload your resume and get instant feedback on its ATS compatibility. Our free scanner analyzes format, keywords, and structure to help you optimize for applicant tracking systems."
+        description="Free ATS resume scan and checker to evaluate your resume's ATS compatibility. Our online resume scanner tests if your resume passes ATS with an ATS score calculator."
         canonicalUrl="https://resumewh.com/free-ats-scanner"
-        keywords="free resume maker, ATS resume builder, best ATS-friendly resume template 2025, optimize resume keywords for finance jobs"
+        keywords="free resume maker, ATS resume builder, best ATS-friendly resume template 2025, optimize resume keywords for finance jobs, ATS resume checker, free ATS resume scan, resume scanner online, ATS score calculator, is my resume ATS-friendly, ATS compatibility test"
         ogTitle="Free ATS Scanner - Test Your Resume for ATS Compatibility"
-        ogDescription="Upload your resume and get instant feedback on its ATS compatibility. Our free scanner analyzes format, keywords, and structure."
+        ogDescription="Upload your resume for a free ATS compatibility test. Our resume scanner checks if your resume passes ATS and provides an ATS score with improvement suggestions."
         ogUrl="https://resumewh.com/free-ats-scanner"
         twitterTitle="Free ATS Scanner - Test Your Resume for ATS Compatibility"
-        twitterDescription="Upload your resume and get instant feedback on its ATS compatibility."
+        twitterDescription="Free ATS resume scan to check if your resume passes applicant tracking systems. AI-powered resume check with instant feedback."
       />
       <Header />
       

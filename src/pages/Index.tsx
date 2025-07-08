@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -168,14 +169,14 @@ const Index = () => {
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <SEOHead
           title="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
-          description="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters. Generate targeted job resumes for specific applications with our AI resume builder."
+          description="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters. Free ATS resume scan and ATS score calculator to improve your hiring chances."
           canonicalUrl="https://resumewh.com/"
-          keywords="resume builder, ATS resume builder, AI resume generator, professional resume template, job-winning resume, online CV maker, targeted resume generator, best ATS-friendly resume template 2025, AI resume builder for marketing manager, free cover letter and resume builder"
+          keywords="resume builder, ATS resume builder, AI resume generator, professional resume template, job-winning resume, online CV maker, targeted resume generator, best ATS-friendly resume template 2025, AI resume builder for marketing manager, free cover letter and resume builder, ATS resume checker, check if resume passes ATS, free ATS resume scan, optimize resume for ATS"
           ogTitle="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
-          ogDescription="Create resumes that pass any Applicant Tracking System with a 100% success rate. Generate targeted job resumes for specific applications."
+          ogDescription="Create resumes that pass any Applicant Tracking System with a 100% success rate. Free ATS compatibility test and resume scanner online."
           ogUrl="https://resumewh.com/"
           twitterTitle="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
-          twitterDescription="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters."
+          twitterDescription="Create ATS-optimized resumes that get past applicant tracking systems. Includes AI-powered resume check to improve resume for applicant tracking systems."
         />
         <Header />
         <Navigation onSectionChange={() => {}} currentSection="editor" />
@@ -192,14 +193,14 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <SEOHead
         title="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
-        description="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters. Generate targeted job resumes for specific applications with our AI resume builder."
+        description="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters. Free ATS resume scan and ATS score calculator to improve your hiring chances."
         canonicalUrl="https://resumewh.com/"
-        keywords="resume builder, ATS resume builder, AI resume generator, professional resume template, job-winning resume, online CV maker, targeted resume generator, best ATS-friendly resume template 2025, AI resume builder for marketing manager, free cover letter and resume builder"
+        keywords="resume builder, ATS resume builder, AI resume generator, professional resume template, job-winning resume, online CV maker, targeted resume generator, best ATS-friendly resume template 2025, AI resume builder for marketing manager, free cover letter and resume builder, ATS resume checker, check if resume passes ATS, free ATS resume scan, optimize resume for ATS"
         ogTitle="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
-        ogDescription="Create resumes that pass any Applicant Tracking System with a 100% success rate. Generate targeted job resumes for specific applications."
+        ogDescription="Create resumes that pass any Applicant Tracking System with a 100% success rate. Free ATS compatibility test and resume scanner online."
         ogUrl="https://resumewh.com/"
         twitterTitle="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
-        twitterDescription="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters."
+        twitterDescription="Create ATS-optimized resumes that get past applicant tracking systems. Includes AI-powered resume check to improve resume for applicant tracking systems."
       />
       <Header />
       <Navigation onSectionChange={handleSectionChange} currentSection={currentSection} />
