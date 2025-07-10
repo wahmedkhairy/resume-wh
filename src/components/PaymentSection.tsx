@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import PayPalIntegration from "./PayPalIntegration";
 
 interface PaymentSectionProps {
@@ -52,13 +52,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle className="text-lg">Complete Your Payment</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          {orderData.tier.charAt(0).toUpperCase() + orderData.tier.slice(1)} Plan - ${orderData.amount} USD
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-6">
         <div>
           <h3 className="text-sm font-medium mb-3 text-center">Pay with PayPal</h3>
           
