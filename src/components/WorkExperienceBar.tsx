@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -134,8 +133,12 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
               <Button
                 variant="outline"
                 size="sm"
+                type="button"
                 className="absolute top-2 right-2"
-                onClick={() => removeExperience(experience.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  removeExperience(experience.id);
+                }}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -222,7 +225,11 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => removeResponsibility(experience.id, index)}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        removeResponsibility(experience.id, index);
+                      }}
                       disabled={experience.responsibilities.length === 1}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -232,7 +239,11 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => addResponsibility(experience.id)}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    addResponsibility(experience.id);
+                  }}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Responsibility
@@ -243,7 +254,11 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
           
           <Button
             variant="outline"
-            onClick={addExperience}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              addExperience();
+            }}
             className="w-full"
           >
             <Plus className="mr-2 h-4 w-4" />
