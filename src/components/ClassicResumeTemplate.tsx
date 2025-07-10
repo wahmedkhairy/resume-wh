@@ -1,3 +1,4 @@
+
 import React from "react";
 
 interface PersonalInfo {
@@ -91,11 +92,26 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       );
     }
 
+    // For bullet points, split each responsibility by line breaks and create separate bullet points
+    const allBulletPoints: string[] = [];
+    validResponsibilities.forEach(responsibility => {
+      const lines = responsibility.split('\n').filter(line => line.trim());
+      lines.forEach(line => {
+        // Remove existing bullet point if present
+        const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+        if (cleanLine) {
+          allBulletPoints.push(cleanLine);
+        }
+      });
+    });
+
+    if (!allBulletPoints.length) return null;
+
     return (
       <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
-        {validResponsibilities.map((responsibility, respIndex) => (
+        {allBulletPoints.map((point, index) => (
           <li 
-            key={respIndex} 
+            key={index} 
             style={{ 
               fontSize: '14pt',
               margin: '4pt 0',
@@ -105,7 +121,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               textAlign: 'left'
             }}
           >
-            {responsibility}
+            {point}
           </li>
         ))}
       </ul>
@@ -131,20 +147,37 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
       );
     }
 
+    // For bullet points, split description by line breaks and create separate bullet points
+    const lines = description.split('\n').filter(line => line.trim());
+    const bulletPoints: string[] = [];
+    
+    lines.forEach(line => {
+      // Remove existing bullet point if present
+      const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+      if (cleanLine) {
+        bulletPoints.push(cleanLine);
+      }
+    });
+
+    if (!bulletPoints.length) return null;
+
     return (
       <ul style={{ margin: '2pt 0 0 0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
-        <li 
-          style={{ 
-            fontSize: '14pt',
-            margin: '2pt 0',
-            color: '#000000',
-            lineHeight: '1.3',
-            direction: 'ltr',
-            textAlign: 'left'
-          }}
-        >
-          {description}
-        </li>
+        {bulletPoints.map((point, index) => (
+          <li 
+            key={index}
+            style={{ 
+              fontSize: '14pt',
+              margin: '2pt 0',
+              color: '#000000',
+              lineHeight: '1.3',
+              direction: 'ltr',
+              textAlign: 'left'
+            }}
+          >
+            {point}
+          </li>
+        ))}
       </ul>
     );
   };
