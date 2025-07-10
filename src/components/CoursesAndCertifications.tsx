@@ -100,6 +100,13 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     }
   };
 
+  const getPlaceholderText = (writingStyle: "bullet" | "paragraph") => {
+    if (writingStyle === "bullet") {
+      return "• Key learning outcome or achievement...\n• Another important skill gained...\n• Relevant project or certification details...";
+    }
+    return "Brief description of what you learned or achieved";
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -186,18 +193,18 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
                 />
               </div>
 
-              <WritingStyleSelector
-                value={course.writingStyle || "bullet"}
-                onChange={(value) => updateCourse(course.id, 'writingStyle', value)}
-              />
-
               <div className="space-y-2">
                 <Label htmlFor={`description-${course.id}`}>Description (Optional)</Label>
+                <WritingStyleSelector
+                  value={course.writingStyle || "bullet"}
+                  onChange={(value) => updateCourse(course.id, 'writingStyle', value)}
+                  className="mb-2"
+                />
                 <Textarea
                   id={`description-${course.id}`}
                   value={course.description}
                   onChange={(e) => updateCourse(course.id, 'description', e.target.value)}
-                  placeholder="Brief description of what you learned or achieved"
+                  placeholder={getPlaceholderText(course.writingStyle || "bullet")}
                   rows={2}
                 />
               </div>

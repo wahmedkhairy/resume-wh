@@ -114,6 +114,13 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
     }
   };
 
+  const getPlaceholderText = (writingStyle: "bullet" | "paragraph") => {
+    if (writingStyle === "bullet") {
+      return "• Describe your responsibility...\n• Add another point...\n• Include specific achievements...";
+    }
+    return "Describe your responsibility in paragraph format...";
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -196,19 +203,18 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                   />
                 </div>
               </div>
-
-              <WritingStyleSelector
-                value={experience.writingStyle || "bullet"}
-                onChange={(value) => updateExperience(experience.id, "writingStyle", value)}
-                className="mb-4"
-              />
               
               <div className="space-y-2">
                 <Label>Responsibilities</Label>
+                <WritingStyleSelector
+                  value={experience.writingStyle || "bullet"}
+                  onChange={(value) => updateExperience(experience.id, "writingStyle", value)}
+                  className="mb-2"
+                />
                 {experience.responsibilities.map((responsibility, index) => (
                   <div key={index} className="flex gap-2">
                     <Textarea
-                      placeholder="Describe your responsibility..."
+                      placeholder={getPlaceholderText(experience.writingStyle || "bullet")}
                       value={responsibility}
                       onChange={(e) => updateResponsibility(experience.id, index, e.target.value)}
                       className="min-h-[60px]"
