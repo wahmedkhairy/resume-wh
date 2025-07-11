@@ -82,22 +82,27 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
 
       {isOpen && (
         <div 
-          className="absolute top-full left-0 z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+          className="absolute top-full left-0 z-[9999] mt-1 w-full rounded-md border bg-white text-black shadow-lg"
+          style={{ zIndex: 9999 }}
         >
           <div className="p-1">
             {options.map((option) => (
               <div
                 key={option.value}
-                className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                onMouseDown={(e) => {
+                className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100"
+                onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   console.log('Clicking option:', option.value); // Debug log
                   handleSelect(option.value);
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                style={{ 
+                  zIndex: 10000,
+                  pointerEvents: 'auto',
+                  position: 'relative'
                 }}
               >
                 {option.label}
