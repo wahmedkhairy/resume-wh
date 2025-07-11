@@ -1,6 +1,5 @@
 
-import React from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React, { useState, useRef, useEffect } from "react";
 
 interface ExperienceTypeSelectorProps {
   value: string;
@@ -11,46 +10,87 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
   value,
   onChange
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const options = [
+    { value: "full-time", label: "Full Time Job" },
+    { value: "remote", label: "Remote Job" },
+    { value: "internship", label: "Internship" }
+  ];
+
+  const selectedOption = options.find(option => option.value === value);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
+
+  const handleSelect = (optionValue: string) => {
+    onChange(optionValue);
+    setIsOpen(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="w-full">
-      <Select 
-        value={value} 
-        onValueChange={onChange}
-        onOpenChange={(open) => {
-          if (open) {
-            // Prevent any scrolling when opening
-            document.body.style.overflow = 'hidden';
-          } else {
-            document.body.style.overflow = 'auto';
-          }
-        }}
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={handleToggle}
+        onKeyDown={handleKeyDown}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
       >
-        <SelectTrigger 
-          className="w-full"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          onFocus={(e) => {
-            e.preventDefault();
-            e.currentTarget.blur();
-          }}
+        <span className={selectedOption ? "text-foreground" : "text-muted-foreground"}>
+          {selectedOption ? selectedOption.label : "Select experience type"}
+        </span>
+        <svg
+          className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
-          <SelectValue placeholder="Select experience type" />
-        </SelectTrigger>
-        <SelectContent 
-          position="popper"
-          sideOffset={5}
-          onCloseAutoFocus={(e) => {
-            e.preventDefault();
-            document.body.style.overflow = 'auto';
-          }}
-        >
-          <SelectItem value="full-time">Full Time Job</SelectItem>
-          <SelectItem value="remote">Remote Job</SelectItem>
-          <SelectItem value="internship">Internship</SelectItem>
-        </SelectContent>
-      </Select>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95">
+          <div className="p-1">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                onClick={() => handleSelect(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
