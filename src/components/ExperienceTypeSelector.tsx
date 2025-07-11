@@ -47,11 +47,15 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    // Only add listener when dropdown is open
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isOpen]);
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
@@ -77,26 +81,27 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95">
+        <div 
+          className="absolute top-full left-0 z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
           <div className="p-1">
             {options.map((option) => (
-              <button
+              <div
                 key={option.value}
-                type="button"
-                className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                onClick={(e) => {
+                className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   console.log('Clicking option:', option.value); // Debug log
                   handleSelect(option.value);
                 }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
               >
                 {option.label}
-              </button>
+              </div>
             ))}
           </div>
         </div>
