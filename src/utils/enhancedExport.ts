@@ -192,7 +192,7 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       );
     }
     
-    // Contact info in one line with exact font size matching preview (12pt = 24 Word units)
+    // Contact info in one line with vertical separators and exact font size matching preview (12pt = 24 Word units)
     const contactInfo = [
       data.personalInfo.jobTitle,
       data.personalInfo.location,
@@ -204,7 +204,7 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       children.push(
         new Paragraph({
           children: [new TextRun({ 
-            text: contactInfo.join('    '), // Use spaces to separate items like in preview
+            text: contactInfo.join(' | '), // Use vertical separators like in preview
             size: 24, // 12pt equivalent - matches preview exactly
             color: "000000" // Explicit black color
           })],

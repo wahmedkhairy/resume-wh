@@ -225,33 +225,22 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
           {personalInfo.name || "Your Name"}
         </h1>
         
-        {/* Single line for job title, location, email, and phone */}
+        {/* Single line for job title, location, email, and phone with vertical separators */}
         <div 
           style={{ 
             fontSize: '12pt',
             margin: '0 0 10pt 0',
             color: '#000000',
             direction: 'ltr',
-            textAlign: 'center',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '0 20pt'
+            textAlign: 'center'
           }}
         >
-          {personalInfo.jobTitle && (
-            <span>{personalInfo.jobTitle}</span>
-          )}
-          {personalInfo.location && (
-            <span>{personalInfo.location}</span>
-          )}
-          {personalInfo.email && (
-            <span>{personalInfo.email}</span>
-          )}
-          {personalInfo.phone && (
-            <span>{personalInfo.phone}</span>
-          )}
+          {[
+            personalInfo.jobTitle,
+            personalInfo.location,
+            personalInfo.email,
+            personalInfo.phone
+          ].filter(Boolean).join(' | ')}
         </div>
       </header>
 
