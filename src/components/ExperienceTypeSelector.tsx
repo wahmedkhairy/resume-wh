@@ -28,6 +28,7 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
   };
 
   const handleSelect = (optionValue: string) => {
+    console.log('Selected option:', optionValue); // Debug log
     onChange(optionValue);
     setIsOpen(false);
   };
@@ -82,8 +83,17 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
               <button
                 key={option.value}
                 type="button"
-                className="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                onClick={() => handleSelect(option.value)}
+                className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Clicking option:', option.value); // Debug log
+                  handleSelect(option.value);
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
               >
                 {option.label}
               </button>
