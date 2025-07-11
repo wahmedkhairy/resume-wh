@@ -11,17 +11,27 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
   value,
   onChange
 }) => {
+  const handleSelectChange = (selectedValue: string) => {
+    onChange(selectedValue);
+  };
+
   return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-full">
-        <SelectValue placeholder="Select experience type" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="full-time">Full Time Job</SelectItem>
-        <SelectItem value="remote">Remote Job</SelectItem>
-        <SelectItem value="internship">Internship</SelectItem>
-      </SelectContent>
-    </Select>
+    <div className="w-full">
+      <Select value={value} onValueChange={handleSelectChange}>
+        <SelectTrigger 
+          className="w-full"
+          type="button"
+          onPointerDown={(e) => e.preventDefault()}
+        >
+          <SelectValue placeholder="Select experience type" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="full-time">Full Time Job</SelectItem>
+          <SelectItem value="remote">Remote Job</SelectItem>
+          <SelectItem value="internship">Internship</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
   );
 };
 
