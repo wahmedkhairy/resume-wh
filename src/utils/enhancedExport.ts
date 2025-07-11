@@ -1,4 +1,3 @@
-
 // Enhanced export utilities with exact preview formatting
 export interface ResumeData {
   personalInfo: {
@@ -193,32 +192,19 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       );
     }
     
-    // Job title and location with exact font size matching preview (12pt = 24 Word units)
-    if (data.personalInfo.jobTitle) {
-      const titleLine = data.personalInfo.jobTitle + 
-        (data.personalInfo.location ? ` | ${data.personalInfo.location}` : '');
-      children.push(
-        new Paragraph({
-          children: [new TextRun({ 
-            text: titleLine, 
-            size: 24, // 12pt equivalent - matches preview exactly
-            color: "000000" // Explicit black color
-          })],
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 100 },
-          bidirectional: false // Ensure left-to-right
-        })
-      );
-    }
+    // Contact info in one line with exact font size matching preview (12pt = 24 Word units)
+    const contactInfo = [
+      data.personalInfo.jobTitle,
+      data.personalInfo.location,
+      data.personalInfo.email,
+      data.personalInfo.phone
+    ].filter(Boolean);
     
-    // Contact info with exact font size matching preview (12pt = 24 Word units)
-    const contact = [data.personalInfo.email, data.personalInfo.phone]
-      .filter(Boolean).join(' | ');
-    if (contact) {
+    if (contactInfo.length > 0) {
       children.push(
         new Paragraph({
           children: [new TextRun({ 
-            text: contact, 
+            text: contactInfo.join('    '), // Use spaces to separate items like in preview
             size: 24, // 12pt equivalent - matches preview exactly
             color: "000000" // Explicit black color
           })],
@@ -264,7 +250,6 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       );
     }
     
-    // Experience section with exact font sizes matching preview
     if (data.workExperience.length > 0) {
       children.push(
         new Paragraph({
@@ -357,7 +342,6 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       });
     }
     
-    // Education section with exact font sizes matching preview
     if (data.education.length > 0) {
       children.push(
         new Paragraph({
@@ -408,7 +392,6 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       });
     }
     
-    // Courses and certifications with exact font sizes and writing style matching preview
     if (data.coursesAndCertifications.length > 0) {
       children.push(
         new Paragraph({
