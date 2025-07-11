@@ -11,34 +11,41 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
   value,
   onChange
 }) => {
-  const handleSelectChange = (selectedValue: string) => {
-    onChange(selectedValue);
-  };
-
-  const handleTriggerClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
   return (
-    <div className="w-full" onClick={(e) => e.stopPropagation()}>
-      <Select value={value} onValueChange={handleSelectChange}>
+    <div className="w-full">
+      <Select 
+        value={value} 
+        onValueChange={onChange}
+        onOpenChange={(open) => {
+          if (open) {
+            // Prevent any scrolling when opening
+            document.body.style.overflow = 'hidden';
+          } else {
+            document.body.style.overflow = 'auto';
+          }
+        }}
+      >
         <SelectTrigger 
           className="w-full"
-          onClick={handleTriggerClick}
-          onKeyDown={handleTriggerKeyDown}
-          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onFocus={(e) => {
+            e.preventDefault();
+            e.currentTarget.blur();
+          }}
         >
           <SelectValue placeholder="Select experience type" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent 
+          position="popper"
+          sideOffset={5}
+          onCloseAutoFocus={(e) => {
+            e.preventDefault();
+            document.body.style.overflow = 'auto';
+          }}
+        >
           <SelectItem value="full-time">Full Time Job</SelectItem>
           <SelectItem value="remote">Remote Job</SelectItem>
           <SelectItem value="internship">Internship</SelectItem>
