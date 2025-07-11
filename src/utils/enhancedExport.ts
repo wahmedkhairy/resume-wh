@@ -16,6 +16,8 @@ export interface ResumeData {
     endDate: string;
     location: string;
     responsibilities: string[];
+    experienceType?: string;
+    writingStyle?: "bullet" | "paragraph";
   }>;
   education: Array<{
     degree: string;
@@ -33,8 +35,69 @@ export interface ResumeData {
     provider: string;
     date: string;
     description: string;
+    writingStyle?: "bullet" | "paragraph";
   }>;
 }
+
+const getExperienceTypeDisplay = (type?: string) => {
+  switch (type) {
+    case "full-time":
+      return "Full Time";
+    case "remote":
+      return "Remote";
+    case "internship":
+      return "Internship";
+    default:
+      return "";
+  }
+};
+
+const formatResponsibilities = (responsibilities: string[], writingStyle?: "bullet" | "paragraph") => {
+  const validResponsibilities = responsibilities.filter(resp => resp.trim());
+  
+  if (!validResponsibilities.length) return "";
+
+  if (writingStyle === "paragraph") {
+    return validResponsibilities.join('. ');
+  }
+
+  // For bullet points, split each responsibility by line breaks and create separate bullet points
+  const allBulletPoints: string[] = [];
+  validResponsibilities.forEach(responsibility => {
+    const lines = responsibility.split('\n').filter(line => line.trim());
+    lines.forEach(line => {
+      // Remove existing bullet point if present
+      const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+      if (cleanLine) {
+        allBulletPoints.push(cleanLine);
+      }
+    });
+  });
+
+  return allBulletPoints;
+};
+
+const formatDescription = (description: string, writingStyle?: "bullet" | "paragraph") => {
+  if (!description.trim()) return "";
+
+  if (writingStyle === "paragraph") {
+    return description;
+  }
+
+  // For bullet points, split description by line breaks and create separate bullet points
+  const lines = description.split('\n').filter(line => line.trim());
+  const bulletPoints: string[] = [];
+  
+  lines.forEach(line => {
+    // Remove existing bullet point if present
+    const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+    if (cleanLine) {
+      bulletPoints.push(cleanLine);
+    }
+  });
+
+  return bulletPoints;
+};
 
 // Enhanced PDF export with exact preview formatting
 export const exportToHighQualityPDF = async (data: ResumeData): Promise<void> => {
@@ -237,10 +300,18 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
             spacing: { before: 200, after: 50 },
             alignment: AlignmentType.LEFT,
             bidirectional: false // Ensure left-to-right
-          }),
+          })
+        );
+
+        // Date, location, and experience type line
+        const dateLocationLine = `${job.startDate} - ${job.endDate}` +
+          (job.location ? ` | ${job.location}` : '') +
+          (job.experienceType ? ` | ${getExperienceTypeDisplay(job.experienceType)}` : '');
+        
+        children.push(
           new Paragraph({
             children: [new TextRun({ 
-              text: `${job.startDate} - ${job.endDate}${job.location ? ` | ${job.location}` : ''}`, 
+              text: dateLocationLine, 
               size: 24, // 12pt equivalent - matches preview exactly
               italics: true,
               color: "000000" // Explicit black color
@@ -251,20 +322,38 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
           })
         );
         
-        job.responsibilities.forEach(resp => {
+        // Handle responsibilities with writing style
+        const formattedResponsibilities = formatResponsibilities(job.responsibilities, job.writingStyle);
+        
+        if (job.writingStyle === "paragraph" && typeof formattedResponsibilities === "string") {
           children.push(
             new Paragraph({
               children: [new TextRun({ 
-                text: `• ${resp}`, 
+                text: formattedResponsibilities, 
                 size: 24, // 12pt equivalent - matches preview exactly
                 color: "000000" // Explicit black color
               })],
-              spacing: { after: 50 },
+              spacing: { after: 200 },
               alignment: AlignmentType.LEFT,
               bidirectional: false // Ensure left-to-right
             })
           );
-        });
+        } else if (Array.isArray(formattedResponsibilities)) {
+          formattedResponsibilities.forEach(resp => {
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ 
+                  text: `• ${resp}`, 
+                  size: 24, // 12pt equivalent - matches preview exactly
+                  color: "000000" // Explicit black color
+                })],
+                spacing: { after: 50 },
+                alignment: AlignmentType.LEFT,
+                bidirectional: false // Ensure left-to-right
+              })
+            );
+          });
+        }
       });
     }
     
@@ -319,7 +408,7 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
       });
     }
     
-    // Courses and certifications with exact font sizes matching preview
+    // Courses and certifications with exact font sizes and writing style matching preview
     if (data.coursesAndCertifications.length > 0) {
       children.push(
         new Paragraph({
@@ -352,11 +441,44 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
                 bold: false // Rest is normal weight
               })
             ],
-            spacing: { after: 100 },
+            spacing: { after: 50 },
             alignment: AlignmentType.LEFT,
             bidirectional: false // Ensure left-to-right
           })
         );
+
+        // Handle description with writing style
+        const formattedDescription = formatDescription(item.description, item.writingStyle);
+        
+        if (item.writingStyle === "paragraph" && typeof formattedDescription === "string" && formattedDescription) {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ 
+                text: formattedDescription, 
+                size: 24, // 12pt equivalent - matches preview exactly
+                color: "000000" // Explicit black color
+              })],
+              spacing: { after: 100 },
+              alignment: AlignmentType.LEFT,
+              bidirectional: false // Ensure left-to-right
+            })
+          );
+        } else if (Array.isArray(formattedDescription)) {
+          formattedDescription.forEach(point => {
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ 
+                  text: `• ${point}`, 
+                  size: 24, // 12pt equivalent - matches preview exactly
+                  color: "000000" // Explicit black color
+                })],
+                spacing: { after: 50 },
+                alignment: AlignmentType.LEFT,
+                bidirectional: false // Ensure left-to-right
+              })
+            );
+          });
+        }
       });
     }
     
