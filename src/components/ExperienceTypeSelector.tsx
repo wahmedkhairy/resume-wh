@@ -15,13 +15,29 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
     onChange(selectedValue);
   };
 
+  const handleTriggerClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
   return (
-    <div className="w-full">
+    <div className="w-full" onClick={(e) => e.stopPropagation()}>
       <Select value={value} onValueChange={handleSelectChange}>
         <SelectTrigger 
           className="w-full"
-          type="button"
-          onPointerDown={(e) => e.preventDefault()}
+          onClick={handleTriggerClick}
+          onKeyDown={handleTriggerKeyDown}
+          asChild={false}
+          role="combobox"
+          aria-expanded={false}
+          tabIndex={0}
         >
           <SelectValue placeholder="Select experience type" />
         </SelectTrigger>
@@ -33,6 +49,7 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
       </Select>
     </div>
   );
+};
 };
 
 export default ExperienceTypeSelector;
