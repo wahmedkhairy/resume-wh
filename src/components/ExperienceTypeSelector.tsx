@@ -34,10 +34,7 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
           className="w-full"
           onClick={handleTriggerClick}
           onKeyDown={handleTriggerKeyDown}
-          asChild={false}
-          role="combobox"
-          aria-expanded={false}
-          tabIndex={0}
+          type="button"
         >
           <SelectValue placeholder="Select experience type" />
         </SelectTrigger>
@@ -49,7 +46,6 @@ const ExperienceTypeSelector: React.FC<ExperienceTypeSelectorProps> = ({
       </Select>
     </div>
   );
-};
 };
 
 export default ExperienceTypeSelector;
