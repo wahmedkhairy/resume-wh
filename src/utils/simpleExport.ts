@@ -97,7 +97,7 @@ export const exportToPDF = (data: ResumeData): Promise<void> => {
   });
 };
 
-// Enhanced Word export function with all formatting changes applied
+// Enhanced Word export function with exact font sizes matching preview
 export const exportToWord = (data: ResumeData): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     console.log('=== Word Export Started ===');
@@ -107,14 +107,14 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
       
       const children = [];
       
-      // Name with increased font size and black color
+      // Name with exact font size matching preview (20pt = 40 Word units)
       if (data.personalInfo.name) {
         children.push(
           new Paragraph({
             children: [new TextRun({ 
               text: data.personalInfo.name, 
               bold: true, 
-              size: 52, // Increased from 48 (26pt equivalent)
+              size: 40, // 20pt equivalent - matches preview exactly
               color: "000000" // Explicit black color
             })],
             alignment: AlignmentType.CENTER,
@@ -124,7 +124,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
         );
       }
       
-      // Job title and location with increased font size and black color
+      // Job title and location with exact font size matching preview (12pt = 24 Word units)
       if (data.personalInfo.jobTitle) {
         const titleLine = data.personalInfo.jobTitle + 
           (data.personalInfo.location ? ` | ${data.personalInfo.location}` : '');
@@ -132,7 +132,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
           new Paragraph({
             children: [new TextRun({ 
               text: titleLine, 
-              size: 36, // Increased from 18pt to match preview
+              size: 24, // 12pt equivalent - matches preview exactly
               color: "000000" // Explicit black color
             })],
             alignment: AlignmentType.CENTER,
@@ -142,7 +142,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
         );
       }
       
-      // Contact info with increased font size and black color
+      // Contact info with exact font size matching preview (12pt = 24 Word units)
       const contact = [data.personalInfo.email, data.personalInfo.phone]
         .filter(Boolean).join(' | ');
       if (contact) {
@@ -150,7 +150,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
           new Paragraph({
             children: [new TextRun({ 
               text: contact, 
-              size: 32, // Increased from 24 (16pt equivalent)
+              size: 24, // 12pt equivalent - matches preview exactly
               color: "000000" // Explicit black color
             })],
             alignment: AlignmentType.CENTER,
@@ -160,14 +160,14 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
         );
       }
       
-      // Summary section with BOLD font weight for heading and black color
+      // Summary section with exact font sizes matching preview
       if (data.summary) {
         children.push(
           new Paragraph({
             children: [new TextRun({ 
               text: 'Summary', 
-              bold: true, // Changed to BOLD to match preview
-              size: 36, // Increased from 32 (18pt equivalent)
+              bold: true, // Bold to match preview
+              size: 28, // 14pt equivalent - matches preview exactly
               color: "000000" // Explicit black color
             })],
             spacing: { before: 200, after: 150 },
@@ -177,7 +177,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
           new Paragraph({
             children: [new TextRun({ 
               text: data.summary, 
-              size: 32, // Increased from 24 (16pt equivalent)
+              size: 24, // 12pt equivalent - matches preview exactly
               color: "000000" // Explicit black color
             })],
             spacing: { after: 300 },
@@ -187,14 +187,14 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
         );
       }
       
-      // Experience section with increased font sizes and black color
+      // Experience section with exact font sizes matching preview
       if (data.workExperience.length > 0) {
         children.push(
           new Paragraph({
             children: [new TextRun({ 
               text: 'Experience', 
               bold: true, 
-              size: 36, // Increased from 32 (18pt equivalent)
+              size: 28, // 14pt equivalent - matches preview exactly
               color: "000000" // Explicit black color
             })],
             spacing: { before: 200, after: 150 },
@@ -209,7 +209,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               children: [new TextRun({ 
                 text: `${job.jobTitle} - ${job.company}`, 
                 bold: true, 
-                size: 32, // Increased from 28 (16pt equivalent)
+                size: 24, // 12pt equivalent - matches preview exactly
                 color: "000000" // Explicit black color
               })],
               spacing: { before: 200, after: 50 },
@@ -219,7 +219,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
             new Paragraph({
               children: [new TextRun({ 
                 text: `${job.startDate} - ${job.endDate}${job.location ? ` | ${job.location}` : ''}`, 
-                size: 32, // Increased from 24 (16pt equivalent)
+                size: 24, // 12pt equivalent - matches preview exactly
                 italics: true,
                 color: "000000" // Explicit black color
               })],
@@ -234,7 +234,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               new Paragraph({
                 children: [new TextRun({ 
                   text: `• ${resp}`, 
-                  size: 32, // Increased from 24 (16pt equivalent)
+                  size: 24, // 12pt equivalent - matches preview exactly
                   color: "000000" // Explicit black color
                 })],
                 spacing: { after: 50 },
@@ -246,14 +246,14 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
         });
       }
       
-      // Education section with increased font sizes and black color
+      // Education section with exact font sizes matching preview
       if (data.education.length > 0) {
         children.push(
           new Paragraph({
             children: [new TextRun({ 
               text: 'Education', 
               bold: true, 
-              size: 36, // Increased from 32 (18pt equivalent)
+              size: 28, // 14pt equivalent - matches preview exactly
               color: "000000" // Explicit black color
             })],
             spacing: { before: 400, after: 150 },
@@ -268,7 +268,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               children: [new TextRun({ 
                 text: edu.degree, 
                 bold: true, 
-                size: 32, // Increased from 28 (16pt equivalent)
+                size: 24, // 12pt equivalent - matches preview exactly
                 color: "000000" // Explicit black color
               })],
               spacing: { before: 100, after: 50 },
@@ -278,7 +278,7 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
             new Paragraph({
               children: [new TextRun({ 
                 text: `${edu.institution} - ${edu.graduationYear}${edu.location ? ` | ${edu.location}` : ''}`, 
-                size: 32, // Increased from 24 (16pt equivalent)
+                size: 24, // 12pt equivalent - matches preview exactly
                 color: "000000" // Explicit black color
               })],
               spacing: { after: 200 },
@@ -289,14 +289,14 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
         });
       }
       
-      // Courses and certifications - TITLE IS BOLD, BODY TEXT IS NORMAL WITH BOLD COURSE TITLE
+      // Courses and certifications with exact font sizes matching preview
       if (data.coursesAndCertifications.length > 0) {
         children.push(
           new Paragraph({
             children: [new TextRun({ 
               text: 'Courses & Certifications', 
               bold: true, // Keep title bold
-              size: 32, // Increased from 28 (16pt equivalent)
+              size: 24, // 12pt equivalent - matches preview exactly
               color: "000000" // Explicit black color
             })],
             spacing: { before: 200, after: 100 },
@@ -311,13 +311,13 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
               children: [
                 new TextRun({ 
                   text: item.title, 
-                  size: 32, // Increased from 24 (16pt equivalent)
+                  size: 24, // 12pt equivalent - matches preview exactly
                   color: "000000", // Explicit black color
                   bold: true // Course title is bold to match preview
                 }),
                 new TextRun({ 
                   text: ` - ${item.provider} (${item.date})`, 
-                  size: 32, // Increased from 24 (16pt equivalent)
+                  size: 24, // 12pt equivalent - matches preview exactly
                   color: "000000", // Explicit black color
                   bold: false // Rest is normal weight
                 })
