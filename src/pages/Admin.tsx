@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,31 +38,11 @@ const Admin = () => {
         return;
       }
 
-      // Get user profile to check email
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.email) {
-        toast({
-          title: "Access Denied",
-          description: "User profile not found.",
-          variant: "destructive",
-        });
-        navigate("/");
-        return;
-      }
-
-      // Check if user is admin by querying admin_users table directly
+      // Check if user is admin using the RPC function
       const { data: adminCheck, error: adminError } = await supabase
-        .from('admin_users')
-        .select('email')
-        .eq('email', profile.email)
-        .single();
+        .rpc('is_admin');
 
-      if (adminError && adminError.code !== 'PGRST116') {
+      if (adminError) {
         console.error("Admin check error:", adminError);
         toast({
           title: "Error",
