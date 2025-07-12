@@ -12,11 +12,12 @@ import AdminUserManagement from "@/components/AdminUserManagement";
 import AIIntegrationTester from "@/components/AIIntegrationTester";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, FileText, CreditCard, BarChart, Users, TestTube, UserCog } from "lucide-react";
+import { Shield, Settings, FileText, CreditCard, BarChart, TestTube, UserCog } from "lucide-react";
 
 const Admin = () => {
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -38,9 +39,40 @@ const Admin = () => {
         return;
       }
 
+      // Check if user is admin
+      const { data: adminCheck, error: adminError } = await supabase
+        .rpc('is_admin');
+
+      if (adminError) {
+        console.error("Admin check error:", adminError);
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access the admin panel.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
+
+      if (!adminCheck) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access the admin panel.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
+
       setUser(user);
+      setIsAdmin(true);
     } catch (error) {
       console.error("Auth check error:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred while checking authentication.",
+        variant: "destructive",
+      });
       navigate("/auth");
     } finally {
       setIsLoading(false);
@@ -55,7 +87,7 @@ const Admin = () => {
     );
   }
 
-  if (!user) {
+  if (!user || !isAdmin) {
     return null;
   }
 
@@ -71,7 +103,7 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="user-management" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="user-management" className="flex items-center gap-2">
                 <UserCog className="h-4 w-4" />
                 User Management
@@ -79,10 +111,6 @@ const Admin = () => {
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart className="h-4 w-4" />
                 Analytics
-              </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Users
               </TabsTrigger>
               <TabsTrigger value="ai-testing" className="flex items-center gap-2">
                 <TestTube className="h-4 w-4" />
@@ -112,25 +140,6 @@ const Admin = () => {
 
             <TabsContent value="analytics">
               <AdminAnalytics />
-            </TabsContent>
-
-            <TabsContent value="users">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    User Overview
-                  </CardTitle>
-                  <CardDescription>
-                    Basic user statistics and information
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Use the "User Management" tab for comprehensive user administration features.
-                  </p>
-                </CardContent>
-              </Card>
             </TabsContent>
 
             <TabsContent value="ai-testing">
