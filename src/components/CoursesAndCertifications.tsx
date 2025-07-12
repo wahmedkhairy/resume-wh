@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Trash2, Award, BookOpen } from "lucide-react";
+import { Plus, Award, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import WritingStyleSelector from "./WritingStyleSelector";
 
@@ -118,25 +118,15 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
       <CardContent className="space-y-6">
         {courses.map((course, index) => (
           <div key={course.id} className="p-4 border rounded-lg space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                {course.type === "certification" ? (
-                  <Award className="h-5 w-5 text-blue-500" />
-                ) : (
-                  <BookOpen className="h-5 w-5 text-green-500" />
-                )}
-                <h3 className="font-semibold">
-                  {course.type === "certification" ? "Certification" : "Course"} #{index + 1}
-                </h3>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeCourse(course.id)}
-                disabled={courses.length === 1}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+            <div className="flex items-center gap-2">
+              {course.type === "certification" ? (
+                <Award className="h-5 w-5 text-blue-500" />
+              ) : (
+                <BookOpen className="h-5 w-5 text-green-500" />
+              )}
+              <h3 className="font-semibold">
+                {course.type === "certification" ? "Certification" : "Course"} #{index + 1}
+              </h3>
             </div>
 
             <div className="space-y-4">

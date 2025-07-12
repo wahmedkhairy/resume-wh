@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -129,20 +130,7 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
       <CardContent>
         <div className="space-y-6">
           {experiences.map((experience) => (
-            <div key={experience.id} className="border border-gray-200 rounded-lg p-4 relative">
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                className="absolute top-2 right-2"
-                onClick={(e) => {
-                  e.preventDefault();
-                  removeExperience(experience.id);
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              
+            <div key={experience.id} className="border border-gray-200 rounded-lg p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
                   <Label htmlFor={`jobTitle-${experience.id}`}>Job Title</Label>

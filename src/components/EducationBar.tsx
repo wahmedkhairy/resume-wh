@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Plus, Trash2, MapPin } from "lucide-react";
+import { GraduationCap, Plus, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Education {
@@ -72,16 +72,7 @@ const EducationBar: React.FC<EducationBarProps> = ({
       <CardContent>
         <div className="space-y-6">
           {educations.map((education) => (
-            <div key={education.id} className="border border-gray-200 rounded-lg p-4 relative">
-              <Button
-                variant="outline"
-                size="sm"
-                className="absolute top-2 right-2"
-                onClick={() => removeEducation(education.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              
+            <div key={education.id} className="border border-gray-200 rounded-lg p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor={`degree-${education.id}`}>Degree</Label>
