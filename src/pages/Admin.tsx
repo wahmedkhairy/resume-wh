@@ -39,15 +39,35 @@ const Admin = () => {
         return;
       }
 
-      // Check if user is admin
-      const { data: adminCheck, error: adminError } = await supabase
-        .rpc('is_admin');
+      // Get user profile to check email
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', user.id)
+        .single();
 
-      if (adminError) {
-        console.error("Admin check error:", adminError);
+      if (!profile?.email) {
         toast({
           title: "Access Denied",
-          description: "You don't have permission to access the admin panel.",
+          description: "User profile not found.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
+
+      // Check if user is admin by querying admin_users table directly
+      const { data: adminCheck, error: adminError } = await supabase
+        .from('admin_users')
+        .select('email')
+        .eq('email', profile.email)
+        .single();
+
+      if (adminError && adminError.code !== 'PGRST116') {
+        console.error("Admin check error:", adminError);
+        toast({
+          title: "Error",
+          description: "An error occurred while checking admin privileges.",
           variant: "destructive",
         });
         navigate("/");
