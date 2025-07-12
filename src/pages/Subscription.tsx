@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -8,7 +7,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import SubscriptionTiers from "@/components/SubscriptionTiers";
 import PaymentSection from "@/components/PaymentSection";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
@@ -260,12 +259,6 @@ const Subscription = () => {
           <div className={currentStep === 'payment' ? 'block' : 'hidden'}>
             <div className="max-w-2xl mx-auto">
               <Card>
-                <CardHeader className="text-center">
-                  <CardTitle>Complete Your Purchase</CardTitle>
-                  <p className="text-muted-foreground">
-                    {selectedTier?.charAt(0).toUpperCase() + selectedTier?.slice(1)} Plan
-                  </p>
-                </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
                     {orderData && (
