@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,9 +39,29 @@ const Admin = () => {
         return;
       }
 
-      // Check if user is admin using the RPC function
+      // Get user profile to check email
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.email) {
+        toast({
+          title: "Access Denied",
+          description: "User profile not found.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
+
+      // Check if user is admin by checking if their email exists in admin_users table
       const { data: adminCheck, error: adminError } = await supabase
-        .rpc('is_admin');
+        .from('admin_users')
+        .select('email')
+        .eq('email', profile.email)
+        .maybeSingle();
 
       if (adminError) {
         console.error("Admin check error:", adminError);
