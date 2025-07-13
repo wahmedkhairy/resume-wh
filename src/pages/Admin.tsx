@@ -12,7 +12,7 @@ import AdminUserManagement from "@/components/AdminUserManagement";
 import AIIntegrationTester from "@/components/AIIntegrationTester";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, FileText, CreditCard, BarChart, TestTube } from "lucide-react";
+import { Shield, Settings, FileText, CreditCard, BarChart, TestTube, Users } from "lucide-react";
 
 const Admin = () => {
   const [user, setUser] = useState<any>(null);
@@ -56,11 +56,11 @@ const Admin = () => {
       console.log("User found:", user.email);
       setUser(user);
 
-      // Direct email check for admin access
-      const isDirectAdmin = user.email === 'w.ahmedkhairy@gmail.com';
-      console.log("Admin check result:", isDirectAdmin);
+      // Check if user is admin using multiple methods
+      const adminCheck = await checkAdminStatus(user);
+      console.log("Admin check result:", adminCheck);
       
-      if (!isDirectAdmin) {
+      if (!adminCheck) {
         console.log("User is not admin, redirecting to home");
         toast({
           title: "Access Denied",
@@ -86,10 +86,53 @@ const Admin = () => {
     }
   };
 
+  const checkAdminStatus = async (user: any): Promise<boolean> => {
+    try {
+      // Method 1: Direct email check (fallback)
+      const directAdminCheck = user.email === 'w.ahmedkhairy@gmail.com';
+      
+      // Method 2: Check admin_users table (recommended approach)
+      const { data: adminUsers, error: adminError } = await supabase
+        .from('admin_users')
+        .select('user_id, email, is_active')
+        .eq('email', user.email)
+        .eq('is_active', true)
+        .single();
+
+      if (!adminError && adminUsers) {
+        console.log("Admin found in admin_users table");
+        return true;
+      }
+
+      // Method 3: Check user metadata for admin role
+      const hasAdminRole = user.user_metadata?.role === 'admin' || 
+                          user.app_metadata?.role === 'admin';
+      
+      // Method 4: Check profiles table for admin flag
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+
+      const hasAdminProfile = !profileError && profile?.is_admin === true;
+
+      // Return true if any method confirms admin status
+      return directAdminCheck || hasAdminRole || hasAdminProfile;
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      // Fallback to direct email check
+      return user.email === 'w.ahmedkhairy@gmail.com';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Checking admin access...</p>
+        </div>
       </div>
     );
   }
@@ -124,6 +167,10 @@ const Admin = () => {
                 <BarChart className="h-4 w-4" />
                 Analytics
               </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Users
+              </TabsTrigger>
               <TabsTrigger value="ai-testing" className="flex items-center gap-2">
                 <TestTube className="h-4 w-4" />
                 AI Testing
@@ -140,14 +187,14 @@ const Admin = () => {
                 <FileText className="h-4 w-4" />
                 Sitemap
               </TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Security
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="analytics">
               <AdminAnalytics />
+            </TabsContent>
+
+            <TabsContent value="users">
+              <AdminUserManagement />
             </TabsContent>
 
             <TabsContent value="ai-testing">
@@ -177,23 +224,6 @@ const Admin = () => {
 
             <TabsContent value="sitemap">
               <SitemapUploader />
-            </TabsContent>
-
-            <TabsContent value="security">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
-                    Security Settings
-                  </CardTitle>
-                  <CardDescription>Advanced security and authentication settings</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Additional security features will be available in future updates.
-                  </p>
-                </CardContent>
-              </Card>
             </TabsContent>
           </Tabs>
         </div>
