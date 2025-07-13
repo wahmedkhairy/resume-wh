@@ -38,7 +38,7 @@ const Admin = () => {
           description: "Please sign in to access the admin panel.",
           variant: "destructive",
         });
-        navigate("/auth");
+        navigate("/auth?redirect=admin");
         return;
       }
 
@@ -49,7 +49,7 @@ const Admin = () => {
           description: "Please sign in to access the admin panel.",
           variant: "destructive",
         });
-        navigate("/auth");
+        navigate("/auth?redirect=admin");
         return;
       }
 
@@ -82,7 +82,7 @@ const Admin = () => {
         description: "An error occurred while checking authentication.",
         variant: "destructive",
       });
-      navigate("/auth");
+      navigate("/auth?redirect=admin");
     } finally {
       setIsLoading(false);
     }

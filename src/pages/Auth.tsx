@@ -87,7 +87,14 @@ const Auth = () => {
             title: "Welcome!",
             description: "You have successfully signed in.",
           });
-          navigate("/");
+          
+          // Check if there's a redirect parameter
+          const redirect = searchParams.get('redirect');
+          if (redirect === 'admin') {
+            navigate("/admin");
+          } else {
+            navigate("/");
+          }
         }
         
         // Handle token refresh
@@ -116,7 +123,13 @@ const Auth = () => {
       setIsInitialLoading(false);
       
       if (session?.user && !isPasswordReset && !showPasswordResetOptions) {
-        navigate("/");
+        // Check if there's a redirect parameter
+        const redirect = searchParams.get('redirect');
+        if (redirect === 'admin') {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       }
     });
 
