@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Briefcase, Plus, Trash2 } from "lucide-react";
+import { Briefcase, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import WritingStyleSelector from "./WritingStyleSelector";
 import ExperienceTypeSelector from "./ExperienceTypeSelector";
@@ -90,21 +90,6 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
         ? { 
             ...exp, 
             responsibilities: exp.responsibilities.map((resp, i) => i === index ? value : resp)
-          }
-        : exp
-    );
-    setExperiences(updatedExperiences);
-    if (onExperienceChange) {
-      onExperienceChange(updatedExperiences);
-    }
-  };
-
-  const removeResponsibility = (expId: string, index: number) => {
-    const updatedExperiences = experiences.map(exp =>
-      exp.id === expId 
-        ? { 
-            ...exp, 
-            responsibilities: exp.responsibilities.filter((_, i) => i !== index)
           }
         : exp
     );
@@ -210,18 +195,6 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                       onChange={(e) => updateResponsibility(experience.id, index, e.target.value)}
                       className="min-h-[60px]"
                     />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        removeResponsibility(experience.id, index);
-                      }}
-                      disabled={experience.responsibilities.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 ))}
                 <Button
