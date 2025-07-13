@@ -90,9 +90,13 @@ const Auth = () => {
           
           // Check if there's a redirect parameter
           const redirect = searchParams.get('redirect');
+          console.log('Redirect parameter:', redirect);
+          
           if (redirect === 'admin') {
+            console.log('Redirecting to admin panel');
             navigate("/admin");
           } else {
+            console.log('Redirecting to home');
             navigate("/");
           }
         }
@@ -125,9 +129,13 @@ const Auth = () => {
       if (session?.user && !isPasswordReset && !showPasswordResetOptions) {
         // Check if there's a redirect parameter
         const redirect = searchParams.get('redirect');
+        console.log('Initial redirect check:', redirect);
+        
         if (redirect === 'admin') {
+          console.log('Initial redirect to admin panel');
           navigate("/admin");
         } else {
+          console.log('Initial redirect to home');
           navigate("/");
         }
       }

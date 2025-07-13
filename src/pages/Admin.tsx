@@ -54,27 +54,63 @@ const Admin = () => {
       }
 
       console.log("User found:", user.email);
+      setUser(user);
 
-      // Check if user is admin directly by email
-      const userEmail = user.email;
-      const isUserAdmin = userEmail === 'w.ahmedkhairy@gmail.com';
+      // Check if user is admin using the database function
+      try {
+        const { data: isUserAdmin, error: adminError } = await supabase
+          .rpc('is_admin');
 
-      console.log("Admin check - User email:", userEmail, "Is admin:", isUserAdmin);
+        console.log("Admin check result:", { isUserAdmin, adminError });
 
-      if (!isUserAdmin) {
-        console.log("User is not admin, redirecting to home");
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to access the admin panel.",
-          variant: "destructive",
-        });
-        navigate("/");
-        return;
+        if (adminError) {
+          console.error("Error checking admin status:", adminError);
+          // Fallback to direct email check if RPC fails
+          const isDirectAdmin = user.email === 'w.ahmedkhairy@gmail.com';
+          console.log("Using fallback admin check:", isDirectAdmin);
+          
+          if (!isDirectAdmin) {
+            toast({
+              title: "Access Denied",
+              description: "You don't have permission to access the admin panel.",
+              variant: "destructive",
+            });
+            navigate("/");
+            return;
+          }
+          setIsAdmin(true);
+        } else {
+          if (!isUserAdmin) {
+            console.log("User is not admin, redirecting to home");
+            toast({
+              title: "Access Denied",
+              description: "You don't have permission to access the admin panel.",
+              variant: "destructive",
+            });
+            navigate("/");
+            return;
+          }
+          setIsAdmin(true);
+        }
+      } catch (rpcError) {
+        console.error("RPC call failed:", rpcError);
+        // Fallback to direct email check
+        const isDirectAdmin = user.email === 'w.ahmedkhairy@gmail.com';
+        console.log("Using fallback admin check after RPC error:", isDirectAdmin);
+        
+        if (!isDirectAdmin) {
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to access the admin panel.",
+            variant: "destructive",
+          });
+          navigate("/");
+          return;
+        }
+        setIsAdmin(true);
       }
 
-      console.log("User is admin, setting states");
-      setUser(user);
-      setIsAdmin(true);
+      console.log("Admin access granted");
     } catch (error) {
       console.error("Auth check error:", error);
       toast({
@@ -97,7 +133,15 @@ const Admin = () => {
   }
 
   if (!user || !isAdmin) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+          <p className="text-muted-foreground">You don't have permission to access this page.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -109,6 +153,7 @@ const Admin = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Admin Panel</h1>
             <p className="text-muted-foreground">Comprehensive platform management and user administration</p>
+            <p className="text-sm text-muted-foreground mt-1">Logged in as: {user.email}</p>
           </div>
 
           <Tabs defaultValue="analytics" className="space-y-6">
