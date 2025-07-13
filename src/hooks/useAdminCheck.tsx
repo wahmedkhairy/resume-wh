@@ -31,25 +31,9 @@ export const useAdminCheck = () => {
         return;
       }
 
-      // Try to use the RPC function first
-      try {
-        const { data: isUserAdmin, error: rpcError } = await supabase
-          .rpc('is_admin');
-
-        if (rpcError) {
-          console.warn('RPC is_admin failed, using fallback:', rpcError);
-          // Fallback to direct email check
-          const isDirectAdmin = user.email === 'w.ahmedkhairy@gmail.com';
-          setIsAdmin(isDirectAdmin);
-        } else {
-          setIsAdmin(Boolean(isUserAdmin));
-        }
-      } catch (rpcError) {
-        console.warn('RPC call failed, using fallback:', rpcError);
-        // Fallback to direct email check
-        const isDirectAdmin = user.email === 'w.ahmedkhairy@gmail.com';
-        setIsAdmin(isDirectAdmin);
-      }
+      // Direct email check for admin access
+      const isDirectAdmin = user.email === 'w.ahmedkhairy@gmail.com';
+      setIsAdmin(isDirectAdmin);
 
     } catch (err) {
       console.error('Admin check error:', err);

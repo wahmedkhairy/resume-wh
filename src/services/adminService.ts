@@ -22,21 +22,11 @@ export const adminService = {
   // Check if current user is admin
   async isCurrentUserAdmin(): Promise<boolean> {
     try {
-      const { data, error } = await supabase.rpc('is_admin');
-      
-      if (error) {
-        console.warn('Admin check RPC failed:', error);
-        // Fallback to direct email check
-        const { data: { user } } = await supabase.auth.getUser();
-        return user?.email === 'w.ahmedkhairy@gmail.com';
-      }
-      
-      return Boolean(data);
-    } catch (error) {
-      console.error('Admin check error:', error);
-      // Fallback to direct email check
       const { data: { user } } = await supabase.auth.getUser();
       return user?.email === 'w.ahmedkhairy@gmail.com';
+    } catch (error) {
+      console.error('Admin check error:', error);
+      return false;
     }
   },
 
@@ -105,25 +95,6 @@ export const adminService = {
       .from('subscriptions')
       .update({ tier, status, updated_at: new Date().toISOString() })
       .eq('user_id', userId);
-
-    if (error) throw error;
-  },
-
-  // Add user to admin list
-  async addAdmin(email: string): Promise<void> {
-    const { error } = await supabase
-      .from('admin_users')
-      .insert({ email });
-
-    if (error) throw error;
-  },
-
-  // Remove user from admin list
-  async removeAdmin(email: string): Promise<void> {
-    const { error } = await supabase
-      .from('admin_users')
-      .delete()
-      .eq('email', email);
 
     if (error) throw error;
   }
