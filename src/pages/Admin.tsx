@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,7 @@ import AdminUserManagement from "@/components/AdminUserManagement";
 import AIIntegrationTester from "@/components/AIIntegrationTester";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, FileText, CreditCard, BarChart, TestTube, UserCog } from "lucide-react";
+import { Shield, Settings, FileText, CreditCard, BarChart, TestTube } from "lucide-react";
 
 const Admin = () => {
   const [user, setUser] = useState<any>(null);
@@ -26,9 +27,23 @@ const Admin = () => {
 
   const checkAuth = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log("Starting admin auth check...");
       
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error("Error getting user:", userError);
+        toast({
+          title: "Authentication Error",
+          description: "Please sign in to access the admin panel.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
+
       if (!user) {
+        console.log("No user found, redirecting to auth");
         toast({
           title: "Authentication Required",
           description: "Please sign in to access the admin panel.",
@@ -38,28 +53,16 @@ const Admin = () => {
         return;
       }
 
-      // Get user profile to check email
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('id', user.id)
-        .single();
+      console.log("User found:", user.email);
 
-      if (!profile?.email) {
-        toast({
-          title: "Access Denied",
-          description: "User profile not found.",
-          variant: "destructive",
-        });
-        navigate("/");
-        return;
-      }
+      // Check if user is admin directly by email
+      const userEmail = user.email;
+      const isUserAdmin = userEmail === 'w.ahmedkhairy@gmail.com';
 
-      // Check if user is admin using a custom query approach
-      // Since admin_users table isn't in types, we'll check the specific email directly
-      const isUserAdmin = profile.email === 'w.ahmedkhairy@gmail.com';
+      console.log("Admin check - User email:", userEmail, "Is admin:", isUserAdmin);
 
       if (!isUserAdmin) {
+        console.log("User is not admin, redirecting to home");
         toast({
           title: "Access Denied",
           description: "You don't have permission to access the admin panel.",
@@ -69,6 +72,7 @@ const Admin = () => {
         return;
       }
 
+      console.log("User is admin, setting states");
       setUser(user);
       setIsAdmin(true);
     } catch (error) {
@@ -107,12 +111,8 @@ const Admin = () => {
             <p className="text-muted-foreground">Comprehensive platform management and user administration</p>
           </div>
 
-          <Tabs defaultValue="user-management" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7">
-              <TabsTrigger value="user-management" className="flex items-center gap-2">
-                <UserCog className="h-4 w-4" />
-                User Management
-              </TabsTrigger>
+          <Tabs defaultValue="analytics" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart className="h-4 w-4" />
                 Analytics
@@ -138,10 +138,6 @@ const Admin = () => {
                 Security
               </TabsTrigger>
             </TabsList>
-
-            <TabsContent value="user-management">
-              <AdminUserManagement />
-            </TabsContent>
 
             <TabsContent value="analytics">
               <AdminAnalytics />
