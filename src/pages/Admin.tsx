@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Settings, FileText, CreditCard, BarChart, TestTube, Users } from "lucide-react";
 
-const ADMIN_EMAIL = 'w.ahmedkhairy@gmail.com';
+const ADMIN_EMAIL = 'ahmedz.khairy88@gmail.com';
 
 const Admin = () => {
   const [user, setUser] = useState<any>(null);
