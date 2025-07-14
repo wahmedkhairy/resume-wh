@@ -31,7 +31,7 @@ export const useAdminCheck = () => {
         return;
       }
 
-      // Direct email check for admin access
+      // Simple direct email check for admin access
       const isDirectAdmin = user.email === 'w.ahmedkhairy@gmail.com';
       setIsAdmin(isDirectAdmin);
 

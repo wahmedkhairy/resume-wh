@@ -56,8 +56,8 @@ const Admin = () => {
       console.log("User found:", user.email);
       setUser(user);
 
-      // Check if user is admin using multiple methods
-      const adminCheck = await checkAdminStatus(user);
+      // Simple admin check using direct email comparison
+      const adminCheck = user.email === 'w.ahmedkhairy@gmail.com';
       console.log("Admin check result:", adminCheck);
       
       if (!adminCheck) {
@@ -83,46 +83,6 @@ const Admin = () => {
       navigate("/auth?redirect=admin");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const checkAdminStatus = async (user: any): Promise<boolean> => {
-    try {
-      // Method 1: Direct email check (fallback)
-      const directAdminCheck = user.email === 'w.ahmedkhairy@gmail.com';
-      
-      // Method 2: Check admin_users table (recommended approach)
-      const { data: adminUsers, error: adminError } = await supabase
-        .from('admin_users')
-        .select('user_id, email, is_active')
-        .eq('email', user.email)
-        .eq('is_active', true)
-        .single();
-
-      if (!adminError && adminUsers) {
-        console.log("Admin found in admin_users table");
-        return true;
-      }
-
-      // Method 3: Check user metadata for admin role
-      const hasAdminRole = user.user_metadata?.role === 'admin' || 
-                          user.app_metadata?.role === 'admin';
-      
-      // Method 4: Check profiles table for admin flag
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', user.id)
-        .single();
-
-      const hasAdminProfile = !profileError && profile?.is_admin === true;
-
-      // Return true if any method confirms admin status
-      return directAdminCheck || hasAdminRole || hasAdminProfile;
-    } catch (error) {
-      console.error("Error checking admin status:", error);
-      // Fallback to direct email check
-      return user.email === 'w.ahmedkhairy@gmail.com';
     }
   };
 
