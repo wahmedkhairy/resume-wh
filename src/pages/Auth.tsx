@@ -6,16 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from '@supabase/supabase-js';
-import { AlertCircle, Eye, EyeOff, CheckCircle, Clock, AlertTriangle, ExternalLink, Home, Key } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, CheckCircle, Clock, Key, Home } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import EmailVerification from "@/components/EmailVerification";
 
 const ADMIN_EMAIL = 'w.ahmedkhairy@gmail.com';
-const ADMIN_PASSWORD = 'zxcqweAHMED#4321';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -23,11 +21,9 @@ const Auth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -368,25 +364,6 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate admin credentials before attempting Supabase auth
-    if (email !== ADMIN_EMAIL) {
-      toast({
-        title: "Access Denied",
-        description: "Only authorized administrators can access this system.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password !== ADMIN_PASSWORD) {
-      toast({
-        title: "Invalid Credentials",
-        description: "Please check your password and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!validateEmail(email)) {
       toast({
         title: "Invalid Email",
@@ -406,6 +383,7 @@ const Auth = () => {
     }
 
     setIsLoading(true);
+    console.log('Attempting sign in for:', email);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -414,6 +392,7 @@ const Auth = () => {
       });
 
       if (error) {
+        console.error('Sign in error:', error);
         if (error.message.includes('Invalid login credentials')) {
           toast({
             title: "Invalid Credentials",
@@ -433,7 +412,17 @@ const Auth = () => {
         }
       } else {
         console.log('Sign in successful:', data);
-        // Toast will be shown in the auth state change handler
+        // Additional check for admin email after successful authentication
+        if (data.user && data.user.email !== ADMIN_EMAIL) {
+          console.log('Non-admin user signed in, signing out:', data.user.email);
+          await supabase.auth.signOut();
+          toast({
+            title: "Access Denied",
+            description: "Only authorized administrators can access this system.",
+            variant: "destructive",
+          });
+        }
+        // Toast will be shown in the auth state change handler for admin users
       }
     } catch (error: any) {
       console.error('Sign in error:', error);
