@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
+const ADMIN_EMAIL = 'w.ahmedkhairy@gmail.com';
+
 export const useAdminCheck = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -31,9 +33,14 @@ export const useAdminCheck = () => {
         return;
       }
 
-      // Simple direct email check for admin access
-      const isDirectAdmin = user.email === 'w.ahmedkhairy@gmail.com';
-      setIsAdmin(isDirectAdmin);
+      // Strict admin check - only allow the specific admin email
+      const isAuthorizedAdmin = user.email === ADMIN_EMAIL;
+      setIsAdmin(isAuthorizedAdmin);
+
+      // Log unauthorized access attempts
+      if (!isAuthorizedAdmin && user.email) {
+        console.warn('Unauthorized admin access attempt by:', user.email);
+      }
 
     } catch (err) {
       console.error('Admin check error:', err);

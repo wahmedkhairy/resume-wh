@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,9 @@ import { User, Session } from '@supabase/supabase-js';
 import { AlertCircle, Eye, EyeOff, CheckCircle, Clock, AlertTriangle, ExternalLink, Home, Key } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import EmailVerification from "@/components/EmailVerification";
+
+const ADMIN_EMAIL = 'w.ahmedkhairy@gmail.com';
+const ADMIN_PASSWORD = 'zxcqweAHMED#4321';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -83,21 +87,32 @@ const Auth = () => {
         
         // Handle successful authentication
         if (event === 'SIGNED_IN' && session?.user && !isPasswordReset && !showPasswordResetOptions) {
-          toast({
-            title: "Welcome!",
-            description: "You have successfully signed in.",
-          });
-          
-          // Check if there's a redirect parameter
-          const redirect = searchParams.get('redirect');
-          console.log('Redirect parameter:', redirect);
-          
-          if (redirect === 'admin') {
-            console.log('Redirecting to admin panel');
-            navigate("/admin");
+          // Check if the signed in user is the admin
+          if (session.user.email === ADMIN_EMAIL) {
+            toast({
+              title: "Welcome Admin!",
+              description: "You have successfully signed in as administrator.",
+            });
+            
+            // Check if there's a redirect parameter
+            const redirect = searchParams.get('redirect');
+            console.log('Redirect parameter:', redirect);
+            
+            if (redirect === 'admin') {
+              console.log('Redirecting to admin panel');
+              navigate("/admin");
+            } else {
+              console.log('Redirecting to admin panel (default for admin user)');
+              navigate("/admin");
+            }
           } else {
-            console.log('Redirecting to home');
-            navigate("/");
+            // Sign out non-admin users immediately
+            supabase.auth.signOut();
+            toast({
+              title: "Access Denied",
+              description: "Only authorized administrators can access this system.",
+              variant: "destructive",
+            });
           }
         }
         
@@ -127,16 +142,22 @@ const Auth = () => {
       setIsInitialLoading(false);
       
       if (session?.user && !isPasswordReset && !showPasswordResetOptions) {
-        // Check if there's a redirect parameter
-        const redirect = searchParams.get('redirect');
-        console.log('Initial redirect check:', redirect);
-        
-        if (redirect === 'admin') {
-          console.log('Initial redirect to admin panel');
-          navigate("/admin");
+        // Check if the existing user is the admin
+        if (session.user.email === ADMIN_EMAIL) {
+          // Check if there's a redirect parameter
+          const redirect = searchParams.get('redirect');
+          console.log('Initial redirect check:', redirect);
+          
+          if (redirect === 'admin') {
+            console.log('Initial redirect to admin panel');
+            navigate("/admin");
+          } else {
+            console.log('Initial redirect to admin panel (default for admin user)');
+            navigate("/admin");
+          }
         } else {
-          console.log('Initial redirect to home');
-          navigate("/");
+          // Sign out non-admin users
+          supabase.auth.signOut();
         }
       }
     });
@@ -200,7 +221,7 @@ const Auth = () => {
 
       toast({
         title: "Password Updated",
-        description: "Your password has been successfully updated. Redirecting to home page...",
+        description: "Your password has been successfully updated. Redirecting to admin panel...",
       });
       
       // Clear the reset state and redirect
@@ -209,9 +230,9 @@ const Auth = () => {
       setNewPassword("");
       setConfirmNewPassword("");
       
-      // Clear URL parameters and redirect to home
+      // Clear URL parameters and redirect to admin
       setTimeout(() => {
-        navigate("/", { replace: true });
+        navigate("/admin", { replace: true });
       }, 1500);
     } catch (error: any) {
       console.error('Password update error:', error);
@@ -242,6 +263,16 @@ const Auth = () => {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Only allow password reset for admin email
+    if (forgotPasswordEmail !== ADMIN_EMAIL) {
+      toast({
+        title: "Access Denied",
+        description: "Password reset is only available for authorized administrators.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!validateEmail(forgotPasswordEmail)) {
       toast({
         title: "Invalid Email",
@@ -289,7 +320,7 @@ const Auth = () => {
         } else if (error.message.includes('User not found') || error.message.includes('user_not_found')) {
           toast({
             title: "Email Not Found",
-            description: "No account found with this email address. Please check the email or sign up for a new account.",
+            description: "No account found with this email address. Please check the email or contact support.",
             variant: "destructive",
           });
         } else if (error.message.includes('signup_disabled')) {
@@ -326,90 +357,36 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateEmail(email)) {
-      toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match. Please try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      toast({
-        title: "Invalid Password",
-        description: passwordError,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`
-        }
-      });
-
-      if (error) {
-        if (error.message.includes('already registered')) {
-          toast({
-            title: "Account Exists",
-            description: "An account with this email already exists. Please sign in instead.",
-            variant: "destructive",
-          });
-        } else if (error.message.includes('Password should be at least')) {
-          toast({
-            title: "Weak Password",
-            description: "Password should be at least 6 characters long and contain a mix of characters.",
-            variant: "destructive",
-          });
-        } else {
-          throw error;
-        }
-      } else if (data.user && !data.session) {
-        // User created but needs email verification
-        setPendingEmail(email);
-        setShowEmailVerification(true);
-        toast({
-          title: "Account Created",
-          description: "Please check your email for a verification code.",
-        });
-      } else {
-        toast({
-          title: "Account Created",
-          description: "Your account has been created successfully. You can now sign in.",
-        });
-      }
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      toast({
-        title: "Sign Up Failed",
-        description: error.message || "There was an error creating your account. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Prevent sign up - only admin can access
+    toast({
+      title: "Registration Not Available",
+      description: "This is an administrator-only system. Sign up is not available.",
+      variant: "destructive",
+    });
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate admin credentials before attempting Supabase auth
+    if (email !== ADMIN_EMAIL) {
+      toast({
+        title: "Access Denied",
+        description: "Only authorized administrators can access this system.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password !== ADMIN_PASSWORD) {
+      toast({
+        title: "Invalid Credentials",
+        description: "Please check your password and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!validateEmail(email)) {
       toast({
         title: "Invalid Email",
@@ -456,10 +433,7 @@ const Auth = () => {
         }
       } else {
         console.log('Sign in successful:', data);
-        toast({
-          title: "Welcome Back!",
-          description: "You have successfully signed in.",
-        });
+        // Toast will be shown in the auth state change handler
       }
     } catch (error: any) {
       console.error('Sign in error:', error);
@@ -474,31 +448,12 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`,
-        }
-      });
-
-      if (error) {
-        throw error;
-      } else {
-        console.log('Google sign in initiated:', data);
-        // The page will redirect to Google, so we don't need to handle success here
-      }
-    } catch (error: any) {
-      console.error('Google sign in error:', error);
-      toast({
-        title: "Google Sign In Failed",
-        description: error.message || "There was an error signing you in with Google. Please try email and password instead.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
+    // Disable Google sign in for admin-only system
+    toast({
+      title: "Google Sign In Not Available",
+      description: "This is an administrator-only system. Please use email and password to sign in.",
+      variant: "destructive",
+    });
   };
 
   const handleVerificationComplete = () => {
@@ -558,13 +513,13 @@ const Auth = () => {
               </Button>
               
               <Button 
-                onClick={handleGoToHomePage}
+                onClick={() => navigate("/admin")}
                 variant="outline"
                 className="w-full h-12 flex items-center justify-center gap-3"
                 size="lg"
               >
                 <Home className="h-5 w-5" />
-                Go to Home Page
+                Go to Admin Panel
               </Button>
             </div>
             
@@ -683,7 +638,7 @@ const Auth = () => {
             <CardDescription className="text-center">
               {resetEmailSent 
                 ? "Reset email sent! Check your inbox."
-                : "Enter your email address and we'll send you a password reset link"
+                : "Enter the administrator email address to reset password"
               }
             </CardDescription>
           </CardHeader>
@@ -744,11 +699,11 @@ const Auth = () => {
                 
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="forgot-email">Email</Label>
+                    <Label htmlFor="forgot-email">Administrator Email</Label>
                     <Input
                       id="forgot-email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="Enter administrator email"
                       value={forgotPasswordEmail}
                       onChange={(e) => setForgotPasswordEmail(e.target.value)}
                       required
@@ -789,57 +744,25 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Welcome</CardTitle>
+          <CardTitle className="text-2xl text-center">Administrator Access</CardTitle>
           <CardDescription className="text-center">
-            Sign in to your account or create a new one
+            Sign in with administrator credentials
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Google Sign In Button */}
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-            >
-              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                <path
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  fill="#4285F4"
-                />
-                <path
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  fill="#34A853"
-                />
-                <path
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  fill="#FBBC05"
-                />
-                <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  fill="#EA4335"
-                />
-              </svg>
-              Continue with Google
-            </Button>
-            <Separator className="my-4" />
-          </div>
-
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-1">
+              <TabsTrigger value="signin">Admin Sign In</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
+                  <Label htmlFor="signin-email">Administrator Email</Label>
                   <Input
                     id="signin-email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Enter administrator email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -852,7 +775,7 @@ const Auth = () => {
                     <Input
                       id="signin-password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder="Enter administrator password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -875,7 +798,7 @@ const Auth = () => {
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing In..." : "Sign In"}
+                  {isLoading ? "Signing In..." : "Sign In as Administrator"}
                 </Button>
                 <Button 
                   type="button" 
@@ -887,96 +810,19 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="signup-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Create a password (min 6 characters)"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      disabled={isLoading}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isLoading}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirm-password"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm your password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                      disabled={isLoading}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      disabled={isLoading}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Creating Account..." : "Sign Up"}
-                </Button>
-              </form>
-            </TabsContent>
           </Tabs>
 
-          {user && (
+          {user && user.email === ADMIN_EMAIL && (
             <Alert className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                You are logged in. You should be redirected automatically.
+                You are logged in as administrator. You should be redirected automatically.
                 <Button 
                   variant="link" 
                   className="p-0 h-auto ml-2 text-sm"
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/admin")}
                 >
-                  Go to dashboard
+                  Go to admin panel
                 </Button>
               </AlertDescription>
             </Alert>

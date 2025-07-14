@@ -14,6 +14,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Settings, FileText, CreditCard, BarChart, TestTube, Users } from "lucide-react";
 
+const ADMIN_EMAIL = 'w.ahmedkhairy@gmail.com';
+
 const Admin = () => {
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,23 +58,29 @@ const Admin = () => {
       console.log("User found:", user.email);
       setUser(user);
 
-      // Simple admin check using direct email comparison
-      const adminCheck = user.email === 'w.ahmedkhairy@gmail.com';
+      // Strict admin check - only allow the specific admin email
+      const adminCheck = user.email === ADMIN_EMAIL;
       console.log("Admin check result:", adminCheck);
       
       if (!adminCheck) {
-        console.log("User is not admin, redirecting to home");
+        console.log("User is not authorized admin, redirecting to auth");
+        // Log unauthorized access attempt
+        console.warn('Unauthorized admin access attempt by:', user.email);
+        
+        // Sign out the unauthorized user
+        await supabase.auth.signOut();
+        
         toast({
           title: "Access Denied",
-          description: "You don't have permission to access the admin panel.",
+          description: "Only authorized administrators can access this panel.",
           variant: "destructive",
         });
-        navigate("/");
+        navigate("/auth");
         return;
       }
       
       setIsAdmin(true);
-      console.log("Admin access granted");
+      console.log("Admin access granted to authorized user");
     } catch (error) {
       console.error("Auth check error:", error);
       toast({
