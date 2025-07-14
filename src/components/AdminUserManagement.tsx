@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Users, Search, UserCheck, UserX, Crown, Shield, Gift, Key, Mail } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Users, Search, UserCheck, UserX, Crown, Shield, Gift, Key, Mail, Trash2, Eye, RefreshCw, UserMinus, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,6 +30,8 @@ const AdminUserManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const [filterTier, setFilterTier] = useState<string>('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -37,7 +40,7 @@ const AdminUserManagement: React.FC = () => {
 
   useEffect(() => {
     filterUsers();
-  }, [searchTerm, users]);
+  }, [searchTerm, users, filterTier]);
 
   const fetchUsers = async () => {
     try {
@@ -96,16 +99,124 @@ const AdminUserManagement: React.FC = () => {
   };
 
   const filterUsers = () => {
-    if (!searchTerm) {
-      setFilteredUsers(users);
-      return;
+    let filtered = users;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(user =>
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.subscription_tier?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
-    const filtered = users.filter(user =>
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.subscription_tier?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Apply tier filter
+    if (filterTier !== 'all') {
+      filtered = filtered.filter(user => user.subscription_tier === filterTier);
+    }
+
     setFilteredUsers(filtered);
+  };
+
+  const deleteUser = async (userId: string, userEmail: string) => {
+    setIsDeletingUser(true);
+    try {
+      // Delete user data from all related tables
+      const { error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .delete()
+        .eq('user_id', userId);
+
+      const { error: resumeError } = await supabase
+        .from('resumes')
+        .delete()
+        .eq('user_id', userId);
+
+      const { error: tailoredError } = await supabase
+        .from('tailored_resumes')
+        .delete()
+        .eq('user_id', userId);
+
+      const { error: usageError } = await supabase
+        .from('tailoring_usage')
+        .delete()
+        .eq('user_id', userId);
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (subscriptionError || resumeError || tailoredError || usageError || profileError) {
+        throw new Error('Failed to delete user data');
+      }
+
+      toast({
+        title: "User Deleted Successfully",
+        description: `${userEmail} and all associated data have been permanently deleted.`,
+      });
+
+      // Refresh users list
+      fetchUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeletingUser(false);
+    }
+  };
+
+  const suspendUser = async (userId: string, userEmail: string) => {
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ status: 'suspended' })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "User Suspended",
+        description: `${userEmail} has been suspended and their subscription deactivated.`,
+      });
+
+      fetchUsers();
+    } catch (error) {
+      console.error('Error suspending user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to suspend user.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const reactivateUser = async (userId: string, userEmail: string) => {
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ status: 'active' })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "User Reactivated",
+        description: `${userEmail} has been reactivated.`,
+      });
+
+      fetchUsers();
+    } catch (error) {
+      console.error('Error reactivating user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reactivate user.",
+        variant: "destructive"
+      });
+    }
   };
 
   const assignFreePlan = async (userId: string, planType: 'basic' | 'premium' | 'unlimited') => {
@@ -224,15 +335,41 @@ const AdminUserManagement: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Search */}
-            <div className="flex items-center space-x-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by email or subscription tier..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-              />
+            {/* Search and Filter Controls */}
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by email or subscription tier..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Select value={filterTier} onValueChange={setFilterTier}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by tier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tiers</SelectItem>
+                    <SelectItem value="demo">Demo</SelectItem>
+                    <SelectItem value="basic">Basic</SelectItem>
+                    <SelectItem value="premium">Premium</SelectItem>
+                    <SelectItem value="unlimited">Unlimited</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchUsers}
+                  disabled={isLoading}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
             </div>
 
             {/* Enhanced Stats */}
@@ -299,80 +436,149 @@ const AdminUserManagement: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center space-x-3">
-                        <div className="text-right">
-                          <div className="flex items-center gap-2">
-                            {getUserTypeBadge(user.subscription_tier || 'demo', user.subscription_status || 'inactive')}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Last active: {formatDate(user.last_sign_in_at)}
-                          </p>
-                        </div>
-                        
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setSelectedUser(user)}
-                            >
-                              <Gift className="h-4 w-4 mr-1" />
-                              Assign Plan
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Assign Free Plan</DialogTitle>
-                              <DialogDescription>
-                                Give {user.email} free access to any subscription plan
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-1 gap-3">
-                                <Button
-                                  onClick={() => assignFreePlan(user.id, 'basic')}
-                                  disabled={isAssigning}
-                                  className="flex items-center justify-between p-4 h-auto"
-                                  variant="outline"
-                                >
-                                  <div className="text-left">
-                                    <div className="font-medium">Basic Plan</div>
-                                    <div className="text-sm text-muted-foreground">2 exports • 1 targeted resume/month</div>
-                                  </div>
-                                  <UserCheck className="h-5 w-5 text-green-600" />
-                                </Button>
-                                
-                                <Button
-                                  onClick={() => assignFreePlan(user.id, 'premium')}
-                                  disabled={isAssigning}
-                                  className="flex items-center justify-between p-4 h-auto"
-                                  variant="outline"
-                                >
-                                  <div className="text-left">
-                                    <div className="font-medium">Premium Plan</div>
-                                    <div className="text-sm text-muted-foreground">6 exports • 3 targeted resumes/month</div>
-                                  </div>
-                                  <Shield className="h-5 w-5 text-blue-600" />
-                                </Button>
-                                
-                                <Button
-                                  onClick={() => assignFreePlan(user.id, 'unlimited')}
-                                  disabled={isAssigning}
-                                  className="flex items-center justify-between p-4 h-auto"
-                                  variant="outline"
-                                >
-                                  <div className="text-left">
-                                    <div className="font-medium">Unlimited Plan</div>
-                                    <div className="text-sm text-muted-foreground">Unlimited exports • Unlimited targeted resumes</div>
-                                  </div>
-                                  <Crown className="h-5 w-5 text-yellow-600" />
-                                </Button>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
+                       
+                       <div className="flex items-center space-x-2">
+                         <div className="text-right">
+                           <div className="flex items-center gap-2">
+                             {getUserTypeBadge(user.subscription_tier || 'demo', user.subscription_status || 'inactive')}
+                           </div>
+                           <p className="text-xs text-muted-foreground mt-1">
+                             Last active: {formatDate(user.last_sign_in_at)}
+                           </p>
+                         </div>
+                         
+                         {/* User Actions */}
+                         <div className="flex items-center gap-1">
+                           {/* Assign Plan Dialog */}
+                           <Dialog>
+                             <DialogTrigger asChild>
+                               <Button 
+                                 variant="outline" 
+                                 size="sm"
+                                 onClick={() => setSelectedUser(user)}
+                               >
+                                 <Gift className="h-4 w-4 mr-1" />
+                                 Assign Plan
+                               </Button>
+                             </DialogTrigger>
+                             <DialogContent>
+                               <DialogHeader>
+                                 <DialogTitle>Assign Free Plan</DialogTitle>
+                                 <DialogDescription>
+                                   Give {user.email} free access to any subscription plan
+                                 </DialogDescription>
+                               </DialogHeader>
+                               <div className="space-y-4">
+                                 <div className="grid grid-cols-1 gap-3">
+                                   <Button
+                                     onClick={() => assignFreePlan(user.id, 'basic')}
+                                     disabled={isAssigning}
+                                     className="flex items-center justify-between p-4 h-auto"
+                                     variant="outline"
+                                   >
+                                     <div className="text-left">
+                                       <div className="font-medium">Basic Plan</div>
+                                       <div className="text-sm text-muted-foreground">2 exports • 1 targeted resume/month</div>
+                                     </div>
+                                     <UserCheck className="h-5 w-5 text-green-600" />
+                                   </Button>
+                                   
+                                   <Button
+                                     onClick={() => assignFreePlan(user.id, 'premium')}
+                                     disabled={isAssigning}
+                                     className="flex items-center justify-between p-4 h-auto"
+                                     variant="outline"
+                                   >
+                                     <div className="text-left">
+                                       <div className="font-medium">Premium Plan</div>
+                                       <div className="text-sm text-muted-foreground">6 exports • 3 targeted resumes/month</div>
+                                     </div>
+                                     <Shield className="h-5 w-5 text-blue-600" />
+                                   </Button>
+                                   
+                                   <Button
+                                     onClick={() => assignFreePlan(user.id, 'unlimited')}
+                                     disabled={isAssigning}
+                                     className="flex items-center justify-between p-4 h-auto"
+                                     variant="outline"
+                                   >
+                                     <div className="text-left">
+                                       <div className="font-medium">Unlimited Plan</div>
+                                       <div className="text-sm text-muted-foreground">Unlimited exports • Unlimited targeted resumes</div>
+                                     </div>
+                                     <Crown className="h-5 w-5 text-yellow-600" />
+                                   </Button>
+                                 </div>
+                               </div>
+                             </DialogContent>
+                           </Dialog>
+
+                           {/* Suspend/Reactivate Button */}
+                           {user.subscription_status === 'active' || user.subscription_status === 'suspended' ? (
+                             user.subscription_status === 'suspended' ? (
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => reactivateUser(user.id, user.email)}
+                                 className="text-green-600 hover:text-green-700"
+                               >
+                                 <UserCheck className="h-4 w-4 mr-1" />
+                                 Reactivate
+                               </Button>
+                             ) : (
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => suspendUser(user.id, user.email)}
+                                 className="text-orange-600 hover:text-orange-700"
+                               >
+                                 <UserMinus className="h-4 w-4 mr-1" />
+                                 Suspend
+                               </Button>
+                             )
+                           ) : null}
+
+                           {/* Delete User Dialog */}
+                           <AlertDialog>
+                             <AlertDialogTrigger asChild>
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 className="text-red-600 hover:text-red-700"
+                               >
+                                 <Trash2 className="h-4 w-4 mr-1" />
+                                 Delete
+                               </Button>
+                             </AlertDialogTrigger>
+                             <AlertDialogContent>
+                               <AlertDialogHeader>
+                                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                 <AlertDialogDescription>
+                                   This will permanently delete <strong>{user.email}</strong> and all their associated data:
+                                   <ul className="list-disc list-inside mt-2 space-y-1">
+                                     <li>Profile information</li>
+                                     <li>All resumes ({user.resume_count})</li>
+                                     <li>Subscription data</li>
+                                     <li>Usage history</li>
+                                     <li>Tailored resumes</li>
+                                   </ul>
+                                   <p className="mt-2 font-semibold">This action cannot be undone.</p>
+                                 </AlertDialogDescription>
+                               </AlertDialogHeader>
+                               <AlertDialogFooter>
+                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                 <AlertDialogAction
+                                   onClick={() => deleteUser(user.id, user.email)}
+                                   disabled={isDeletingUser}
+                                   className="bg-red-600 hover:bg-red-700"
+                                 >
+                                   {isDeletingUser ? "Deleting..." : "Delete User"}
+                                 </AlertDialogAction>
+                               </AlertDialogFooter>
+                             </AlertDialogContent>
+                           </AlertDialog>
+                         </div>
+                       </div>
                     </div>
                   </CardContent>
                 </Card>
