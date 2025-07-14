@@ -13,7 +13,7 @@ import { AlertCircle, Eye, EyeOff, CheckCircle, Clock, Key, Home } from "lucide-
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import EmailVerification from "@/components/EmailVerification";
 
-const ADMIN_EMAIL = 'w.ahmedkhairy@gmail.com';
+const ADMIN_EMAIL = 'ahmedz.khairy88@gmail.com';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();

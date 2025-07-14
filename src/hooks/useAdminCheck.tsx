@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
-const ADMIN_EMAIL = 'w.ahmedkhairy@gmail.com';
+const ADMIN_EMAIL = 'ahmedz.khairy88@gmail.com';
 
 export const useAdminCheck = () => {
   const [user, setUser] = useState<User | null>(null);
