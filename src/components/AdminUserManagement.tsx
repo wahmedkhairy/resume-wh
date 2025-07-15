@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,52 +44,98 @@ const AdminUserManagement: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
+      console.log("Starting to fetch users...");
 
-      // Get profiles with user info
+      // First, get all subscription data to identify all users who have ever interacted with the system
+      const { data: subscriptions, error: subscriptionsError } = await supabase
+        .from('subscriptions')
+        .select('user_id, tier, status, scan_count, max_scans, created_at');
+
+      if (subscriptionsError) {
+        console.error("Error fetching subscriptions:", subscriptionsError);
+        throw subscriptionsError;
+      }
+
+      console.log("Subscriptions found:", subscriptions?.length || 0);
+
+      // Get all profile data
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, email, created_at');
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+        // Don't throw here, as profiles might not exist for all users
+      }
 
-      // Get subscription data
-      const { data: subscriptions, error: subscriptionsError } = await supabase
-        .from('subscriptions')
-        .select('user_id, tier, status, scan_count, max_scans');
+      console.log("Profiles found:", profiles?.length || 0);
 
-      if (subscriptionsError) throw subscriptionsError;
-
-      // Get resume counts
+      // Get resume counts for all users
       const { data: resumes, error: resumesError } = await supabase
         .from('resumes')
         .select('user_id');
 
-      if (resumesError) throw resumesError;
+      if (resumesError) {
+        console.error("Error fetching resumes:", resumesError);
+        // Don't throw here, as this is not critical
+      }
 
-      // Combine data with enhanced information
-      const usersData = profiles?.map(profile => {
-        const userSubscription = subscriptions?.find(sub => sub.user_id === profile.id);
-        const userResumeCount = resumes?.filter(resume => resume.user_id === profile.id).length || 0;
+      console.log("Resumes found:", resumes?.length || 0);
 
-        return {
-          id: profile.id,
-          email: profile.email || 'No email',
-          created_at: profile.created_at,
-          last_sign_in_at: profile.created_at,
-          subscription_tier: userSubscription?.tier || 'demo',
-          subscription_status: userSubscription?.status || 'inactive',
-          resume_count: userResumeCount,
-          scan_count: userSubscription?.scan_count || 0,
-          max_scans: userSubscription?.max_scans || 0
-        };
-      }) || [];
+      // Create a comprehensive user list starting from subscriptions (which should exist for all users)
+      const userMap = new Map();
 
-      setUsers(usersData);
+      // Add users from subscriptions (this should be the most comprehensive list)
+      subscriptions?.forEach(subscription => {
+        if (!userMap.has(subscription.user_id)) {
+          const profile = profiles?.find(p => p.id === subscription.user_id);
+          const userResumeCount = resumes?.filter(r => r.user_id === subscription.user_id).length || 0;
+
+          userMap.set(subscription.user_id, {
+            id: subscription.user_id,
+            email: profile?.email || `user-${subscription.user_id.slice(0, 8)}@unknown.email`,
+            created_at: profile?.created_at || subscription.created_at,
+            last_sign_in_at: profile?.created_at || subscription.created_at,
+            subscription_tier: subscription.tier || 'demo',
+            subscription_status: subscription.status || 'inactive',
+            resume_count: userResumeCount,
+            scan_count: subscription.scan_count || 0,
+            max_scans: subscription.max_scans || 0
+          });
+        }
+      });
+
+      // Add any users from profiles that might not have subscriptions yet
+      profiles?.forEach(profile => {
+        if (!userMap.has(profile.id)) {
+          const userResumeCount = resumes?.filter(r => r.user_id === profile.id).length || 0;
+          
+          userMap.set(profile.id, {
+            id: profile.id,
+            email: profile.email || `user-${profile.id.slice(0, 8)}@unknown.email`,
+            created_at: profile.created_at,
+            last_sign_in_at: profile.created_at,
+            subscription_tier: 'demo',
+            subscription_status: 'inactive',
+            resume_count: userResumeCount,
+            scan_count: 0,
+            max_scans: 0
+          });
+        }
+      });
+
+      const usersArray = Array.from(userMap.values());
+      console.log("Final users array:", usersArray.length);
+      
+      // Sort by creation date (newest first)
+      usersArray.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      setUsers(usersArray);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
         title: "Error",
-        description: "Failed to load user data",
+        description: "Failed to load user data. Please check the console for details.",
         variant: "destructive"
       });
     } finally {
@@ -317,6 +362,7 @@ const AdminUserManagement: React.FC = () => {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        <span className="ml-2">Loading user data...</span>
       </div>
     );
   }
@@ -330,7 +376,7 @@ const AdminUserManagement: React.FC = () => {
             Advanced User Management
           </CardTitle>
           <CardDescription>
-            Manage user accounts, assign free plans, and view detailed user information
+            Manage user accounts, assign free plans, and view detailed user information ({users.length} users found)
           </CardDescription>
         </CardHeader>
         <CardContent>
