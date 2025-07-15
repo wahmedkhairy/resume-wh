@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Users, Search, UserCheck, UserX, Crown, Shield, Gift, Key, Mail, Trash2, Eye, RefreshCw, UserMinus, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface User {
@@ -46,8 +47,8 @@ const AdminUserManagement: React.FC = () => {
       setIsLoading(true);
       console.log("Starting to fetch users...");
 
-      // First, get all users from auth.users through the admin API
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      // Use the admin client to get all users from auth.users
+      const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers();
       
       if (authError) {
         console.error("Error fetching auth users:", authError);
@@ -58,7 +59,7 @@ const AdminUserManagement: React.FC = () => {
 
       console.log("Auth users found:", authUsers.users?.length || 0);
 
-      // Get all subscription data
+      // Get all subscription data using the regular client
       const { data: subscriptions, error: subscriptionsError } = await supabase
         .from('subscriptions')
         .select('user_id, tier, status, scan_count, max_scans, created_at');
@@ -69,7 +70,7 @@ const AdminUserManagement: React.FC = () => {
 
       console.log("Subscriptions found:", subscriptions?.length || 0);
 
-      // Get all profile data
+      // Get all profile data using the regular client
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, email, created_at');
@@ -80,7 +81,7 @@ const AdminUserManagement: React.FC = () => {
 
       console.log("Profiles found:", profiles?.length || 0);
 
-      // Get resume counts for all users
+      // Get resume counts for all users using the regular client
       const { data: resumes, error: resumesError } = await supabase
         .from('resumes')
         .select('user_id');
