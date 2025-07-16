@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { FileEdit, Settings, BarChart3, Target, Star } from "lucide-react";
+import { FileText, Target, Scan, Zap, TrendingUp } from "lucide-react";
 
 interface NavigationProps {
   onSectionChange: (section: string) => void;
@@ -9,71 +9,71 @@ interface NavigationProps {
 }
 
 const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection }) => {
-  const navigationItems = [
+  const navItems = [
     {
       id: "editor",
       label: "Resume Editor",
-      icon: FileEdit,
-      description: "Build your resume"
+      icon: <FileText className="h-4 w-4" />,
+      description: "Build your professional resume"
     },
     {
-      id: "ats",
+      id: "fix-resume",
+      label: "Fix My Resume",
+      icon: <Zap className="h-4 w-4" />,
+      description: "AI-powered optimization",
+      badge: "Premium"
+    },
+    {
+      id: "ats-analysis",
       label: "ATS Analysis",
-      icon: BarChart3,
-      description: "Optimize for ATS"
+      icon: <TrendingUp className="h-4 w-4" />,
+      description: "Score and optimize"
     },
     {
-      id: "tailor",
-      label: "Targeted Job Resume",
-      icon: Target,
-      description: "Customize for jobs"
+      id: "tailored-resume",
+      label: "Targeted Resume",
+      icon: <Target className="h-4 w-4" />,
+      description: "Job-specific optimization"
     },
     {
-      id: "settings",
-      label: "Settings",
-      icon: Settings,
-      description: "Account & preferences"
+      id: "ats-scanner",
+      label: "Free ATS Scanner",
+      icon: <Scan className="h-4 w-4" />,
+      description: "Upload and scan any resume"
     }
   ];
 
   return (
-    <nav className="border-b bg-white dark:bg-gray-800 shadow-sm">
+    <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center space-x-1 overflow-x-auto py-4">
-          {navigationItems.map((item) => {
-            const isActive = currentSection === item.id;
-            const Icon = item.icon;
-            
-            return (
-              <Button
-                key={item.id}
-                variant={isActive ? "default" : "ghost"}
-                onClick={() => onSectionChange(item.id)}
-                className={`flex items-center gap-2 whitespace-nowrap ${
-                  isActive 
-                    ? "bg-primary text-primary-foreground" 
-                    : "hover:bg-accent hover:text-accent-foreground"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{item.label}</span>
-              </Button>
-            );
-          })}
-          
-          {/* Success Stories button moved here */}
-          <Button
-            variant={currentSection === "success-stories" ? "default" : "ghost"}
-            onClick={() => onSectionChange("success-stories")}
-            className={`flex items-center gap-2 whitespace-nowrap ml-auto ${
-              currentSection === "success-stories"
-                ? "bg-primary text-primary-foreground" 
-                : "hover:bg-accent hover:text-accent-foreground"
-            }`}
-          >
-            <Star className="h-4 w-4" />
-            <span className="hidden sm:inline">Success Stories</span>
-          </Button>
+        <div className="flex space-x-1 overflow-x-auto py-2">
+          {navItems.map((item) => (
+            <Button
+              key={item.id}
+              variant={currentSection === item.id ? "default" : "ghost"}
+              onClick={() => onSectionChange(item.id)}
+              className={`flex items-center gap-2 whitespace-nowrap min-w-fit px-4 py-2 ${
+                currentSection === item.id 
+                  ? "bg-blue-600 text-white hover:bg-blue-700" 
+                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
+            >
+              {item.icon}
+              <div className="flex flex-col items-start">
+                <span className="font-medium text-sm flex items-center gap-1">
+                  {item.label}
+                  {item.badge && (
+                    <span className="text-xs bg-yellow-100 text-yellow-800 px-1 rounded">
+                      {item.badge}
+                    </span>
+                  )}
+                </span>
+                <span className="text-xs opacity-75 hidden sm:block">
+                  {item.description}
+                </span>
+              </div>
+            </Button>
+          ))}
         </div>
       </div>
     </nav>

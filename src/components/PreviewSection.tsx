@@ -1,71 +1,25 @@
 
 import React from "react";
-import ResumePreview from "@/components/ResumePreview";
+import ClassicResumePreview from "@/components/ClassicResumePreview";
 import ATSScanner from "@/components/ATSScanner";
-import AntiTheftProtection from "@/components/AntiTheftProtection";
-import { PersonalInfo } from "@/components/PersonalInfoBar";
-
-interface Skill {
-  id: string;
-  name: string;
-  level: number;
-}
-
-interface Course {
-  id: string;
-  title: string;
-  provider: string;
-  date: string;
-  description: string;
-  type: "course" | "certification";
-}
-
-interface WorkExperience {
-  id: string;
-  jobTitle: string;
-  company: string;
-  startDate: string;
-  endDate: string;
-  location: string;
-  responsibilities: string[];
-}
-
-interface Education {
-  id: string;
-  degree: string;
-  institution: string;
-  graduationYear: string;
-  gpa?: string;
-  location: string;
-}
-
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  technologies: string;
-  startDate: string;
-  endDate: string;
-  url?: string;
-  writingStyle?: "bullet" | "paragraph";
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Eye, Download } from "lucide-react";
 
 interface PreviewSectionProps {
-  personalInfo: PersonalInfo;
+  personalInfo: any;
   summary: string;
-  workExperience: WorkExperience[];
-  education: Education[];
-  skills: Skill[];
-  coursesAndCertifications: Course[];
-  projects: Project[];
+  workExperience: any[];
+  education: any[];
+  skills: any[];
+  coursesAndCertifications: any[];
+  projects: any[];
   onSummaryChange: (summary: string) => void;
   isPremiumUser: boolean;
   currentUserId: string;
   sessionId: string;
-  onExport?: () => void;
-  onExportWord?: () => void;
-  isExporting?: boolean;
-  canExport?: boolean;
+  onQuickFix?: () => void;
+  canUseFix?: boolean;
 }
 
 const PreviewSection: React.FC<PreviewSectionProps> = ({
@@ -80,8 +34,9 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
   isPremiumUser,
   currentUserId,
   sessionId,
+  onQuickFix,
+  canUseFix = false
 }) => {
-  // Prepare resume data for ATS Scanner
   const resumeData = {
     personalInfo,
     summary,
@@ -89,37 +44,41 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
     education,
     skills,
     coursesAndCertifications,
-    projects,
+    projects
   };
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Resume Preview</h2>
-        </div>
-        
-        <div className="border rounded-lg bg-white relative" data-resume-preview>
-          <ResumePreview 
-            watermark={!isPremiumUser}
-            personalInfo={personalInfo}
-            summary={summary}
-            workExperience={workExperience}
-            education={education}
-            skills={skills}
-            coursesAndCertifications={coursesAndCertifications}
-            projects={projects}
-            onSummaryChange={onSummaryChange}
-          />
-          <AntiTheftProtection 
-            isActive={!isPremiumUser}
-            userId={currentUserId}
-            sessionId={sessionId}
-          />
-        </div>
-      </div>
+      {/* ATS Scanner Card */}
+      <ATSScanner 
+        resumeData={resumeData}
+        isPremiumUser={isPremiumUser}
+        canUseFix={canUseFix}
+        onQuickFix={onQuickFix}
+      />
       
-      <ATSScanner resumeData={resumeData} />
+      {/* Resume Preview Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            Resume Preview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <ClassicResumePreview
+              watermark={!isPremiumUser}
+              personalInfo={personalInfo}
+              summary={summary}
+              workExperience={workExperience}
+              education={education}
+              coursesAndCertifications={coursesAndCertifications}
+              projects={projects}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
