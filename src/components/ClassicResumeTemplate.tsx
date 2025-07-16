@@ -40,6 +40,17 @@ interface Course {
   writingStyle?: "bullet" | "paragraph";
 }
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  writingStyle?: "bullet" | "paragraph";
+}
+
 interface ClassicResumeTemplateProps {
   watermark?: boolean;
   personalInfo: PersonalInfo;
@@ -47,6 +58,7 @@ interface ClassicResumeTemplateProps {
   workExperience: WorkExperience[];
   education: Education[];
   coursesAndCertifications: Course[];
+  projects: Project[];
 }
 
 const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
@@ -56,6 +68,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
   workExperience,
   education,
   coursesAndCertifications,
+  projects,
 }) => {
   const getExperienceTypeDisplay = (type?: string) => {
     switch (type) {
@@ -128,7 +141,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
     );
   };
 
-  const renderCourseDescription = (description: string, writingStyle?: "bullet" | "paragraph") => {
+  const renderDescription = (description: string, writingStyle?: "bullet" | "paragraph") => {
     if (!description.trim()) return null;
 
     if (writingStyle === "paragraph") {
@@ -368,6 +381,59 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         )}
       </section>
 
+      {/* Projects Section */}
+      {projects.length > 0 && (
+        <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
+          <h2 
+            style={{ 
+              fontSize: '14pt',
+              fontWeight: 'bold',
+              margin: '0 0 14pt 0',
+              color: '#000000',
+              textAlign: 'left',
+              borderBottom: '1pt solid #000000',
+              paddingBottom: '3pt',
+              direction: 'ltr'
+            }}
+          >
+            Projects
+          </h2>
+          
+          {projects.map((project, index) => (
+            <div key={project.id} style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
+              <h3 
+                style={{ 
+                  fontSize: '12pt',
+                  fontWeight: 'bold',
+                  margin: '0 0 5pt 0',
+                  color: '#000000',
+                  direction: 'ltr',
+                  textAlign: 'left'
+                }}
+              >
+                {project.title}
+              </h3>
+              
+              <div 
+                style={{ 
+                  fontSize: '12pt',
+                  margin: '0 0 8pt 0',
+                  color: '#000000',
+                  fontStyle: 'italic',
+                  direction: 'ltr',
+                  textAlign: 'left'
+                }}
+              >
+                {project.technologies} | {project.startDate} - {project.endDate}
+                {project.url && <span> | {project.url}</span>}
+              </div>
+              
+              {renderDescription(project.description, project.writingStyle)}
+            </div>
+          ))}
+        </section>
+      )}
+
       {/* Education Section */}
       {(education.length > 0 || coursesAndCertifications.length > 0) && (
         <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
@@ -469,7 +535,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
                   >
                     <strong>{item.title}</strong> - {item.provider} ({item.date})
                   </div>
-                  {renderCourseDescription(item.description, item.writingStyle)}
+                  {renderDescription(item.description, item.writingStyle)}
                 </div>
               ))}
             </>

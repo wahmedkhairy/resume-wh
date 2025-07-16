@@ -38,6 +38,17 @@ interface Education {
   location: string;
 }
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  writingStyle?: "bullet" | "paragraph";
+}
+
 export const useResumeData = (currentUserId: string) => {
   const [resumeState, setResumeState] = useState({
     summary: "",
@@ -53,6 +64,7 @@ export const useResumeData = (currentUserId: string) => {
   const [education, setEducation] = useState<Education[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [coursesAndCertifications, setCoursesAndCertifications] = useState<Course[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
@@ -80,6 +92,7 @@ export const useResumeData = (currentUserId: string) => {
           setEducation((resume.education as unknown as Education[]) || []);
           setSkills((resume.skills as unknown as Skill[]) || []);
           setCoursesAndCertifications((resume.courses as unknown as Course[]) || []);
+          setProjects((resume.projects as unknown as Project[]) || []);
         }
       } catch (error) {
         console.error('Error loading resume data:', error);
@@ -100,7 +113,8 @@ export const useResumeData = (currentUserId: string) => {
                      workExperience.length > 0 || 
                      education.length > 0 || 
                      skills.length > 0 || 
-                     coursesAndCertifications.length > 0;
+                     coursesAndCertifications.length > 0 ||
+                     projects.length > 0;
       
       if (!hasData) return;
 
@@ -113,6 +127,7 @@ export const useResumeData = (currentUserId: string) => {
           education: education as any,
           skills: skills as any,
           courses: coursesAndCertifications as any,
+          projects: projects as any,
           updated_at: new Date().toISOString()
         };
 
@@ -129,7 +144,7 @@ export const useResumeData = (currentUserId: string) => {
     // Debounce auto-save to avoid too frequent calls
     const timeoutId = setTimeout(autoSave, 2000);
     return () => clearTimeout(timeoutId);
-  }, [currentUserId, personalInfo, resumeState.summary, workExperience, education, skills, coursesAndCertifications]);
+  }, [currentUserId, personalInfo, resumeState.summary, workExperience, education, skills, coursesAndCertifications, projects]);
 
   const handleSave = async () => {
     if (!currentUserId) {
@@ -152,6 +167,7 @@ export const useResumeData = (currentUserId: string) => {
         education: education as any,
         skills: skills as any,
         courses: coursesAndCertifications as any,
+        projects: projects as any,
         updated_at: new Date().toISOString()
       };
 
@@ -190,6 +206,8 @@ export const useResumeData = (currentUserId: string) => {
     setSkills,
     coursesAndCertifications,
     setCoursesAndCertifications,
+    projects,
+    setProjects,
     isSaving,
     handleSave,
   };

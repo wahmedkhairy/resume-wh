@@ -49,6 +49,8 @@ const Index = () => {
     setSkills,
     coursesAndCertifications,
     setCoursesAndCertifications,
+    projects,
+    setProjects,
     isSaving,
     handleSave,
   } = useResumeData(currentUserId);
@@ -88,7 +90,8 @@ const Index = () => {
       workExperience,
       education,
       skills,
-      coursesAndCertifications
+      coursesAndCertifications,
+      projects
     };
   };
 
@@ -110,6 +113,10 @@ const Index = () => {
 
   const handleCoursesChange = (newCourses: any) => {
     setCoursesAndCertifications(newCourses);
+  };
+
+  const handleProjectsChange = (newProjects: any) => {
+    setProjects(newProjects);
   };
 
   const handleSummaryChange = (newSummary: string) => {
@@ -226,6 +233,8 @@ const Index = () => {
             onSkillsChange={handleSkillsChange}
             coursesAndCertifications={coursesAndCertifications}
             onCoursesChange={handleCoursesChange}
+            projects={projects}
+            onProjectsChange={handleProjectsChange}
             summary={resumeState.summary}
             onSummaryChange={handleSummaryChange}
             tailoredResumeData={tailoredResumeData}

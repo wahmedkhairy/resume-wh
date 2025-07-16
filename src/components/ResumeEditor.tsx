@@ -41,6 +41,17 @@ interface Education {
   location: string;
 }
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  writingStyle?: "bullet" | "paragraph";
+}
+
 interface ResumeEditorProps {
   personalInfo: PersonalInfo;
   onPersonalInfoChange: (info: PersonalInfo) => void;
@@ -52,6 +63,8 @@ interface ResumeEditorProps {
   onSkillsChange: (skills: Skill[]) => void;
   coursesAndCertifications: Course[];
   onCoursesChange: (courses: Course[]) => void;
+  projects: Project[];
+  onProjectsChange: (projects: Project[]) => void;
   summary: string;
   onSummaryChange: (summary: string) => void;
   tailoredResumeData: any;
@@ -80,6 +93,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   onSkillsChange,
   coursesAndCertifications,
   onCoursesChange,
+  projects,
+  onProjectsChange,
   summary,
   onSummaryChange,
   tailoredResumeData,
@@ -127,6 +142,8 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
           onSkillsChange={onSkillsChange}
           coursesAndCertifications={coursesAndCertifications}
           onCoursesChange={onCoursesChange}
+          projects={projects}
+          onProjectsChange={onProjectsChange}
           summary={summary}
           onSummaryChange={onSummaryChange}
         />
@@ -141,6 +158,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
           education={getCurrentResumeData.education}
           skills={getCurrentResumeData.skills}
           coursesAndCertifications={getCurrentResumeData.coursesAndCertifications}
+          projects={getCurrentResumeData.projects}
           onSummaryChange={onSummaryChange}
           isPremiumUser={isPremiumUser}
           currentUserId={currentUserId}

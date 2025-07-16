@@ -45,6 +45,17 @@ interface Course {
   type: "course" | "certification";
 }
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  writingStyle?: "bullet" | "paragraph";
+}
+
 interface ResumePreviewProps {
   watermark?: boolean;
   personalInfo: PersonalInfo;
@@ -53,6 +64,7 @@ interface ResumePreviewProps {
   education: Education[];
   skills: Skill[];
   coursesAndCertifications: Course[];
+  projects: Project[];
   onSummaryChange: (summary: string) => void;
 }
 
@@ -74,6 +86,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   education,
   skills,
   coursesAndCertifications,
+  projects,
   onSummaryChange,
 }) => {
   const [selectedTemplate] = useState("classic");
@@ -88,6 +101,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     education,
     skills,
     coursesAndCertifications,
+    projects,
   };
 
   return (

@@ -37,6 +37,17 @@ interface Course {
   type: "course" | "certification";
 }
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  writingStyle?: "bullet" | "paragraph";
+}
+
 interface ATSProResumeTemplateProps {
   watermark?: boolean;
   personalInfo: PersonalInfo;
@@ -44,6 +55,7 @@ interface ATSProResumeTemplateProps {
   workExperience: WorkExperience[];
   education: Education[];
   coursesAndCertifications: Course[];
+  projects: Project[];
 }
 
 const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
@@ -53,6 +65,7 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
   workExperience,
   education,
   coursesAndCertifications,
+  projects,
 }) => {
   return (
     <div 
@@ -226,6 +239,77 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
                     </li>
                   ))}
                 </ul>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* Projects Section */}
+      {projects.length > 0 && (
+        <section style={{ marginBottom: '20pt' }}>
+          <h2 
+            style={{ 
+              fontSize: '12pt',
+              fontWeight: 'bold',
+              margin: '0 0 12pt 0',
+              color: '#000000',
+              textTransform: 'uppercase',
+              borderBottom: '1pt solid #000000',
+              paddingBottom: '2pt'
+            }}
+          >
+            PROJECTS
+          </h2>
+          
+          {projects.map((project, index) => (
+            <div key={project.id} style={{ marginBottom: '16pt' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4pt' }}>
+                <div style={{ flex: 1 }}>
+                  <div 
+                    style={{ 
+                      fontSize: '11pt',
+                      fontWeight: 'bold',
+                      margin: '0',
+                      color: '#000000'
+                    }}
+                  >
+                    {project.title}
+                  </div>
+                  <div 
+                    style={{ 
+                      fontSize: '11pt',
+                      margin: '2pt 0',
+                      color: '#000000'
+                    }}
+                  >
+                    {project.technologies}
+                    {project.url && ` | ${project.url}`}
+                  </div>
+                </div>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    margin: '0',
+                    color: '#000000',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {project.startDate} - {project.endDate}
+                </div>
+              </div>
+              
+              {project.description && (
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    margin: '6pt 0 0 0',
+                    color: '#000000',
+                    lineHeight: '1.2'
+                  }}
+                >
+                  {project.description}
+                </div>
               )}
             </div>
           ))}

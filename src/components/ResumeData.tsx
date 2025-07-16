@@ -1,11 +1,12 @@
 
 import React from "react";
 import PersonalInfoBar, { PersonalInfo } from "@/components/PersonalInfoBar";
+import SummaryEditor from "@/components/SummaryEditor";
 import WorkExperienceBar from "@/components/WorkExperienceBar";
 import EducationBar from "@/components/EducationBar";
 import SkillsBar from "@/components/SkillsBar";
 import CoursesAndCertifications from "@/components/CoursesAndCertifications";
-import SummaryEditor from "@/components/SummaryEditor";
+import ProjectsBar from "@/components/ProjectsBar";
 import KeywordMatcher from "@/components/KeywordMatcher";
 
 interface Skill {
@@ -42,6 +43,17 @@ interface Education {
   location: string;
 }
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  writingStyle?: "bullet" | "paragraph";
+}
+
 interface ResumeDataProps {
   personalInfo: PersonalInfo;
   onPersonalInfoChange: (info: PersonalInfo) => void;
@@ -53,6 +65,8 @@ interface ResumeDataProps {
   onSkillsChange: (skills: Skill[]) => void;
   coursesAndCertifications: Course[];
   onCoursesChange: (courses: Course[]) => void;
+  projects: Project[];
+  onProjectsChange: (projects: Project[]) => void;
   summary: string;
   onSummaryChange: (summary: string) => void;
 }
@@ -68,6 +82,8 @@ const ResumeData: React.FC<ResumeDataProps> = ({
   onSkillsChange,
   coursesAndCertifications,
   onCoursesChange,
+  projects,
+  onProjectsChange,
   summary,
   onSummaryChange,
 }) => {
@@ -76,6 +92,15 @@ const ResumeData: React.FC<ResumeDataProps> = ({
       <PersonalInfoBar 
         onInfoChange={onPersonalInfoChange}
         initialInfo={personalInfo}
+      />
+      
+      <SummaryEditor
+        initialSummary={summary}
+        onSummaryChange={onSummaryChange}
+        workExperience={workExperience}
+        education={education}
+        skills={skills}
+        personalInfo={personalInfo}
       />
       
       <WorkExperienceBar 
@@ -87,6 +112,11 @@ const ResumeData: React.FC<ResumeDataProps> = ({
         onEducationChange={onEducationChange}
         initialEducation={education}
       />
+
+      <ProjectsBar
+        onProjectsChange={onProjectsChange}
+        initialProjects={projects}
+      />
       
       <CoursesAndCertifications 
         onCoursesChange={onCoursesChange}
@@ -96,15 +126,6 @@ const ResumeData: React.FC<ResumeDataProps> = ({
       <SkillsBar 
         onSkillsChange={onSkillsChange}
         initialSkills={skills}
-      />
-
-      <SummaryEditor
-        initialSummary={summary}
-        onSummaryChange={onSummaryChange}
-        workExperience={workExperience}
-        education={education}
-        skills={skills}
-        personalInfo={personalInfo}
       />
       
       <KeywordMatcher />

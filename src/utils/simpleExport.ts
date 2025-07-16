@@ -36,6 +36,15 @@ export interface ResumeData {
     description: string;
     writingStyle?: "bullet" | "paragraph";
   }>;
+  projects: Array<{
+    title: string;
+    description: string;
+    technologies: string;
+    startDate: string;
+    endDate: string;
+    url?: string;
+    writingStyle?: "bullet" | "paragraph";
+  }>;
 }
 
 const getExperienceTypeDisplay = (type?: string) => {
@@ -307,6 +316,83 @@ export const exportToWord = (data: ResumeData): Promise<void> => {
                 new Paragraph({
                   children: [new TextRun({ 
                     text: `• ${resp}`, 
+                    size: 24, // 12pt equivalent - matches preview exactly
+                    color: "000000" // Explicit black color
+                  })],
+                  spacing: { after: 50 },
+                  alignment: AlignmentType.LEFT,
+                  bidirectional: false // Ensure left-to-right
+                })
+              );
+            });
+          }
+        });
+      }
+
+      // Projects section
+      if (data.projects.length > 0) {
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ 
+              text: 'Projects', 
+              bold: true, 
+              size: 28, // 14pt equivalent - matches preview exactly
+              color: "000000" // Explicit black color
+            })],
+            spacing: { before: 400, after: 150 },
+            alignment: AlignmentType.LEFT,
+            bidirectional: false // Ensure left-to-right
+          })
+        );
+        
+        data.projects.forEach(project => {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ 
+                text: project.title, 
+                bold: true, 
+                size: 24, // 12pt equivalent - matches preview exactly
+                color: "000000" // Explicit black color
+              })],
+              spacing: { before: 100, after: 50 },
+              alignment: AlignmentType.LEFT,
+              bidirectional: false // Ensure left-to-right
+            }),
+            new Paragraph({
+              children: [new TextRun({ 
+                text: `${project.technologies} | ${project.startDate} - ${project.endDate}${project.url ? ` | ${project.url}` : ''}`, 
+                size: 24, // 12pt equivalent - matches preview exactly
+                italics: true,
+                color: "000000" // Explicit black color
+              })],
+              spacing: { after: 100 },
+              alignment: AlignmentType.LEFT,
+              bidirectional: false // Ensure left-to-right
+            })
+          );
+
+          // Handle project description with writing style
+          const formattedDescription = formatDescription(project.description, project.writingStyle);
+          
+          if (project.writingStyle === "paragraph" && typeof formattedDescription === "string" && formattedDescription) {
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ 
+                  text: formattedDescription, 
+                  size: 24, // 12pt equivalent - matches preview exactly
+                  color: "000000" // Explicit black color
+                })],
+                spacing: { after: 200 },
+                alignment: AlignmentType.LEFT,
+                bidirectional: false // Ensure left-to-right
+              })
+            );
+          } else if (Array.isArray(formattedDescription)) {
+            formattedDescription.forEach(point => {
+              children.push(
+                new Paragraph({
+                  children: [new TextRun({ 
+                    text: `• ${point}`, 
                     size: 24, // 12pt equivalent - matches preview exactly
                     color: "000000" // Explicit black color
                   })],

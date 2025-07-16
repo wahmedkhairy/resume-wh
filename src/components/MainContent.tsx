@@ -60,6 +60,17 @@ interface Education {
   location: string;
 }
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  writingStyle?: "bullet" | "paragraph";
+}
+
 interface MainContentProps {
   currentSection: string;
   personalInfo: PersonalInfo;
@@ -72,6 +83,8 @@ interface MainContentProps {
   onSkillsChange: (skills: Skill[]) => void;
   coursesAndCertifications: Course[];
   onCoursesChange: (courses: Course[]) => void;
+  projects: Project[];
+  onProjectsChange: (projects: Project[]) => void;
   summary: string;
   onSummaryChange: (summary: string) => void;
   tailoredResumeData: any;
@@ -103,6 +116,8 @@ const MainContent: React.FC<MainContentProps> = ({
   onSkillsChange,
   coursesAndCertifications,
   onCoursesChange,
+  projects,
+  onProjectsChange,
   summary,
   onSummaryChange,
   tailoredResumeData,
@@ -147,6 +162,7 @@ const MainContent: React.FC<MainContentProps> = ({
         education,
         skills,
         coursesAndCertifications,
+        projects,
       };
       return (
         <Suspense fallback={<LoadingSkeleton />}>
@@ -173,6 +189,8 @@ const MainContent: React.FC<MainContentProps> = ({
           onSkillsChange={onSkillsChange}
           coursesAndCertifications={coursesAndCertifications}
           onCoursesChange={onCoursesChange}
+          projects={projects}
+          onProjectsChange={onProjectsChange}
           summary={summary}
           onSummaryChange={onSummaryChange}
           tailoredResumeData={tailoredResumeData}
