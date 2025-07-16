@@ -38,6 +38,17 @@ interface Course {
   type: "course" | "certification";
 }
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  writingStyle?: "bullet" | "paragraph";
+}
+
 interface ClassicResumePreviewProps {
   watermark?: boolean;
   personalInfo: PersonalInfo;
@@ -45,6 +56,7 @@ interface ClassicResumePreviewProps {
   workExperience: WorkExperience[];
   education: Education[];
   coursesAndCertifications: Course[];
+  projects: Project[];
 }
 
 const ClassicResumePreview: React.FC<ClassicResumePreviewProps> = (props) => {

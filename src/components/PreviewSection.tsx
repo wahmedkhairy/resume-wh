@@ -39,6 +39,17 @@ interface Education {
   location: string;
 }
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  writingStyle?: "bullet" | "paragraph";
+}
+
 interface PreviewSectionProps {
   personalInfo: PersonalInfo;
   summary: string;
@@ -46,6 +57,7 @@ interface PreviewSectionProps {
   education: Education[];
   skills: Skill[];
   coursesAndCertifications: Course[];
+  projects: Project[];
   onSummaryChange: (summary: string) => void;
   isPremiumUser: boolean;
   currentUserId: string;
@@ -63,6 +75,7 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
   education,
   skills,
   coursesAndCertifications,
+  projects,
   onSummaryChange,
   isPremiumUser,
   currentUserId,
@@ -76,6 +89,7 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
     education,
     skills,
     coursesAndCertifications,
+    projects,
   };
 
   return (
@@ -94,6 +108,7 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
             education={education}
             skills={skills}
             coursesAndCertifications={coursesAndCertifications}
+            projects={projects}
             onSummaryChange={onSummaryChange}
           />
           <AntiTheftProtection 

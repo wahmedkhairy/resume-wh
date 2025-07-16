@@ -38,6 +38,17 @@ interface Course {
   type: "course" | "certification";
 }
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  writingStyle?: "bullet" | "paragraph";
+}
+
 interface ATSProResumePreviewProps {
   watermark?: boolean;
   personalInfo: PersonalInfo;
@@ -45,6 +56,7 @@ interface ATSProResumePreviewProps {
   workExperience: WorkExperience[];
   education: Education[];
   coursesAndCertifications: Course[];
+  projects: Project[];
 }
 
 const ATSProResumePreview: React.FC<ATSProResumePreviewProps> = (props) => {
