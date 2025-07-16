@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, XCircle, FileText, Zap } from "lucide-react";
-import QuickFixButton from "@/components/QuickFixButton";
 
 interface ATSScannerProps {
   resumeData?: {
@@ -15,9 +14,6 @@ interface ATSScannerProps {
     skills?: any[];
     coursesAndCertifications?: any[];
   };
-  isPremiumUser?: boolean;
-  canUseFix?: boolean;
-  onQuickFix?: () => void;
 }
 
 interface ScanResults {
@@ -32,12 +28,7 @@ interface ScanResults {
   isScanning: boolean;
 }
 
-const ATSScanner: React.FC<ATSScannerProps> = ({ 
-  resumeData,
-  isPremiumUser = false,
-  canUseFix = false,
-  onQuickFix
-}) => {
+const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
   const [scanResults, setScanResults] = useState<ScanResults>({
     overallScore: 0,
     formatScore: 0,
@@ -262,19 +253,9 @@ const ATSScanner: React.FC<ATSScannerProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 justify-between">
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            ATS Compatibility Scanner
-          </div>
-          {onQuickFix && (
-            <QuickFixButton
-              atsScore={scanResults.overallScore}
-              isPremiumUser={isPremiumUser}
-              canUseFix={canUseFix}
-              onQuickFix={onQuickFix}
-            />
-          )}
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          ATS Compatibility Scanner
         </CardTitle>
         <CardDescription>
           Real-time analysis of your resume's ATS compatibility

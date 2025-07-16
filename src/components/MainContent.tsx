@@ -1,12 +1,30 @@
 
-import React from "react";
+import React, { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import UserSuccessStories from "@/components/UserSuccessStories";
 import ResumeEditor from "@/components/ResumeEditor";
-import TailoredResumeSection from "@/components/TailoredResumeSection";
-import FreeATSScanner from "@/components/FreeATSScanner";
-import NewATSAnalysis from "@/components/NewATSAnalysis";
-import FixMyResumeNow from "@/components/FixMyResumeNow";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
-import { useFixMyResume } from "@/hooks/useFixMyResume";
+
+const SettingsSection = React.lazy(() => import("@/components/SettingsSection"));
+const ATSSection = React.lazy(() => import("@/components/ATSSection"));
+const TailoredResumeSection = React.lazy(() => import("@/components/TailoredResumeSection"));
+
+const LoadingSkeleton = () => (
+  <div className="space-y-6">
+    <Skeleton className="h-8 w-64" />
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+      <div className="space-y-4">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    </div>
+  </div>
+);
 
 interface Skill {
   id: string;
@@ -71,7 +89,7 @@ interface MainContentProps {
   onSummaryChange: (summary: string) => void;
   tailoredResumeData: any;
   onClearTailoredResume: () => void;
-  onTailoredResumeGenerated: (tailoredData: any) => void;
+  onTailoredResumeGenerated: (data: any) => void;
   onSectionChange: (section: string) => void;
   currentUserId: string;
   isPremiumUser: boolean;
@@ -82,7 +100,7 @@ interface MainContentProps {
   onSave: () => void;
   onExport: () => void;
   onExportWord: () => void;
-  canExport: boolean;
+  canExport: () => boolean;
   getCurrentResumeData: any;
 }
 
@@ -118,34 +136,47 @@ const MainContent: React.FC<MainContentProps> = ({
   canExport,
   getCurrentResumeData,
 }) => {
-  const { handleApplyOptimizations } = useFixMyResume(currentUserId);
-
-  const handleOptimizationsApply = async (optimizations: any) => {
-    const success = await handleApplyOptimizations(
-      optimizations,
-      (optimizedData) => {
-        // Apply optimized data to the resume state
-        if (optimizedData.personalInfo) onPersonalInfoChange(optimizedData.personalInfo);
-        if (optimizedData.workExperience) onWorkExperienceChange(optimizedData.workExperience);
-        if (optimizedData.education) onEducationChange(optimizedData.education);
-        if (optimizedData.skills) onSkillsChange(optimizedData.skills);
-        if (optimizedData.coursesAndCertifications) onCoursesChange(optimizedData.coursesAndCertifications);
-        if (optimizedData.projects) onProjectsChange(optimizedData.projects);
-        if (optimizedData.summary) onSummaryChange(optimizedData.summary);
-      },
-      () => getCurrentResumeData
-    );
-
-    if (success) {
-      // Auto-save after optimization
-      setTimeout(() => {
-        onSave();
-      }, 1000);
-    }
-  };
-
   switch (currentSection) {
-    case "editor":
+    case "settings":
+      return (
+        <Suspense fallback={<LoadingSkeleton />}>
+          <SettingsSection />
+        </Suspense>
+      );
+    
+    case "success-stories":
+      return <UserSuccessStories />;
+    
+    case "ats":
+      return (
+        <Suspense fallback={<LoadingSkeleton />}>
+          <ATSSection resumeData={getCurrentResumeData} />
+        </Suspense>
+      );
+    
+    case "tailor":
+      const originalResumeData = {
+        personalInfo,
+        summary,
+        workExperience,
+        education,
+        skills,
+        coursesAndCertifications,
+        projects,
+      };
+      return (
+        <Suspense fallback={<LoadingSkeleton />}>
+          <TailoredResumeSection
+            resumeData={originalResumeData}
+            currentUserId={currentUserId}
+            isPremiumUser={isPremiumUser}
+            currentSubscription={currentSubscription}
+            onTailoredResumeGenerated={onTailoredResumeGenerated}
+          />
+        </Suspense>
+      );
+    
+    default:
       return (
         <ResumeEditor
           personalInfo={personalInfo}
@@ -173,38 +204,10 @@ const MainContent: React.FC<MainContentProps> = ({
           onSave={onSave}
           onExport={onExport}
           onExportWord={onExportWord}
-          canExport={() => canExport}
+          canExport={canExport}
           getCurrentResumeData={getCurrentResumeData}
         />
       );
-    case "tailored-resume":
-      return (
-        <TailoredResumeSection
-          resumeData={getCurrentResumeData}
-          currentUserId={currentUserId}
-          isPremiumUser={isPremiumUser}
-          currentSubscription={currentSubscription}
-          onTailoredResumeGenerated={onTailoredResumeGenerated}
-        />
-      );
-    case "ats-scanner":
-      return <FreeATSScanner />;
-    case "ats-analysis":
-      return <NewATSAnalysis resumeData={getCurrentResumeData} />;
-    case "fix-resume":
-      return (
-        <FixMyResumeNow
-          resumeData={getCurrentResumeData}
-          currentUserId={currentUserId}
-          isPremiumUser={isPremiumUser}
-          currentSubscription={currentSubscription}
-          onApplyOptimizations={handleOptimizationsApply}
-          onExport={onExport}
-          canExport={canExport}
-        />
-      );
-    default:
-      return null;
   }
 };
 
