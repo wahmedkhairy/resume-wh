@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -112,7 +113,7 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Projects</CardTitle>
+        <CardTitle>Projects <span className="text-sm font-normal text-muted-foreground">(optional)</span></CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {projects.map((project) => (
@@ -130,7 +131,7 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
                     />
                   </div>
                   <div>
-                    <Label htmlFor={`edit-technologies-${project.id}`}>Technologies Used</Label>
+                    <Label htmlFor={`edit-technologies-${project.id}`}>Technologies Used <span className="text-sm font-normal text-muted-foreground">(optional)</span></Label>
                     <Input
                       id={`edit-technologies-${project.id}`}
                       value={newProject.technologies}
@@ -246,7 +247,7 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
                 />
               </div>
               <div>
-                <Label htmlFor="new-technologies">Technologies Used</Label>
+                <Label htmlFor="new-technologies">Technologies Used <span className="text-sm font-normal text-muted-foreground">(optional)</span></Label>
                 <Input
                   id="new-technologies"
                   value={newProject.technologies}

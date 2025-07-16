@@ -214,7 +214,7 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
           ))}
           
           <Button
-            variant="outline"
+            variant="default"
             type="button"
             onClick={(e) => {
               e.preventDefault();
