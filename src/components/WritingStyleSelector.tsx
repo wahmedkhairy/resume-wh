@@ -8,16 +8,18 @@ interface WritingStyleSelectorProps {
   value: "bullet" | "paragraph";
   onChange: (value: "bullet" | "paragraph") => void;
   className?: string;
+  label?: string;
 }
 
 const WritingStyleSelector: React.FC<WritingStyleSelectorProps> = ({
   value,
   onChange,
-  className = ""
+  className = "",
+  label = "Writing Style"
 }) => {
   return (
     <div className={`space-y-2 ${className}`}>
-      <Label className="text-sm font-medium">Writing Style</Label>
+      <Label className="text-sm font-medium">{label}</Label>
       <RadioGroup
         value={value}
         onValueChange={(newValue) => onChange(newValue as "bullet" | "paragraph")}
