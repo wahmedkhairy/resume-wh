@@ -67,6 +67,56 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
   coursesAndCertifications,
   projects,
 }) => {
+  const renderProjectDescription = (description: string, writingStyle?: "bullet" | "paragraph") => {
+    if (!description.trim()) return null;
+
+    if (writingStyle === "paragraph") {
+      return (
+        <div 
+          style={{ 
+            fontSize: '11pt',
+            margin: '6pt 0 0 0',
+            color: '#000000',
+            lineHeight: '1.2'
+          }}
+        >
+          {description}
+        </div>
+      );
+    }
+
+    // For bullet points, split description by line breaks
+    const lines = description.split('\n').filter(line => line.trim());
+    const bulletPoints: string[] = [];
+    
+    lines.forEach(line => {
+      const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+      if (cleanLine) {
+        bulletPoints.push(cleanLine);
+      }
+    });
+
+    if (!bulletPoints.length) return null;
+
+    return (
+      <ul style={{ margin: '6pt 0 0 0', paddingLeft: '18pt', listStyleType: 'disc' }}>
+        {bulletPoints.map((point, index) => (
+          <li 
+            key={index}
+            style={{ 
+              fontSize: '11pt',
+              margin: '3pt 0',
+              color: '#000000',
+              lineHeight: '1.2'
+            }}
+          >
+            {point}
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <div 
       className="ats-resume-container bg-white relative"
@@ -245,7 +295,7 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
         </section>
       )}
 
-      {/* Projects Section */}
+      {/* Projects Section - Fixed to properly render */}
       {projects.length > 0 && (
         <section style={{ marginBottom: '20pt' }}>
           <h2 
@@ -299,18 +349,7 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
                 </div>
               </div>
               
-              {project.description && (
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    margin: '6pt 0 0 0',
-                    color: '#000000',
-                    lineHeight: '1.2'
-                  }}
-                >
-                  {project.description}
-                </div>
-              )}
+              {renderProjectDescription(project.description, project.writingStyle)}
             </div>
           ))}
         </section>

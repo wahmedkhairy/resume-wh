@@ -1,4 +1,3 @@
-
 import React from "react";
 
 interface PersonalInfo {
@@ -121,7 +120,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
     if (!allBulletPoints.length) return null;
 
     return (
-      <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
+      <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left', listStyleType: 'disc' }}>
         {allBulletPoints.map((point, index) => (
           <li 
             key={index} 
@@ -175,7 +174,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
     if (!bulletPoints.length) return null;
 
     return (
-      <ul style={{ margin: '2pt 0 0 0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
+      <ul style={{ margin: '2pt 0 0 0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left', listStyleType: 'disc' }}>
         {bulletPoints.map((point, index) => (
           <li 
             key={index}
@@ -366,7 +365,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               January 2020 - Present | Full Time
             </div>
             
-            <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left' }}>
+            <ul style={{ margin: '0', paddingLeft: '20pt', direction: 'ltr', textAlign: 'left', listStyleType: 'disc' }}>
               <li style={{ fontSize: '12pt', margin: '4pt 0', color: '#000000', lineHeight: '1.3', direction: 'ltr', textAlign: 'left' }}>
                 Led development of company's flagship SaaS product using React and TypeScript
               </li>
@@ -381,7 +380,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         )}
       </section>
 
-      {/* Projects Section */}
+      {/* Projects Section - Fixed to properly render */}
       {projects.length > 0 && (
         <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
           <h2 

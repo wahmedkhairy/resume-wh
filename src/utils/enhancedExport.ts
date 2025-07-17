@@ -36,6 +36,15 @@ export interface ResumeData {
     description: string;
     writingStyle?: "bullet" | "paragraph";
   }>;
+  projects: Array<{
+    title: string;
+    description: string;
+    technologies: string;
+    startDate: string;
+    endDate: string;
+    url?: string;
+    writingStyle?: "bullet" | "paragraph";
+  }>;
 }
 
 const getExperienceTypeDisplay = (type?: string) => {
@@ -329,6 +338,98 @@ export const exportToEnhancedWord = async (data: ResumeData): Promise<void> => {
               new Paragraph({
                 children: [new TextRun({ 
                   text: `• ${resp}`, 
+                  size: 24, // 12pt equivalent - matches preview exactly
+                  color: "000000" // Explicit black color
+                })],
+                spacing: { after: 50 },
+                alignment: AlignmentType.LEFT,
+                bidirectional: false // Ensure left-to-right
+              })
+            );
+          });
+        }
+      });
+    }
+
+    // Add Projects section
+    if (data.projects && data.projects.length > 0) {
+      children.push(
+        new Paragraph({
+          children: [new TextRun({ 
+            text: 'Projects', 
+            bold: true, 
+            size: 28, // 14pt equivalent - matches preview exactly
+            color: "000000" // Explicit black color
+          })],
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 400, after: 150 },
+          border: {
+            bottom: {
+              color: "000000", // Changed to black
+              size: 1,
+              style: BorderStyle.SINGLE,
+            },
+          },
+          alignment: AlignmentType.LEFT,
+          bidirectional: false // Ensure left-to-right
+        })
+      );
+      
+      data.projects.forEach(project => {
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ 
+              text: project.title, 
+              bold: true, 
+              size: 24, // 12pt equivalent - matches preview exactly
+              color: "000000" // Explicit black color
+            })],
+            spacing: { before: 200, after: 50 },
+            alignment: AlignmentType.LEFT,
+            bidirectional: false // Ensure left-to-right
+          })
+        );
+
+        // Technologies, dates, and URL line
+        const projectInfoLine = `${project.technologies} | ${project.startDate} - ${project.endDate}` +
+          (project.url ? ` | ${project.url}` : '');
+        
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ 
+              text: projectInfoLine, 
+              size: 24, // 12pt equivalent - matches preview exactly
+              italics: true,
+              color: "000000" // Explicit black color
+            })],
+            spacing: { after: 100 },
+            alignment: AlignmentType.LEFT,
+            bidirectional: false // Ensure left-to-right
+          })
+        );
+        
+        // Handle project description with writing style
+        const formattedDescription = formatDescription(project.description, project.writingStyle);
+        
+        if (project.writingStyle === "paragraph" && typeof formattedDescription === "string" && formattedDescription) {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ 
+                text: formattedDescription, 
+                size: 24, // 12pt equivalent - matches preview exactly
+                color: "000000" // Explicit black color
+              })],
+              spacing: { after: 200 },
+              alignment: AlignmentType.LEFT,
+              bidirectional: false // Ensure left-to-right
+            })
+          );
+        } else if (Array.isArray(formattedDescription)) {
+          formattedDescription.forEach(point => {
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ 
+                  text: `• ${point}`, 
                   size: 24, // 12pt equivalent - matches preview exactly
                   color: "000000" // Explicit black color
                 })],

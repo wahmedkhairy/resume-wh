@@ -161,7 +161,7 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
                     />
                   </div>
                   <div>
-                    <Label htmlFor={`edit-url-${project.id}`}>Project URL (Optional)</Label>
+                    <Label htmlFor={`edit-url-${project.id}`}>Project URL <span className="text-sm font-normal text-muted-foreground">(optional)</span></Label>
                     <Input
                       id={`edit-url-${project.id}`}
                       value={newProject.url}
@@ -180,13 +180,15 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
                     placeholder="Describe the project, your role, and key achievements..."
                     className="min-h-[100px]"
                   />
+                  
+                  <div className="mt-2">
+                    <WritingStyleSelector
+                      value={newProject.writingStyle || "bullet"}
+                      onChange={(style) => setNewProject({...newProject, writingStyle: style})}
+                      label="Writing Style"
+                    />
+                  </div>
                 </div>
-
-                <WritingStyleSelector
-                  value={newProject.writingStyle || "bullet"}
-                  onChange={(style) => setNewProject({...newProject, writingStyle: style})}
-                  label="Description Format"
-                />
 
                 <div className="flex gap-2">
                   <Button onClick={handleUpdateProject} size="sm">
@@ -277,7 +279,7 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
                 />
               </div>
               <div>
-                <Label htmlFor="new-url">Project URL (Optional)</Label>
+                <Label htmlFor="new-url">Project URL <span className="text-sm font-normal text-muted-foreground">(optional)</span></Label>
                 <Input
                   id="new-url"
                   value={newProject.url}
@@ -296,13 +298,15 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
                 placeholder="Describe the project, your role, and key achievements..."
                 className="min-h-[100px]"
               />
+              
+              <div className="mt-2">
+                <WritingStyleSelector
+                  value={newProject.writingStyle || "bullet"}
+                  onChange={(style) => setNewProject({...newProject, writingStyle: style})}
+                  label="Writing Style"
+                />
+              </div>
             </div>
-
-            <WritingStyleSelector
-              value={newProject.writingStyle || "bullet"}
-              onChange={(style) => setNewProject({...newProject, writingStyle: style})}
-              label="Description Format"
-            />
 
             <div className="flex gap-2">
               <Button onClick={handleAddProject}>

@@ -1,20 +1,13 @@
 
-import React, { useState, useEffect } from "react";
-import { 
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Award, BookOpen } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import WritingStyleSelector from "./WritingStyleSelector";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, Edit2, Check, X } from "lucide-react";
+import WritingStyleSelector from "@/components/WritingStyleSelector";
 
 interface Course {
   id: string;
@@ -27,184 +20,300 @@ interface Course {
 }
 
 interface CoursesAndCertificationsProps {
-  initialCourses?: Course[];
-  onCoursesChange?: (courses: Course[]) => void;
+  onCoursesChange: (courses: Course[]) => void;
+  initialCourses: Course[];
 }
 
-const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({ 
-  initialCourses = [], 
-  onCoursesChange 
+const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
+  onCoursesChange,
+  initialCourses = []
 }) => {
   const [courses, setCourses] = useState<Course[]>(initialCourses);
-  const { toast } = useToast();
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [newCourse, setNewCourse] = useState<Course>({
+    id: "",
+    title: "",
+    provider: "",
+    date: "",
+    description: "",
+    type: "course",
+    writingStyle: "bullet"
+  });
 
-  // Initialize with at least one empty course if none exist
-  useEffect(() => {
-    if (courses.length === 0) {
-      const defaultCourse: Course = {
-        id: Date.now().toString(),
+  const handleAddCourse = () => {
+    if (newCourse.title.trim() && newCourse.provider.trim()) {
+      const courseWithId = {
+        ...newCourse,
+        id: `course-${Date.now()}`
+      };
+      const updatedCourses = [...courses, courseWithId];
+      setCourses(updatedCourses);
+      onCoursesChange(updatedCourses);
+      setNewCourse({
+        id: "",
         title: "",
         provider: "",
         date: "",
         description: "",
         type: "course",
-        writingStyle: "bullet",
-      };
-      setCourses([defaultCourse]);
+        writingStyle: "bullet"
+      });
+      setIsAdding(false);
     }
-  }, []);
-
-  // When courses state changes, notify parent component
-  useEffect(() => {
-    if (onCoursesChange) {
-      // Filter out completely empty courses before sending to parent
-      const validCourses = courses.filter(course => 
-        course.title.trim() || course.provider.trim() || course.date.trim() || course.description.trim()
-      );
-      onCoursesChange(validCourses);
-    }
-  }, [courses, onCoursesChange]);
-
-  const updateCourse = (id: string, field: keyof Course, value: string | ("course" | "certification") | ("bullet" | "paragraph")) => {
-    setCourses(prevCourses => 
-      prevCourses.map(course => 
-        course.id === id 
-          ? { ...course, [field]: value }
-          : course
-      )
-    );
   };
 
-  const addCourse = () => {
-    const newCourse: Course = {
-      id: Date.now().toString(),
+  const handleEditCourse = (course: Course) => {
+    setEditingId(course.id);
+    setNewCourse(course);
+  };
+
+  const handleUpdateCourse = () => {
+    const updatedCourses = courses.map(course =>
+      course.id === editingId ? newCourse : course
+    );
+    setCourses(updatedCourses);
+    onCoursesChange(updatedCourses);
+    setEditingId(null);
+    setNewCourse({
+      id: "",
       title: "",
       provider: "",
       date: "",
       description: "",
       type: "course",
-      writingStyle: "bullet",
-    };
-    setCourses([...courses, newCourse]);
+      writingStyle: "bullet"
+    });
   };
 
-  const removeCourse = (id: string) => {
-    if (courses.length > 1) {
-      setCourses(courses.filter(course => course.id !== id));
-    } else {
-      toast({
-        title: "Cannot Remove",
-        description: "At least one course/certification entry is required.",
-        variant: "destructive",
-      });
-    }
+  const handleDeleteCourse = (id: string) => {
+    const updatedCourses = courses.filter(course => course.id !== id);
+    setCourses(updatedCourses);
+    onCoursesChange(updatedCourses);
   };
 
-  const getPlaceholderText = (writingStyle: "bullet" | "paragraph") => {
-    if (writingStyle === "bullet") {
-      return "• Key learning outcome or achievement...\n• Another important skill gained...\n• Relevant project or certification details...";
-    }
-    return "Brief description of what you learned or achieved";
+  const handleCancel = () => {
+    setIsAdding(false);
+    setEditingId(null);
+    setNewCourse({
+      id: "",
+      title: "",
+      provider: "",
+      date: "",
+      description: "",
+      type: "course",
+      writingStyle: "bullet"
+    });
   };
 
   return (
-    <Card className="mb-6">
+    <Card>
       <CardHeader>
-        <CardTitle>Courses & Certifications</CardTitle>
-        <CardDescription>
-          Add relevant courses and certifications to enhance your resume. Changes are automatically reflected in the preview.
-        </CardDescription>
+        <CardTitle>Courses & Certifications <span className="text-sm font-normal text-muted-foreground">(optional)</span></CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {courses.map((course, index) => (
-          <div key={course.id} className="p-4 border rounded-lg space-y-4">
-            <div className="flex items-center gap-2">
-              {course.type === "certification" ? (
-                <Award className="h-5 w-5 text-blue-500" />
-              ) : (
-                <BookOpen className="h-5 w-5 text-green-500" />
-              )}
-              <h3 className="font-semibold">
-                {course.type === "certification" ? "Certification" : "Course"} #{index + 1}
-              </h3>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <RadioGroup
-                  value={course.type}
-                  onValueChange={(value) => updateCourse(course.id, 'type', value as "course" | "certification")}
-                  className="flex space-x-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="course" id={`course-${course.id}`} />
-                    <Label htmlFor={`course-${course.id}`} className="cursor-pointer flex items-center">
-                      <BookOpen className="h-4 w-4 mr-1 text-green-500" /> Course
-                    </Label>
+      <CardContent className="space-y-4">
+        {courses.map((course) => (
+          <div key={course.id} className="border rounded p-4 space-y-2">
+            {editingId === course.id ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`edit-title-${course.id}`}>Title</Label>
+                    <Input
+                      id={`edit-title-${course.id}`}
+                      value={newCourse.title}
+                      onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
+                      placeholder="Course or Certification Title"
+                    />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="certification" id={`certification-${course.id}`} />
-                    <Label htmlFor={`certification-${course.id}`} className="cursor-pointer flex items-center">
-                      <Award className="h-4 w-4 mr-1 text-blue-500" /> Certification
-                    </Label>
+                  <div>
+                    <Label htmlFor={`edit-provider-${course.id}`}>Provider</Label>
+                    <Input
+                      id={`edit-provider-${course.id}`}
+                      value={newCourse.provider}
+                      onChange={(e) => setNewCourse({...newCourse, provider: e.target.value})}
+                      placeholder="Institution or Organization"
+                    />
                   </div>
-                </RadioGroup>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`title-${course.id}`}>Title</Label>
-                  <Input
-                    id={`title-${course.id}`}
-                    value={course.title}
-                    onChange={(e) => updateCourse(course.id, 'title', e.target.value)}
-                    placeholder="e.g., Advanced React Development"
-                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`provider-${course.id}`}>Provider</Label>
-                  <Input
-                    id={`provider-${course.id}`}
-                    value={course.provider}
-                    onChange={(e) => updateCourse(course.id, 'provider', e.target.value)}
-                    placeholder="e.g., Udemy, Coursera"
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`edit-date-${course.id}`}>Date</Label>
+                    <Input
+                      id={`edit-date-${course.id}`}
+                      value={newCourse.date}
+                      onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
+                      placeholder="January 2023"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`edit-type-${course.id}`}>Type</Label>
+                    <Select
+                      value={newCourse.type}
+                      onValueChange={(value) => setNewCourse({...newCourse, type: value as "course" | "certification"})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="course">Course</SelectItem>
+                        <SelectItem value="certification">Certification</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor={`edit-description-${course.id}`}>Description</Label>
+                  <Textarea
+                    id={`edit-description-${course.id}`}
+                    value={newCourse.description}
+                    onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
+                    placeholder="Describe what you learned and key skills gained..."
+                    className="min-h-[100px]"
                   />
+                  
+                  <div className="mt-2">
+                    <WritingStyleSelector
+                      value={newCourse.writingStyle || "bullet"}
+                      onChange={(style) => setNewCourse({...newCourse, writingStyle: style})}
+                      label="Writing Style"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={handleUpdateCourse} size="sm">
+                    <Check className="w-4 h-4 mr-1" />
+                    Save
+                  </Button>
+                  <Button onClick={handleCancel} variant="outline" size="sm">
+                    <X className="w-4 h-4 mr-1" />
+                    Cancel
+                  </Button>
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor={`date-${course.id}`}>Completion Date</Label>
-                <Input
-                  id={`date-${course.id}`}
-                  value={course.date}
-                  onChange={(e) => updateCourse(course.id, 'date', e.target.value)}
-                  placeholder="e.g., May 2023"
-                />
+            ) : (
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h4 className="font-semibold">{course.title}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {course.provider} | {course.date} | {course.type}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleEditCourse(course)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteCourse(course.id)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-sm">{course.description}</p>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor={`description-${course.id}`}>Description (Optional)</Label>
-                <WritingStyleSelector
-                  value={course.writingStyle || "bullet"}
-                  onChange={(value) => updateCourse(course.id, 'writingStyle', value)}
-                  className="mb-2"
-                />
-                <Textarea
-                  id={`description-${course.id}`}
-                  value={course.description}
-                  onChange={(e) => updateCourse(course.id, 'description', e.target.value)}
-                  placeholder={getPlaceholderText(course.writingStyle || "bullet")}
-                  rows={2}
-                />
-              </div>
-            </div>
+            )}
           </div>
         ))}
 
-        <Button onClick={addCourse} className="w-full" variant="outline">
-          <Plus className="mr-1 h-4 w-4" /> Add Another Course/Certification
-        </Button>
+        {isAdding && (
+          <div className="border rounded p-4 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="new-title">Title</Label>
+                <Input
+                  id="new-title"
+                  value={newCourse.title}
+                  onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
+                  placeholder="Course or Certification Title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="new-provider">Provider</Label>
+                <Input
+                  id="new-provider"
+                  value={newCourse.provider}
+                  onChange={(e) => setNewCourse({...newCourse, provider: e.target.value})}
+                  placeholder="Institution or Organization"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="new-date">Date</Label>
+                <Input
+                  id="new-date"
+                  value={newCourse.date}
+                  onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
+                  placeholder="January 2023"
+                />
+              </div>
+              <div>
+                <Label htmlFor="new-type">Type</Label>
+                <Select
+                  value={newCourse.type}
+                  onValueChange={(value) => setNewCourse({...newCourse, type: value as "course" | "certification"})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="course">Course</SelectItem>
+                    <SelectItem value="certification">Certification</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="new-description">Description</Label>
+              <Textarea
+                id="new-description"
+                value={newCourse.description}
+                onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
+                placeholder="Describe what you learned and key skills gained..."
+                className="min-h-[100px]"
+              />
+              
+              <div className="mt-2">
+                <WritingStyleSelector
+                  value={newCourse.writingStyle || "bullet"}
+                  onChange={(style) => setNewCourse({...newCourse, writingStyle: style})}
+                  label="Writing Style"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleAddCourse} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Check className="w-4 h-4 mr-1" />
+                Add Course/Certification
+              </Button>
+              <Button onClick={handleCancel} variant="outline">
+                <X className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!isAdding && (
+          <Button onClick={() => setIsAdding(true)} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Another Course/Certification
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
