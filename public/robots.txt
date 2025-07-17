@@ -1,3 +1,8 @@
+
+User-agent: *
+Allow: /
+
+# Allow all search engines to crawl all content
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +15,28 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# Sitemap location
+Sitemap: https://resumewh.com/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Allow common paths
+Allow: /auth
+Allow: /free-ats-scanner
+Allow: /subscription
+Allow: /privacy-policy
+Allow: /terms-of-service
+Allow: /payment-success
+Allow: /payment-cancelled
+
+# Additional SEO optimization
 User-agent: *
-Allow: /
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.gif$
+Allow: /*.svg$
+Allow: /*.webp$
