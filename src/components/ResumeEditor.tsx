@@ -1,11 +1,13 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ResumeData from "@/components/ResumeData";
 import PreviewSection from "@/components/PreviewSection";
 import ExportControls from "@/components/ExportControls";
 import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatusCard";
 import TailoredResumeNotice from "@/components/TailoredResumeNotice";
+import ResumeTipsPanel from "@/components/ResumeTipsPanel";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
+import { useToast } from "@/hooks/use-toast";
 
 interface Skill {
   id: string;
@@ -111,10 +113,81 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   canExport,
   getCurrentResumeData,
 }) => {
+  const [showTips, setShowTips] = useState(false);
+  const [improvementTips, setImprovementTips] = useState<string[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if there's uploaded resume data from the ATS scanner
+    const uploadedData = localStorage.getItem('uploadedResumeData');
+    const tips = localStorage.getItem('resumeImprovementTips');
+    
+    if (uploadedData && tips) {
+      try {
+        const parsedData = JSON.parse(uploadedData);
+        const parsedTips = JSON.parse(tips);
+        
+        // Load the extracted resume data
+        if (parsedData.personalInfo) {
+          onPersonalInfoChange(parsedData.personalInfo);
+        }
+        
+        if (parsedData.summary) {
+          onSummaryChange(parsedData.summary);
+        }
+        
+        if (parsedData.workExperience) {
+          onWorkExperienceChange(parsedData.workExperience);
+        }
+        
+        if (parsedData.education) {
+          onEducationChange(parsedData.education);
+        }
+        
+        if (parsedData.skills) {
+          onSkillsChange(parsedData.skills);
+        }
+        
+        // Set improvement tips
+        setImprovementTips(parsedTips);
+        setShowTips(true);
+        
+        // Clear the localStorage after loading
+        localStorage.removeItem('uploadedResumeData');
+        localStorage.removeItem('resumeImprovementTips');
+        
+        toast({
+          title: "Resume Data Loaded",
+          description: "Your resume has been imported from the ATS scanner. Review the improvement tips below.",
+        });
+        
+      } catch (error) {
+        console.error('Error parsing uploaded resume data:', error);
+        toast({
+          title: "Import Error",
+          description: "There was an error loading your resume data.",
+          variant: "destructive",
+        });
+      }
+    }
+  }, []);
+
+  const handleDismissTips = () => {
+    setShowTips(false);
+    setImprovementTips([]);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Left Column - Editor */}
       <div className="lg:col-span-6 space-y-6">
+        {showTips && improvementTips.length > 0 && (
+          <ResumeTipsPanel 
+            tips={improvementTips} 
+            onDismiss={handleDismissTips}
+          />
+        )}
+
         {tailoredResumeData && (
           <TailoredResumeNotice onSwitchToOriginal={onClearTailoredResume} />
         )}

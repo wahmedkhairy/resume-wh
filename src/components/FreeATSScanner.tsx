@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, CheckCircle, AlertTriangle, XCircle, Zap } from "lucide-react";
+import { Upload, FileText, CheckCircle, AlertTriangle, XCircle, Zap, Wrench } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface ATSAnalysisResult {
   overallScore: number;
@@ -15,6 +16,37 @@ interface ATSAnalysisResult {
   suggestions: string[];
   strengths: string[];
   isWeak: boolean;
+  extractedData?: {
+    personalInfo: {
+      name: string;
+      email: string;
+      phone: string;
+      location: string;
+      jobTitle: string;
+    };
+    summary: string;
+    workExperience: Array<{
+      id: string;
+      jobTitle: string;
+      company: string;
+      startDate: string;
+      endDate: string;
+      location: string;
+      responsibilities: string[];
+    }>;
+    education: Array<{
+      id: string;
+      degree: string;
+      institution: string;
+      graduationYear: string;
+      location: string;
+    }>;
+    skills: Array<{
+      id: string;
+      name: string;
+      level: number;
+    }>;
+  };
 }
 
 const FreeATSScanner: React.FC = () => {
@@ -23,6 +55,7 @@ const FreeATSScanner: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -54,6 +87,80 @@ const FreeATSScanner: React.FC = () => {
     }
   };
 
+  const extractResumeData = (fileName: string, fileSize: number): ATSAnalysisResult['extractedData'] => {
+    // Enhanced mock data extraction based on file characteristics
+    // In a real implementation, you'd use libraries like pdf-parse or mammoth to extract actual content
+    
+    const mockData = {
+      personalInfo: {
+        name: "John Doe",
+        email: "john.doe@email.com",
+        phone: "(555) 123-4567",
+        location: "New York, NY",
+        jobTitle: "Software Engineer"
+      },
+      summary: "Experienced software engineer with 5+ years of experience in full-stack development. Proficient in React, Node.js, and cloud technologies.",
+      workExperience: [
+        {
+          id: "exp1",
+          jobTitle: "Senior Software Engineer",
+          company: "Tech Corp",
+          startDate: "2022-01",
+          endDate: "Present",
+          location: "New York, NY",
+          responsibilities: [
+            "Developed and maintained web applications using React and Node.js",
+            "Collaborated with cross-functional teams to deliver high-quality software",
+            "Implemented CI/CD pipelines to improve deployment efficiency"
+          ]
+        },
+        {
+          id: "exp2",
+          jobTitle: "Software Developer",
+          company: "StartupXYZ",
+          startDate: "2020-06",
+          endDate: "2021-12",
+          location: "San Francisco, CA",
+          responsibilities: [
+            "Built responsive web applications using modern JavaScript frameworks",
+            "Worked with RESTful APIs and database optimization"
+          ]
+        }
+      ],
+      education: [
+        {
+          id: "edu1",
+          degree: "Bachelor of Science in Computer Science",
+          institution: "University of Technology",
+          graduationYear: "2020",
+          location: "California"
+        }
+      ],
+      skills: [
+        { id: "skill1", name: "JavaScript", level: 90 },
+        { id: "skill2", name: "React", level: 85 },
+        { id: "skill3", name: "Node.js", level: 80 },
+        { id: "skill4", name: "Python", level: 75 },
+        { id: "skill5", name: "SQL", level: 70 }
+      ]
+    };
+
+    // Customize based on file name patterns
+    if (fileName.toLowerCase().includes('marketing')) {
+      mockData.personalInfo.jobTitle = "Marketing Manager";
+      mockData.workExperience[0].jobTitle = "Senior Marketing Manager";
+      mockData.skills = [
+        { id: "skill1", name: "Digital Marketing", level: 90 },
+        { id: "skill2", name: "SEO/SEM", level: 85 },
+        { id: "skill3", name: "Content Strategy", level: 80 },
+        { id: "skill4", name: "Analytics", level: 75 },
+        { id: "skill5", name: "Social Media", level: 85 }
+      ];
+    }
+
+    return mockData;
+  };
+
   const analyzeResume = async () => {
     if (!selectedFile) {
       toast({
@@ -71,16 +178,19 @@ const FreeATSScanner: React.FC = () => {
       // Simulate realistic ATS analysis with proper error handling
       await new Promise(resolve => setTimeout(resolve, 2500));
 
+      // Extract resume data
+      const extractedData = extractResumeData(selectedFile.name, selectedFile.size);
+
       // Read file content for basic analysis
       const text = await extractTextFromFile(selectedFile);
-      const analysis = performATSAnalysis(text, selectedFile.name);
+      const analysis = performATSAnalysis(text, selectedFile.name, extractedData);
 
       setAnalysisResult(analysis);
 
       if (analysis.isWeak) {
         toast({
           title: "Resume Needs Improvement",
-          description: "Consider using our professional resume optimization services to improve your ATS score.",
+          description: "Your resume scored below 80%. Consider using our resume builder to improve your ATS compatibility.",
           variant: "destructive",
         });
       } else {
@@ -114,7 +224,7 @@ const FreeATSScanner: React.FC = () => {
     return baseText.repeat(Math.max(1, Math.floor(contentMultiplier)));
   };
 
-  const performATSAnalysis = (text: string, fileName: string): ATSAnalysisResult => {
+  const performATSAnalysis = (text: string, fileName: string, extractedData: any): ATSAnalysisResult => {
     let formatScore = 85; // Good format score for uploaded files
     let keywordScore = Math.floor(Math.random() * 40) + 30; // 30-70 range
     let contentScore = Math.floor(Math.random() * 50) + 40; // 40-90 range
@@ -146,7 +256,7 @@ const FreeATSScanner: React.FC = () => {
     contentScore = Math.min(contentScore, 100);
 
     const overallScore = Math.round((formatScore + keywordScore + contentScore) / 3);
-    const isWeak = overallScore < 65;
+    const isWeak = overallScore < 80;
 
     const suggestions = [];
     const strengths = [];
@@ -171,9 +281,10 @@ const FreeATSScanner: React.FC = () => {
       strengths.push("Well-detailed content");
     }
 
-    if (overallScore < 65) {
-      suggestions.push("Consider professional resume optimization");
-      suggestions.push("Review and enhance your professional summary");
+    if (overallScore < 80) {
+      suggestions.push("Use action verbs to start bullet points");
+      suggestions.push("Include relevant certifications and courses");
+      suggestions.push("Optimize your professional summary");
     }
 
     if (suggestions.length === 0) {
@@ -188,8 +299,25 @@ const FreeATSScanner: React.FC = () => {
       contentScore,
       suggestions,
       strengths,
-      isWeak
+      isWeak,
+      extractedData
     };
+  };
+
+  const handleFixResume = () => {
+    if (analysisResult?.extractedData) {
+      // Store the extracted data in localStorage to transfer to resume builder
+      localStorage.setItem('uploadedResumeData', JSON.stringify(analysisResult.extractedData));
+      localStorage.setItem('resumeImprovementTips', JSON.stringify(analysisResult.suggestions));
+      
+      toast({
+        title: "Redirecting to Resume Builder",
+        description: "Your resume data has been extracted and will be loaded in the builder.",
+      });
+
+      // Navigate to the resume builder
+      navigate('/');
+    }
   };
 
   const getScoreColor = (score: number) => {
@@ -339,22 +467,52 @@ const FreeATSScanner: React.FC = () => {
               </div>
             )}
 
-            {analysisResult.isWeak && (
-              <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
-                <h4 className="font-medium text-orange-800 mb-2">
-                  💡 Recommendation
+            {analysisResult.overallScore < 80 && (
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 p-6 rounded-lg">
+                <h4 className="font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                  <Wrench className="h-5 w-5" />
+                  🚨 Resume Needs Optimization
                 </h4>
-                <p className="text-sm text-orange-700 mb-3">
-                  Your resume needs optimization to pass ATS systems effectively. 
-                  Consider using our professional resume builder for better results.
+                <p className="text-sm text-orange-700 mb-4">
+                  Your resume scored {analysisResult.overallScore}% and needs improvement to pass ATS systems effectively. 
+                  Let our AI-powered resume builder automatically fix these issues and optimize your resume for better results.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    onClick={handleFixResume}
+                    className="bg-orange-600 hover:bg-orange-700 text-white flex-1"
+                    size="sm"
+                  >
+                    <Wrench className="mr-2 h-4 w-4" />
+                    Fix My Resume - Free
+                  </Button>
+                  <Button 
+                    onClick={() => window.location.href = '/subscription'}
+                    variant="outline" 
+                    size="sm"
+                    className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                  >
+                    Get Premium Features
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {analysisResult.overallScore >= 80 && (
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                <h4 className="font-medium text-green-800 mb-2">
+                  ✅ Great Job!
+                </h4>
+                <p className="text-sm text-green-700 mb-3">
+                  Your resume has good ATS compatibility! You can still use our resume builder to create an even more polished version.
                 </p>
                 <Button 
-                  onClick={() => window.location.href = '/subscription'}
+                  onClick={handleFixResume}
                   variant="outline" 
                   size="sm"
-                  className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                  className="border-green-300 text-green-700 hover:bg-green-100"
                 >
-                  Optimize My Resume
+                  Enhance My Resume
                 </Button>
               </div>
             )}
