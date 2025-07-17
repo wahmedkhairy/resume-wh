@@ -309,6 +309,7 @@ const FreeATSScanner: React.FC = () => {
       // Store the extracted data in localStorage to transfer to resume builder
       localStorage.setItem('uploadedResumeData', JSON.stringify(analysisResult.extractedData));
       localStorage.setItem('resumeImprovementTips', JSON.stringify(analysisResult.suggestions));
+      localStorage.setItem('atsAnalysisCompleted', 'true');
       
       toast({
         title: "Redirecting to Resume Builder",
@@ -388,7 +389,7 @@ const FreeATSScanner: React.FC = () => {
           size="lg"
         >
           <Zap className="mr-2 h-4 w-4" />
-          {isScanning ? "Analyzing Resume..." : "Start Free ATS Scan"}
+          {isScanning ? "Analyzing Resume..." : "Start ATS Scan"}
         </Button>
 
         {isScanning && (
@@ -484,7 +485,7 @@ const FreeATSScanner: React.FC = () => {
                     size="sm"
                   >
                     <Wrench className="mr-2 h-4 w-4" />
-                    Fix My Resume - Free
+                    Fix My Resume
                   </Button>
                   <Button 
                     onClick={() => window.location.href = '/subscription'}

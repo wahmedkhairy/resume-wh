@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import ResumeData from "@/components/ResumeData";
 import PreviewSection from "@/components/PreviewSection";
@@ -6,6 +5,7 @@ import ExportControls from "@/components/ExportControls";
 import SubscriptionStatusCard from "@/components/subscription/SubscriptionStatusCard";
 import TailoredResumeNotice from "@/components/TailoredResumeNotice";
 import ResumeTipsPanel from "@/components/ResumeTipsPanel";
+import ATSScannerToggle from "@/components/ATSScannerToggle";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
 import { useToast } from "@/hooks/use-toast";
 
@@ -155,6 +155,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         // Clear the localStorage after loading
         localStorage.removeItem('uploadedResumeData');
         localStorage.removeItem('resumeImprovementTips');
+        localStorage.removeItem('atsAnalysisCompleted');
         
         toast({
           title: "Resume Data Loaded",
@@ -170,7 +171,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         });
       }
     }
-  }, []);
+  }, [onPersonalInfoChange, onSummaryChange, onWorkExperienceChange, onEducationChange, onSkillsChange, toast]);
 
   const handleDismissTips = () => {
     setShowTips(false);
@@ -223,7 +224,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
       </div>
       
       {/* Right Column - Preview */}
-      <div className="lg:col-span-6">
+      <div className="lg:col-span-6 space-y-6">
         <PreviewSection
           personalInfo={getCurrentResumeData.personalInfo}
           summary={getCurrentResumeData.summary}
@@ -236,6 +237,17 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
           isPremiumUser={isPremiumUser}
           currentUserId={currentUserId}
           sessionId={sessionId}
+        />
+        
+        <ATSScannerToggle
+          resumeData={{
+            personalInfo: getCurrentResumeData.personalInfo,
+            summary: getCurrentResumeData.summary,
+            workExperience: getCurrentResumeData.workExperience,
+            education: getCurrentResumeData.education,
+            skills: getCurrentResumeData.skills,
+            coursesAndCertifications: getCurrentResumeData.coursesAndCertifications,
+          }}
         />
       </div>
     </div>
