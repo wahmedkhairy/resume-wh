@@ -154,7 +154,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
         return (
           <Card 
             key={tier.id} 
-            className={`relative ${tier.popular ? 'border-2 border-primary shadow-lg scale-105' : ''}`}
+            className={`relative bg-white ${tier.popular ? 'border-2 border-primary shadow-lg scale-105' : ''}`}
           >
             {tier.popular && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">

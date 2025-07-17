@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -42,12 +41,23 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
   });
 
   const [lastAnalyzedData, setLastAnalyzedData] = useState<string>("");
+  const [hasInitialScanCompleted, setHasInitialScanCompleted] = useState(false);
 
   const performATSScan = useCallback(async (data: any) => {
     // Create a stable hash of the data to prevent unnecessary re-analysis
     const dataHash = JSON.stringify(data);
     if (dataHash === lastAnalyzedData) {
       return; // Skip if data hasn't changed
+    }
+
+    // Check if this is from "fix my resume" flow by looking at localStorage
+    const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
+    
+    // If it's from fix my resume and we haven't done initial scan, skip automatic scanning
+    if (isFromFixMyResume && !hasInitialScanCompleted) {
+      console.log('ATS Scanner: Skipping automatic scan - user came from fix my resume');
+      setHasInitialScanCompleted(true);
+      return;
     }
 
     setScanResults(prev => ({ ...prev, isScanning: true }));
@@ -195,6 +205,7 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
       });
 
       setLastAnalyzedData(dataHash);
+      setHasInitialScanCompleted(true);
 
     } catch (error) {
       console.error('ATS Scanner: Analysis error', error);
@@ -205,13 +216,17 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
         warnings: ['There was an error analyzing your resume.']
       }));
     }
-  }, [lastAnalyzedData]);
+  }, [lastAnalyzedData, hasInitialScanCompleted]);
 
   useEffect(() => {
     if (resumeData) {
-      performATSScan(resumeData);
+      // Only perform scan if it's not from "fix my resume" or if user has made changes
+      const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
+      if (!isFromFixMyResume || hasInitialScanCompleted) {
+        performATSScan(resumeData);
+      }
     }
-  }, [resumeData, performATSScan]);
+  }, [resumeData, performATSScan, hasInitialScanCompleted]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";

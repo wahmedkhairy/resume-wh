@@ -178,7 +178,7 @@ const Subscription = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex flex-col bg-white">
         <SEOHead
           title="Resume Builder Pricing - Affordable ATS Resume Builder Plans Under $5"
           description="Choose from our affordable resume builder plans with ATS optimization features. Includes AI-powered resume check to improve resume for applicant tracking systems."
@@ -202,7 +202,7 @@ const Subscription = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-white">
       <SEOHead
         title="Resume Builder Pricing - Affordable ATS Resume Builder Plans Under $5"
         description="Choose from our affordable resume builder plans with ATS optimization features. Includes AI-powered resume check to improve resume for applicant tracking systems."
