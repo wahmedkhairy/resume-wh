@@ -99,25 +99,35 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
     }
   };
 
-  const formatResponsibilityText = (text: string, writingStyle: "bullet" | "paragraph") => {
-    if (writingStyle === "bullet" && text && !text.startsWith("• ")) {
-      return `• ${text}`;
-    }
-    return text;
+  const formatBulletPoints = (text: string): string => {
+    if (!text) return "";
+    
+    // Split by lines and process each line
+    const lines = text.split('\n');
+    const formattedLines = lines.map(line => {
+      const trimmedLine = line.trim();
+      
+      // If line is empty, return empty
+      if (!trimmedLine) return "";
+      
+      // Remove existing bullets first to avoid duplicates
+      const cleanLine = trimmedLine.replace(/^[•\-\*]\s*/, '');
+      
+      // Add bullet only if there's actual content
+      if (cleanLine) {
+        return `• ${cleanLine}`;
+      }
+      
+      return "";
+    });
+    
+    return formattedLines.join('\n');
   };
 
   const handleResponsibilityChange = (expId: string, index: number, newValue: string, writingStyle: "bullet" | "paragraph") => {
     if (writingStyle === "bullet") {
-      // Handle bullet point formatting
-      const lines = newValue.split('\n');
-      const formattedLines = lines.map(line => {
-        const trimmedLine = line.trim();
-        if (trimmedLine && !trimmedLine.startsWith("• ")) {
-          return `• ${trimmedLine}`;
-        }
-        return line;
-      });
-      updateResponsibility(expId, index, formattedLines.join('\n'));
+      const formattedValue = formatBulletPoints(newValue);
+      updateResponsibility(expId, index, formattedValue);
     } else {
       updateResponsibility(expId, index, newValue);
     }
@@ -128,13 +138,6 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
       return "• Describe your key responsibility or achievement here\n• Add quantifiable results with numbers or percentages\n• Include specific technologies, tools, or methodologies used";
     }
     return "Describe your responsibilities and achievements in paragraph format. Include specific details about your role, accomplishments, and the impact you made in this position.";
-  };
-
-  const getResponsibilityValue = (responsibility: string, writingStyle: "bullet" | "paragraph") => {
-    if (writingStyle === "bullet" && responsibility && !responsibility.includes("• ")) {
-      return `• ${responsibility}`;
-    }
-    return responsibility;
   };
 
   return (
@@ -222,7 +225,7 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                   <div key={index} className="flex gap-2">
                     <Textarea
                       placeholder={getPlaceholderText(experience.writingStyle || "bullet")}
-                      value={getResponsibilityValue(responsibility, experience.writingStyle || "bullet")}
+                      value={responsibility}
                       onChange={(e) => handleResponsibilityChange(experience.id, index, e.target.value, experience.writingStyle || "bullet")}
                       className="min-h-[80px] font-mono text-sm"
                       style={{
