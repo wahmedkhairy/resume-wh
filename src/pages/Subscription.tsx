@@ -179,7 +179,7 @@ const Subscription = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
+      <div className="min-h-screen flex flex-col">
         <SEOHead
           title="Resume Builder Pricing - Affordable ATS Resume Builder Plans Under $5"
           description="Choose from our affordable resume builder plans with ATS optimization features. Includes AI-powered resume check to improve resume for applicant tracking systems."
@@ -217,7 +217,7 @@ const Subscription = () => {
       />
       <Header />
       
-      <main className="flex-1 p-6 bg-white">
+      <main className="flex-1 p-6">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <Button

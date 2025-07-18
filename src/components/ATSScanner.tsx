@@ -29,6 +29,9 @@ interface ScanResults {
 }
 
 const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
+  // Check immediately if scanning should be disabled
+  const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
+  
   const [scanResults, setScanResults] = useState<ScanResults>({
     overallScore: 0,
     formatScore: 0,
@@ -42,18 +45,15 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
   });
 
   const [lastAnalyzedData, setLastAnalyzedData] = useState<string>("");
-  const [scanningDisabled, setScanningDisabled] = useState(false);
+  const [scanningDisabled, setScanningDisabled] = useState(isFromFixMyResume);
 
-  // Check if scanning should be disabled immediately on mount
+  // Clear the flag if it was set
   useEffect(() => {
-    const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
     if (isFromFixMyResume) {
       console.log('ATS Scanner: Disabling automatic scans - user came from fix my resume');
-      setScanningDisabled(true);
-      // Clear the flag so future visits work normally
       localStorage.removeItem('atsAnalysisCompleted');
     }
-  }, []);
+  }, [isFromFixMyResume]);
 
   const performATSScan = useCallback(async (data: any) => {
     // Create a stable hash of the data to prevent unnecessary re-analysis
