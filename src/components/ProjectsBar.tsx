@@ -1,12 +1,12 @@
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Edit2, Check, X } from "lucide-react";
-import WritingStyleSelector from "@/components/WritingStyleSelector";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { FolderOpen, Plus, X } from "lucide-react";
+import WritingStyleSelector from "./WritingStyleSelector";
 
 interface Project {
   id: string;
@@ -20,313 +20,189 @@ interface Project {
 }
 
 interface ProjectsBarProps {
-  onProjectsChange: (projects: Project[]) => void;
-  initialProjects: Project[];
+  onProjectsChange?: (projects: Project[]) => void;
+  initialProjects?: Project[];
 }
 
-const ProjectsBar: React.FC<ProjectsBarProps> = ({
+const ProjectsBar: React.FC<ProjectsBarProps> = ({ 
   onProjectsChange,
   initialProjects = []
 }) => {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [newProject, setNewProject] = useState<Project>({
-    id: "",
-    title: "",
-    description: "",
-    technologies: "",
-    startDate: "",
-    endDate: "",
-    url: "",
-    writingStyle: "bullet"
-  });
 
-  const handleAddProject = () => {
-    if (newProject.title.trim()) {
-      const projectWithId = {
-        ...newProject,
-        id: `project-${Date.now()}`
-      };
-      const updatedProjects = [...projects, projectWithId];
-      setProjects(updatedProjects);
+  const addProject = () => {
+    const newProject: Project = {
+      id: `proj_${Date.now()}`,
+      title: "",
+      description: "",
+      technologies: "",
+      startDate: "",
+      endDate: "",
+      url: "",
+      writingStyle: "bullet"
+    };
+    
+    const updatedProjects = [...projects, newProject];
+    setProjects(updatedProjects);
+    if (onProjectsChange) {
       onProjectsChange(updatedProjects);
-      setNewProject({
-        id: "",
-        title: "",
-        description: "",
-        technologies: "",
-        startDate: "",
-        endDate: "",
-        url: "",
-        writingStyle: "bullet"
-      });
-      setIsAdding(false);
     }
   };
 
-  const handleEditProject = (project: Project) => {
-    setEditingId(project.id);
-    setNewProject(project);
+  const removeProject = (id: string) => {
+    const updatedProjects = projects.filter(proj => proj.id !== id);
+    setProjects(updatedProjects);
+    if (onProjectsChange) {
+      onProjectsChange(updatedProjects);
+    }
   };
 
-  const handleUpdateProject = () => {
-    const updatedProjects = projects.map(project =>
-      project.id === editingId ? newProject : project
+  const updateProject = (id: string, field: keyof Project, value: string | "bullet" | "paragraph") => {
+    const updatedProjects = projects.map(proj =>
+      proj.id === id ? { ...proj, [field]: value } : proj
     );
     setProjects(updatedProjects);
-    onProjectsChange(updatedProjects);
-    setEditingId(null);
-    setNewProject({
-      id: "",
-      title: "",
-      description: "",
-      technologies: "",
-      startDate: "",
-      endDate: "",
-      url: "",
-      writingStyle: "bullet"
-    });
+    if (onProjectsChange) {
+      onProjectsChange(updatedProjects);
+    }
   };
 
-  const handleDeleteProject = (id: string) => {
-    const updatedProjects = projects.filter(project => project.id !== id);
-    setProjects(updatedProjects);
-    onProjectsChange(updatedProjects);
+  const handleDescriptionChange = (id: string, newValue: string, writingStyle: "bullet" | "paragraph") => {
+    if (writingStyle === "bullet") {
+      // Handle bullet point formatting
+      const lines = newValue.split('\n');
+      const formattedLines = lines.map(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine && !trimmedLine.startsWith("• ")) {
+          return `• ${trimmedLine}`;
+        }
+        return line;
+      });
+      updateProject(id, "description", formattedLines.join('\n'));
+    } else {
+      updateProject(id, "description", newValue);
+    }
   };
 
-  const handleCancel = () => {
-    setIsAdding(false);
-    setEditingId(null);
-    setNewProject({
-      id: "",
-      title: "",
-      description: "",
-      technologies: "",
-      startDate: "",
-      endDate: "",
-      url: "",
-      writingStyle: "bullet"
-    });
+  const getPlaceholderText = (writingStyle: "bullet" | "paragraph") => {
+    if (writingStyle === "bullet") {
+      return "• Describe the main purpose and goals of the project\n• List key features and functionalities implemented\n• Highlight your specific contributions and achievements\n• Include metrics or results if applicable";
+    }
+    return "Provide a comprehensive description of the project, including its purpose, your role, key features implemented, technologies used, and the impact or results achieved.";
+  };
+
+  const getDescriptionValue = (description: string, writingStyle: "bullet" | "paragraph") => {
+    if (writingStyle === "bullet" && description && !description.includes("• ")) {
+      return `• ${description}`;
+    }
+    return description;
   };
 
   return (
-    <Card>
+    <Card className="mb-6">
       <CardHeader>
-        <CardTitle>Projects <span className="text-sm font-normal text-muted-foreground">(optional)</span></CardTitle>
+        <CardTitle>Projects</CardTitle>
+        <CardDescription>Showcase your key projects and achievements</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {projects.map((project) => (
-          <div key={project.id} className="border rounded p-4 space-y-2">
-            {editingId === project.id ? (
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor={`edit-title-${project.id}`}>Project Title</Label>
+      <CardContent>
+        <div className="space-y-6">
+          {projects.map((project) => (
+            <div key={project.id} className="border border-gray-200 rounded-lg p-4 relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeProject(project.id)}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <Label htmlFor={`title-${project.id}`}>Project Title</Label>
+                  <div className="relative">
+                    <FolderOpen className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                      id={`edit-title-${project.id}`}
-                      value={newProject.title}
-                      onChange={(e) => setNewProject({...newProject, title: e.target.value})}
-                      placeholder="Project Title"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`edit-technologies-${project.id}`}>Technologies Used <span className="text-sm font-normal text-muted-foreground">(optional)</span></Label>
-                    <Input
-                      id={`edit-technologies-${project.id}`}
-                      value={newProject.technologies}
-                      onChange={(e) => setNewProject({...newProject, technologies: e.target.value})}
-                      placeholder="React, Node.js, MongoDB"
+                      id={`title-${project.id}`}
+                      placeholder="E-commerce Platform"
+                      className="pl-9"
+                      value={project.title}
+                      onChange={(e) => updateProject(project.id, "title", e.target.value)}
                     />
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor={`edit-start-${project.id}`}>Start Date</Label>
-                    <Input
-                      id={`edit-start-${project.id}`}
-                      value={newProject.startDate}
-                      onChange={(e) => setNewProject({...newProject, startDate: e.target.value})}
-                      placeholder="January 2023"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`edit-end-${project.id}`}>End Date</Label>
-                    <Input
-                      id={`edit-end-${project.id}`}
-                      value={newProject.endDate}
-                      onChange={(e) => setNewProject({...newProject, endDate: e.target.value})}
-                      placeholder="March 2023"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`edit-url-${project.id}`}>Project URL <span className="text-sm font-normal text-muted-foreground">(optional)</span></Label>
-                    <Input
-                      id={`edit-url-${project.id}`}
-                      value={newProject.url}
-                      onChange={(e) => setNewProject({...newProject, url: e.target.value})}
-                      placeholder="https://github.com/username/project"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor={`edit-description-${project.id}`}>Description</Label>
-                  <Textarea
-                    id={`edit-description-${project.id}`}
-                    value={newProject.description}
-                    onChange={(e) => setNewProject({...newProject, description: e.target.value})}
-                    placeholder="Describe the project, your role, and key achievements..."
-                    className="min-h-[100px]"
+                <div className="space-y-2">
+                  <Label htmlFor={`technologies-${project.id}`}>Technologies Used</Label>
+                  <Input
+                    id={`technologies-${project.id}`}
+                    placeholder="React, Node.js, MongoDB"
+                    value={project.technologies}
+                    onChange={(e) => updateProject(project.id, "technologies", e.target.value)}
                   />
-                  
-                  <div className="mt-2">
-                    <WritingStyleSelector
-                      value={newProject.writingStyle || "bullet"}
-                      onChange={(style) => setNewProject({...newProject, writingStyle: style})}
-                      label="Writing Style"
-                    />
-                  </div>
                 </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={handleUpdateProject} size="sm">
-                    <Check className="w-4 h-4 mr-1" />
-                    Save
-                  </Button>
-                  <Button onClick={handleCancel} variant="outline" size="sm">
-                    <X className="w-4 h-4 mr-1" />
-                    Cancel
-                  </Button>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`startDate-${project.id}`}>Start Date</Label>
+                  <Input
+                    id={`startDate-${project.id}`}
+                    placeholder="January 2023"
+                    value={project.startDate}
+                    onChange={(e) => updateProject(project.id, "startDate", e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`endDate-${project.id}`}>End Date</Label>
+                  <Input
+                    id={`endDate-${project.id}`}
+                    placeholder="March 2023"
+                    value={project.endDate}
+                    onChange={(e) => updateProject(project.id, "endDate", e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor={`url-${project.id}`}>Project URL (Optional)</Label>
+                  <Input
+                    id={`url-${project.id}`}
+                    placeholder="https://github.com/username/project"
+                    value={project.url}
+                    onChange={(e) => updateProject(project.id, "url", e.target.value)}
+                  />
                 </div>
               </div>
-            ) : (
-              <div>
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-semibold">{project.title}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {project.technologies} | {project.startDate} - {project.endDate}
-                    </p>
-                    {project.url && (
-                      <p className="text-sm text-blue-600">{project.url}</p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleEditProject(project)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteProject(project.id)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-sm">{project.description}</p>
-              </div>
-            )}
-          </div>
-        ))}
-
-        {isAdding && (
-          <div className="border rounded p-4 space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="new-title">Project Title</Label>
-                <Input
-                  id="new-title"
-                  value={newProject.title}
-                  onChange={(e) => setNewProject({...newProject, title: e.target.value})}
-                  placeholder="Project Title"
-                />
-              </div>
-              <div>
-                <Label htmlFor="new-technologies">Technologies Used <span className="text-sm font-normal text-muted-foreground">(optional)</span></Label>
-                <Input
-                  id="new-technologies"
-                  value={newProject.technologies}
-                  onChange={(e) => setNewProject({...newProject, technologies: e.target.value})}
-                  placeholder="React, Node.js, MongoDB"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="new-start">Start Date</Label>
-                <Input
-                  id="new-start"
-                  value={newProject.startDate}
-                  onChange={(e) => setNewProject({...newProject, startDate: e.target.value})}
-                  placeholder="January 2023"
-                />
-              </div>
-              <div>
-                <Label htmlFor="new-end">End Date</Label>
-                <Input
-                  id="new-end"
-                  value={newProject.endDate}
-                  onChange={(e) => setNewProject({...newProject, endDate: e.target.value})}
-                  placeholder="March 2023"
-                />
-              </div>
-              <div>
-                <Label htmlFor="new-url">Project URL <span className="text-sm font-normal text-muted-foreground">(optional)</span></Label>
-                <Input
-                  id="new-url"
-                  value={newProject.url}
-                  onChange={(e) => setNewProject({...newProject, url: e.target.value})}
-                  placeholder="https://github.com/username/project"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="new-description">Description</Label>
-              <Textarea
-                id="new-description"
-                value={newProject.description}
-                onChange={(e) => setNewProject({...newProject, description: e.target.value})}
-                placeholder="Describe the project, your role, and key achievements..."
-                className="min-h-[100px]"
-              />
               
-              <div className="mt-2">
+              <div className="space-y-2">
+                <Label>Description</Label>
                 <WritingStyleSelector
-                  value={newProject.writingStyle || "bullet"}
-                  onChange={(style) => setNewProject({...newProject, writingStyle: style})}
-                  label="Writing Style"
+                  value={project.writingStyle || "bullet"}
+                  onChange={(value) => updateProject(project.id, "writingStyle", value)}
+                  className="mb-2"
+                />
+                <Textarea
+                  placeholder={getPlaceholderText(project.writingStyle || "bullet")}
+                  value={getDescriptionValue(project.description, project.writingStyle || "bullet")}
+                  onChange={(e) => handleDescriptionChange(project.id, e.target.value, project.writingStyle || "bullet")}
+                  className="min-h-[100px] font-mono text-sm"
+                  style={{
+                    fontFamily: project.writingStyle === "bullet" ? "monospace" : "inherit"
+                  }}
                 />
               </div>
             </div>
-
-            <div className="flex gap-2">
-              <Button onClick={handleAddProject}>
-                <Check className="w-4 h-4 mr-1" />
-                Add Project
-              </Button>
-              <Button onClick={handleCancel} variant="outline">
-                <X className="w-4 h-4 mr-1" />
-                Cancel
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {!isAdding && (
-          <Button onClick={() => setIsAdding(true)} className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
+          ))}
+          
+          <Button
+            variant="default"
+            type="button"
+            onClick={addProject}
+            className="w-full"
+          >
+            <Plus className="mr-2 h-4 w-4" />
             Add Project
           </Button>
-        )}
+        </div>
       </CardContent>
     </Card>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Card, 
@@ -13,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Wand2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import WritingStyleSelector from "./WritingStyleSelector";
 
 interface SectionEditorProps {
   title: string;
@@ -23,6 +23,9 @@ interface SectionEditorProps {
   onContentChange?: (content: string) => void;
   workExperience?: any[];
   showAIGenerateButton?: boolean;
+  showWritingStyleSelector?: boolean;
+  writingStyle?: "bullet" | "paragraph";
+  onWritingStyleChange?: (style: "bullet" | "paragraph") => void;
 }
 
 const SectionEditor: React.FC<SectionEditorProps> = ({
@@ -34,6 +37,9 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
   onContentChange,
   workExperience = [],
   showAIGenerateButton = false,
+  showWritingStyleSelector = false,
+  writingStyle = "paragraph",
+  onWritingStyleChange,
 }) => {
   const [content, setContent] = useState(initialContent);
   const [isPolishing, setIsPolishing] = useState(false);
@@ -42,11 +48,39 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
   const { toast } = useToast();
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value;
+    let newContent = e.target.value;
+    
+    // Handle bullet point formatting if bullet style is selected
+    if (showWritingStyleSelector && writingStyle === "bullet") {
+      const lines = newContent.split('\n');
+      const formattedLines = lines.map(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine && !trimmedLine.startsWith("• ")) {
+          return `• ${trimmedLine}`;
+        }
+        return line;
+      });
+      newContent = formattedLines.join('\n');
+    }
+    
     setContent(newContent);
     if (onContentChange) {
       onContentChange(newContent);
     }
+  };
+
+  const getFormattedContent = () => {
+    if (showWritingStyleSelector && writingStyle === "bullet" && content && !content.includes("• ")) {
+      return `• ${content}`;
+    }
+    return content;
+  };
+
+  const getPlaceholderText = () => {
+    if (showWritingStyleSelector && writingStyle === "bullet") {
+      return "• Write your first point here\n• Add another key point\n• Include specific achievements or skills";
+    }
+    return placeholder;
   };
 
   const handleAIPolish = async () => {
@@ -205,11 +239,22 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
+        {showWritingStyleSelector && onWritingStyleChange && (
+          <div className="mb-4">
+            <WritingStyleSelector
+              value={writingStyle}
+              onChange={onWritingStyleChange}
+            />
+          </div>
+        )}
         <Textarea
-          placeholder={placeholder}
-          className="min-h-[150px]"
-          value={content}
+          placeholder={getPlaceholderText()}
+          className="min-h-[150px] font-mono text-sm"
+          value={getFormattedContent()}
           onChange={handleContentChange}
+          style={{
+            fontFamily: showWritingStyleSelector && writingStyle === "bullet" ? "monospace" : "inherit"
+          }}
         />
       </CardContent>
       <CardFooter className="flex justify-between">

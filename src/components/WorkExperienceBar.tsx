@@ -99,11 +99,42 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
     }
   };
 
+  const formatResponsibilityText = (text: string, writingStyle: "bullet" | "paragraph") => {
+    if (writingStyle === "bullet" && text && !text.startsWith("• ")) {
+      return `• ${text}`;
+    }
+    return text;
+  };
+
+  const handleResponsibilityChange = (expId: string, index: number, newValue: string, writingStyle: "bullet" | "paragraph") => {
+    if (writingStyle === "bullet") {
+      // Handle bullet point formatting
+      const lines = newValue.split('\n');
+      const formattedLines = lines.map(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine && !trimmedLine.startsWith("• ")) {
+          return `• ${trimmedLine}`;
+        }
+        return line;
+      });
+      updateResponsibility(expId, index, formattedLines.join('\n'));
+    } else {
+      updateResponsibility(expId, index, newValue);
+    }
+  };
+
   const getPlaceholderText = (writingStyle: "bullet" | "paragraph") => {
     if (writingStyle === "bullet") {
-      return "• Describe your responsibility...\n• Add another point...\n• Include specific achievements...";
+      return "• Describe your key responsibility or achievement here\n• Add quantifiable results with numbers or percentages\n• Include specific technologies, tools, or methodologies used";
     }
-    return "Describe your responsibility in paragraph format...";
+    return "Describe your responsibilities and achievements in paragraph format. Include specific details about your role, accomplishments, and the impact you made in this position.";
+  };
+
+  const getResponsibilityValue = (responsibility: string, writingStyle: "bullet" | "paragraph") => {
+    if (writingStyle === "bullet" && responsibility && !responsibility.includes("• ")) {
+      return `• ${responsibility}`;
+    }
+    return responsibility;
   };
 
   return (
@@ -191,9 +222,12 @@ const WorkExperienceBar: React.FC<WorkExperienceBarProps> = ({
                   <div key={index} className="flex gap-2">
                     <Textarea
                       placeholder={getPlaceholderText(experience.writingStyle || "bullet")}
-                      value={responsibility}
-                      onChange={(e) => updateResponsibility(experience.id, index, e.target.value)}
-                      className="min-h-[60px]"
+                      value={getResponsibilityValue(responsibility, experience.writingStyle || "bullet")}
+                      onChange={(e) => handleResponsibilityChange(experience.id, index, e.target.value, experience.writingStyle || "bullet")}
+                      className="min-h-[80px] font-mono text-sm"
+                      style={{
+                        fontFamily: experience.writingStyle === "bullet" ? "monospace" : "inherit"
+                      }}
                     />
                   </div>
                 ))}
