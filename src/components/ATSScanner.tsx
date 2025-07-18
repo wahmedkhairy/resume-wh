@@ -44,11 +44,22 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
   const [lastAnalyzedData, setLastAnalyzedData] = useState<string>("");
   const [scanningDisabled, setScanningDisabled] = useState(false);
 
+  // Check if scanning should be disabled immediately on mount
+  useEffect(() => {
+    const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
+    if (isFromFixMyResume) {
+      console.log('ATS Scanner: Disabling automatic scans - user came from fix my resume');
+      setScanningDisabled(true);
+      // Clear the flag so future visits work normally
+      localStorage.removeItem('atsAnalysisCompleted');
+    }
+  }, []);
+
   const performATSScan = useCallback(async (data: any) => {
     // Create a stable hash of the data to prevent unnecessary re-analysis
     const dataHash = JSON.stringify(data);
-    if (dataHash === lastAnalyzedData || scanningDisabled) {
-      return; // Skip if data hasn't changed or scanning is disabled
+    if (dataHash === lastAnalyzedData) {
+      return; // Skip if data hasn't changed
     }
 
     setScanResults(prev => ({ ...prev, isScanning: true }));
@@ -206,21 +217,16 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
         warnings: ['There was an error analyzing your resume.']
       }));
     }
-  }, [lastAnalyzedData, scanningDisabled]);
+  }, [lastAnalyzedData]);
 
+  // Only perform scan if scanning is enabled and we have data
   useEffect(() => {
-    // Check if this is from "fix my resume" flow and disable automatic scanning
-    const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
-    if (isFromFixMyResume) {
-      console.log('ATS Scanner: Disabling automatic scans - user came from fix my resume');
-      setScanningDisabled(true);
-      // Clear the flag so future visits work normally
-      localStorage.removeItem('atsAnalysisCompleted');
+    if (scanningDisabled) {
+      console.log('ATS Scanner: Scanning is disabled, skipping analysis');
       return;
     }
 
-    // Only perform scan if enabled and we have data
-    if (resumeData && !scanningDisabled) {
+    if (resumeData) {
       // Debounce the scanning to prevent excessive calls
       const timeoutId = setTimeout(() => {
         performATSScan(resumeData);
