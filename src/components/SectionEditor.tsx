@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { 
   Card, 
@@ -48,32 +49,11 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
   const { toast } = useToast();
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    let newContent = e.target.value;
-    
-    // Handle bullet point formatting if bullet style is selected
-    if (showWritingStyleSelector && writingStyle === "bullet") {
-      const lines = newContent.split('\n');
-      const formattedLines = lines.map(line => {
-        const trimmedLine = line.trim();
-        if (trimmedLine && !trimmedLine.startsWith("• ")) {
-          return `• ${trimmedLine}`;
-        }
-        return line;
-      });
-      newContent = formattedLines.join('\n');
-    }
-    
+    const newContent = e.target.value;
     setContent(newContent);
     if (onContentChange) {
       onContentChange(newContent);
     }
-  };
-
-  const getFormattedContent = () => {
-    if (showWritingStyleSelector && writingStyle === "bullet" && content && !content.includes("• ")) {
-      return `• ${content}`;
-    }
-    return content;
   };
 
   const getPlaceholderText = () => {
@@ -249,12 +229,9 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
         )}
         <Textarea
           placeholder={getPlaceholderText()}
-          className="min-h-[150px] font-mono text-sm"
-          value={getFormattedContent()}
+          className="min-h-[150px] text-sm"
+          value={content}
           onChange={handleContentChange}
-          style={{
-            fontFamily: showWritingStyleSelector && writingStyle === "bullet" ? "monospace" : "inherit"
-          }}
         />
       </CardContent>
       <CardFooter className="flex justify-between">

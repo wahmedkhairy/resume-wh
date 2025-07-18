@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -41,23 +42,13 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
   });
 
   const [lastAnalyzedData, setLastAnalyzedData] = useState<string>("");
-  const [hasInitialScanCompleted, setHasInitialScanCompleted] = useState(false);
+  const [scanningDisabled, setScanningDisabled] = useState(false);
 
   const performATSScan = useCallback(async (data: any) => {
     // Create a stable hash of the data to prevent unnecessary re-analysis
     const dataHash = JSON.stringify(data);
-    if (dataHash === lastAnalyzedData) {
-      return; // Skip if data hasn't changed
-    }
-
-    // Check if this is from "fix my resume" flow by looking at localStorage
-    const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
-    
-    // If it's from fix my resume and we haven't done initial scan, skip automatic scanning
-    if (isFromFixMyResume && !hasInitialScanCompleted) {
-      console.log('ATS Scanner: Skipping automatic scan - user came from fix my resume');
-      setHasInitialScanCompleted(true);
-      return;
+    if (dataHash === lastAnalyzedData || scanningDisabled) {
+      return; // Skip if data hasn't changed or scanning is disabled
     }
 
     setScanResults(prev => ({ ...prev, isScanning: true }));
@@ -205,7 +196,6 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
       });
 
       setLastAnalyzedData(dataHash);
-      setHasInitialScanCompleted(true);
 
     } catch (error) {
       console.error('ATS Scanner: Analysis error', error);
@@ -216,17 +206,29 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
         warnings: ['There was an error analyzing your resume.']
       }));
     }
-  }, [lastAnalyzedData, hasInitialScanCompleted]);
+  }, [lastAnalyzedData, scanningDisabled]);
 
   useEffect(() => {
-    if (resumeData) {
-      // Only perform scan if it's not from "fix my resume" or if user has made changes
-      const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
-      if (!isFromFixMyResume || hasInitialScanCompleted) {
-        performATSScan(resumeData);
-      }
+    // Check if this is from "fix my resume" flow and disable automatic scanning
+    const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
+    if (isFromFixMyResume) {
+      console.log('ATS Scanner: Disabling automatic scans - user came from fix my resume');
+      setScanningDisabled(true);
+      // Clear the flag so future visits work normally
+      localStorage.removeItem('atsAnalysisCompleted');
+      return;
     }
-  }, [resumeData, performATSScan, hasInitialScanCompleted]);
+
+    // Only perform scan if enabled and we have data
+    if (resumeData && !scanningDisabled) {
+      // Debounce the scanning to prevent excessive calls
+      const timeoutId = setTimeout(() => {
+        performATSScan(resumeData);
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [resumeData, performATSScan, scanningDisabled]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";
@@ -239,6 +241,30 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     if (score >= 60) return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
     return <XCircle className="h-5 w-5 text-red-600" />;
   };
+
+  if (scanningDisabled) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            ATS Compatibility Scanner
+          </CardTitle>
+          <CardDescription>
+            Scanner disabled - resume data imported from ATS analysis
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="text-center py-8">
+            <CheckCircle className="h-12 w-12 mx-auto text-green-600 mb-4" />
+            <p className="text-muted-foreground">
+              Your resume has been imported and the scanner is disabled to prevent interference with your imported data.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (scanResults.isScanning) {
     return (
