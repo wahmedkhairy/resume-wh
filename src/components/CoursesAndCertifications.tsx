@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -347,18 +346,14 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
                 <Check className="w-4 h-4 mr-1" />
                 Add Course/Certification
               </Button>
-              <Button onClick={handleCancel} variant="outline">
-                <X className="w-4 h-4 mr-1" />
-                Cancel
-              </Button>
             </div>
           </div>
         )}
 
         {!isAdding && (
-          <Button onClick={() => setIsAdding(true)} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+          <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full">
             <Plus className="w-4 h-4 mr-2" />
-            Add Another Course/Certification
+            Add Course/Certification
           </Button>
         )}
       </CardContent>

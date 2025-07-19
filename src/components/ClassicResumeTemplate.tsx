@@ -433,114 +433,128 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </section>
       )}
 
-      {/* Education Section */}
-      {(education.length > 0 || coursesAndCertifications.length > 0) && (
-        <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
-          <h2 
-            style={{ 
-              fontSize: '14pt',
-              fontWeight: 'bold',
-              margin: '0 0 14pt 0',
-              color: '#000000',
-              textAlign: 'left',
-              borderBottom: '1pt solid #000000',
-              paddingBottom: '3pt',
-              direction: 'ltr'
-            }}
-          >
-            Education
-          </h2>
-          
-          {education.length > 0 ? education.map((edu, index) => (
-            <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
-              <div 
-                style={{ 
-                  fontSize: '12pt',
-                  fontWeight: 'bold',
-                  margin: '0 0 5pt 0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                {edu.degree}
-              </div>
-              <div 
-                style={{ 
-                  fontSize: '12pt',
-                  margin: '0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                {edu.institution} - {edu.graduationYear}
-                {edu.location && <span> | {edu.location}</span>}
-              </div>
+      {/* Education Section - Always show and include Courses & Certifications */}
+      <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
+        <h2 
+          style={{ 
+            fontSize: '14pt',
+            fontWeight: 'bold',
+            margin: '0 0 14pt 0',
+            color: '#000000',
+            textAlign: 'left',
+            borderBottom: '1pt solid #000000',
+            paddingBottom: '3pt',
+            direction: 'ltr'
+          }}
+        >
+          Education
+        </h2>
+        
+        {education.length > 0 ? education.map((edu, index) => (
+          <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                fontWeight: 'bold',
+                margin: '0 0 5pt 0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              {edu.degree}
             </div>
-          )) : (
-            <div style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
-              <div 
-                style={{ 
-                  fontSize: '12pt',
-                  fontWeight: 'bold',
-                  margin: '0 0 5pt 0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                Bachelor of Science in Computer Science
-              </div>
-              <div 
-                style={{ 
-                  fontSize: '12pt',
-                  margin: '0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                University Name - 2020
-              </div>
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                margin: '0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              {edu.institution} - {edu.graduationYear}
+              {edu.location && <span> | {edu.location}</span>}
             </div>
-          )}
+          </div>
+        )) : (
+          <div style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                fontWeight: 'bold',
+                margin: '0 0 5pt 0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              Bachelor of Science in Computer Science
+            </div>
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                margin: '0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              University Name - 2020
+            </div>
+          </div>
+        )}
 
-          {coursesAndCertifications.length > 0 && (
-            <>
-              <h3 
+        {/* Courses & Certifications - Always show this subsection */}
+        <h3 
+          style={{ 
+            fontSize: '12pt',
+            fontWeight: 'bold',
+            margin: '18pt 0 10pt 0',
+            color: '#000000',
+            direction: 'ltr',
+            textAlign: 'left'
+          }}
+        >
+          Courses & Certifications
+        </h3>
+        
+        {coursesAndCertifications.length > 0 ? (
+          coursesAndCertifications.map((item, index) => (
+            <div key={item.id} style={{ marginBottom: '10pt', direction: 'ltr', textAlign: 'left' }}>
+              <div 
                 style={{ 
                   fontSize: '12pt',
-                  fontWeight: 'bold',
-                  margin: '18pt 0 10pt 0',
+                  fontWeight: 'normal',
+                  margin: '0',
                   color: '#000000',
                   direction: 'ltr',
                   textAlign: 'left'
                 }}
               >
-                Courses & Certifications
-              </h3>
-              {coursesAndCertifications.map((item, index) => (
-                <div key={item.id} style={{ marginBottom: '10pt', direction: 'ltr', textAlign: 'left' }}>
-                  <div 
-                    style={{ 
-                      fontSize: '12pt',
-                      fontWeight: 'normal',
-                      margin: '0',
-                      color: '#000000',
-                      direction: 'ltr',
-                      textAlign: 'left'
-                    }}
-                  >
-                    <strong>{item.title}</strong> - {item.provider} ({item.date})
-                  </div>
-                  {renderDescription(item.description, item.writingStyle)}
-                </div>
-              ))}
-            </>
-          )}
-        </section>
-      )}
+                <strong>{item.title}</strong> - {item.provider} ({item.date})
+              </div>
+              {renderDescription(item.description, item.writingStyle)}
+            </div>
+          ))
+        ) : (
+          <div style={{ marginBottom: '10pt', direction: 'ltr', textAlign: 'left' }}>
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                fontWeight: 'normal',
+                margin: '0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left',
+                fontStyle: 'italic'
+              }}
+            >
+              Add your relevant courses and certifications to strengthen your resume
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 };
