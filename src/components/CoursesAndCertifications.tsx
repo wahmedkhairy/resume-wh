@@ -41,6 +41,47 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     writingStyle: "bullet"
   });
 
+  const formatBulletPoints = (text: string): string => {
+    if (!text) return "";
+    
+    // Split by lines and process each line
+    const lines = text.split('\n');
+    const formattedLines = lines.map(line => {
+      const trimmedLine = line.trim();
+      
+      // If line is empty, return empty
+      if (!trimmedLine) return "";
+      
+      // Remove existing bullets first to avoid duplicates
+      const cleanLine = trimmedLine.replace(/^[•\-\*]\s*/, '');
+      
+      // Add bullet only if there's actual content
+      if (cleanLine) {
+        return `• ${cleanLine}`;
+      }
+      
+      return "";
+    });
+    
+    return formattedLines.join('\n');
+  };
+
+  const handleDescriptionChange = (value: string, writingStyle: "bullet" | "paragraph" = "paragraph") => {
+    if (writingStyle === "bullet") {
+      const formattedValue = formatBulletPoints(value);
+      setNewCourse({...newCourse, description: formattedValue});
+    } else {
+      setNewCourse({...newCourse, description: value});
+    }
+  };
+
+  const getPlaceholderText = (writingStyle: "bullet" | "paragraph" = "paragraph") => {
+    if (writingStyle === "bullet") {
+      return "• Describe what you learned and key skills gained\n• Add specific achievements or certifications earned\n• Include relevant technologies or methodologies covered";
+    }
+    return "Describe what you learned and key skills gained...";
+  };
+
   const handleAddCourse = () => {
     if (newCourse.title.trim() && newCourse.provider.trim()) {
       const courseWithId = {
@@ -165,22 +206,25 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
                 </div>
 
                 <div>
-                  <Label htmlFor={`edit-description-${course.id}`}>Description</Label>
-                  <Textarea
-                    id={`edit-description-${course.id}`}
-                    value={newCourse.description}
-                    onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
-                    placeholder="Describe what you learned and key skills gained..."
-                    className="min-h-[100px]"
-                  />
-                  
-                  <div className="mt-2">
+                  <div className="mb-2">
                     <WritingStyleSelector
                       value={newCourse.writingStyle || "bullet"}
                       onChange={(style) => setNewCourse({...newCourse, writingStyle: style})}
                       label="Writing Style"
                     />
                   </div>
+                  
+                  <Label htmlFor={`edit-description-${course.id}`}>Description</Label>
+                  <Textarea
+                    id={`edit-description-${course.id}`}
+                    value={newCourse.description}
+                    onChange={(e) => handleDescriptionChange(e.target.value, newCourse.writingStyle)}
+                    placeholder={getPlaceholderText(newCourse.writingStyle)}
+                    className="min-h-[100px]"
+                    style={{
+                      fontFamily: newCourse.writingStyle === "bullet" ? "monospace" : "inherit"
+                    }}
+                  />
                 </div>
 
                 <div className="flex gap-2">
@@ -277,22 +321,25 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="new-description">Description</Label>
-              <Textarea
-                id="new-description"
-                value={newCourse.description}
-                onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
-                placeholder="Describe what you learned and key skills gained..."
-                className="min-h-[100px]"
-              />
-              
-              <div className="mt-2">
+              <div className="mb-2">
                 <WritingStyleSelector
                   value={newCourse.writingStyle || "bullet"}
                   onChange={(style) => setNewCourse({...newCourse, writingStyle: style})}
                   label="Writing Style"
                 />
               </div>
+              
+              <Label htmlFor="new-description">Description</Label>
+              <Textarea
+                id="new-description"
+                value={newCourse.description}
+                onChange={(e) => handleDescriptionChange(e.target.value, newCourse.writingStyle)}
+                placeholder={getPlaceholderText(newCourse.writingStyle)}
+                className="min-h-[100px]"
+                style={{
+                  fontFamily: newCourse.writingStyle === "bullet" ? "monospace" : "inherit"
+                }}
+              />
             </div>
 
             <div className="flex gap-2">
