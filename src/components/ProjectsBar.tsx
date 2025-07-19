@@ -67,18 +67,35 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
     }
   };
 
+  const formatBulletPoints = (text: string): string => {
+    if (!text) return "";
+    
+    // Split by lines and process each line
+    const lines = text.split('\n');
+    const formattedLines = lines.map(line => {
+      const trimmedLine = line.trim();
+      
+      // If line is empty, return empty
+      if (!trimmedLine) return "";
+      
+      // Remove existing bullets first to avoid duplicates
+      const cleanLine = trimmedLine.replace(/^[•\-\*]\s*/, '');
+      
+      // Add bullet only if there's actual content
+      if (cleanLine) {
+        return `• ${cleanLine}`;
+      }
+      
+      return "";
+    });
+    
+    return formattedLines.join('\n');
+  };
+
   const handleDescriptionChange = (id: string, newValue: string, writingStyle: "bullet" | "paragraph") => {
     if (writingStyle === "bullet") {
-      // Handle bullet point formatting
-      const lines = newValue.split('\n');
-      const formattedLines = lines.map(line => {
-        const trimmedLine = line.trim();
-        if (trimmedLine && !trimmedLine.startsWith("• ")) {
-          return `• ${trimmedLine}`;
-        }
-        return line;
-      });
-      updateProject(id, "description", formattedLines.join('\n'));
+      const formattedValue = formatBulletPoints(newValue);
+      updateProject(id, "description", formattedValue);
     } else {
       updateProject(id, "description", newValue);
     }
@@ -92,9 +109,6 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
   };
 
   const getDescriptionValue = (description: string, writingStyle: "bullet" | "paragraph") => {
-    if (writingStyle === "bullet" && description && !description.includes("• ")) {
-      return `• ${description}`;
-    }
     return description;
   };
 

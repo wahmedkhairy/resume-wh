@@ -48,11 +48,45 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
+  const formatBulletPoints = (text: string): string => {
+    if (!text) return "";
+    
+    // Split by lines and process each line
+    const lines = text.split('\n');
+    const formattedLines = lines.map(line => {
+      const trimmedLine = line.trim();
+      
+      // If line is empty, return empty
+      if (!trimmedLine) return "";
+      
+      // Remove existing bullets first to avoid duplicates
+      const cleanLine = trimmedLine.replace(/^[•\-\*]\s*/, '');
+      
+      // Add bullet only if there's actual content
+      if (cleanLine) {
+        return `• ${cleanLine}`;
+      }
+      
+      return "";
+    });
+    
+    return formattedLines.join('\n');
+  };
+
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
-    setContent(newContent);
-    if (onContentChange) {
-      onContentChange(newContent);
+    
+    if (showWritingStyleSelector && writingStyle === "bullet") {
+      const formattedContent = formatBulletPoints(newContent);
+      setContent(formattedContent);
+      if (onContentChange) {
+        onContentChange(formattedContent);
+      }
+    } else {
+      setContent(newContent);
+      if (onContentChange) {
+        onContentChange(newContent);
+      }
     }
   };
 
@@ -232,6 +266,9 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
           className="min-h-[150px] text-sm"
           value={content}
           onChange={handleContentChange}
+          style={{
+            fontFamily: showWritingStyleSelector && writingStyle === "bullet" ? "monospace" : "inherit"
+          }}
         />
       </CardContent>
       <CardFooter className="flex justify-between">
