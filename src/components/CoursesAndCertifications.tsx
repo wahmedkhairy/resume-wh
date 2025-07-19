@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -268,6 +269,91 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
             )}
           </div>
         ))}
+
+        {isAdding && (
+          <div className="border rounded p-4 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="new-title">Title</Label>
+                <Input
+                  id="new-title"
+                  value={newCourse.title}
+                  onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
+                  placeholder="Course or Certification Title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="new-provider">Provider</Label>
+                <Input
+                  id="new-provider"
+                  value={newCourse.provider}
+                  onChange={(e) => setNewCourse({...newCourse, provider: e.target.value})}
+                  placeholder="Institution or Organization"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="new-date">Date</Label>
+                <Input
+                  id="new-date"
+                  value={newCourse.date}
+                  onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
+                  placeholder="January 2023"
+                />
+              </div>
+              <div>
+                <Label htmlFor="new-type">Type</Label>
+                <Select
+                  value={newCourse.type}
+                  onValueChange={(value) => setNewCourse({...newCourse, type: value as "course" | "certification"})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="course">Course</SelectItem>
+                    <SelectItem value="certification">Certification</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-2">
+                <WritingStyleSelector
+                  value={newCourse.writingStyle || "bullet"}
+                  onChange={(style) => setNewCourse({...newCourse, writingStyle: style})}
+                  label="Writing Style"
+                />
+              </div>
+              
+              <Label htmlFor="new-description">Description</Label>
+              <Textarea
+                id="new-description"
+                value={newCourse.description}
+                onChange={(e) => handleDescriptionChange(e.target.value, newCourse.writingStyle)}
+                placeholder={getPlaceholderText(newCourse.writingStyle)}
+                className="min-h-[100px]"
+                style={{
+                  fontFamily: newCourse.writingStyle === "bullet" ? "monospace" : "inherit"
+                }}
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleAddCourse} size="sm">
+                <Check className="w-4 h-4 mr-1" />
+                Add Course/Certification
+              </Button>
+              <Button onClick={handleCancel} variant="outline" size="sm">
+                <X className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
 
         {!isAdding && (
           <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full">
