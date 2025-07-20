@@ -1,4 +1,13 @@
-import React from "react";
+import SEOHead from "@/components/SEOHead";
+
+// Add this at the top of your PrivacyPolicy component:
+<SEOHead 
+  title="Privacy Policy - Resume Builder | Data Protection & Security"
+  description="Read our privacy policy to understand how Resume Builder protects your personal data and resume information."
+  canonicalUrl="/privacy-policy"
+  noindex={true}
+/>
+  import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
