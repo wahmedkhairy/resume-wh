@@ -1,4 +1,12 @@
+import SEOHead from "@/components/SEOHead";
 
+// Add this at the top of your PaymentCancelled component:
+<SEOHead 
+  title="Payment Cancelled - Resume Builder | Continue with Free Version"
+  description="Payment was cancelled. You can continue using Resume Builder's free ATS scanner and basic resume features."
+  canonicalUrl="/payment-cancelled"
+  noindex={true}
+/>
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
