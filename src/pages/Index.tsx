@@ -1,4 +1,12 @@
+import SEOHead from "@/components/SEOHead";
 
+// Inside your Index component, add this right after the opening fragment or div:
+<SEOHead 
+  title="Resume Builder - ATS-Optimized Resume Builder & Targeted Job Resume Generator"
+  description="Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters. Free ATS resume scan and checker to optimize resume for ATS compatibility."
+  canonicalUrl="/"
+  keywords="resume builder, ATS resume builder, AI resume generator, professional resume template, job-winning resume, online CV maker, targeted resume generator, best ATS-friendly resume template 2025"
+/>
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
