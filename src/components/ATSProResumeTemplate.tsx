@@ -35,6 +35,7 @@ interface Course {
   date: string;
   description: string;
   type: "course" | "certification";
+  writingStyle?: "bullet" | "paragraph";
 }
 
 interface Project {
@@ -68,6 +69,56 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
   projects,
 }) => {
   const renderProjectDescription = (description: string, writingStyle?: "bullet" | "paragraph") => {
+    if (!description.trim()) return null;
+
+    if (writingStyle === "paragraph") {
+      return (
+        <div 
+          style={{ 
+            fontSize: '11pt',
+            margin: '6pt 0 0 0',
+            color: '#000000',
+            lineHeight: '1.2'
+          }}
+        >
+          {description}
+        </div>
+      );
+    }
+
+    // For bullet points, split description by line breaks
+    const lines = description.split('\n').filter(line => line.trim());
+    const bulletPoints: string[] = [];
+    
+    lines.forEach(line => {
+      const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+      if (cleanLine) {
+        bulletPoints.push(cleanLine);
+      }
+    });
+
+    if (!bulletPoints.length) return null;
+
+    return (
+      <ul style={{ margin: '6pt 0 0 0', paddingLeft: '18pt', listStyleType: 'disc' }}>
+        {bulletPoints.map((point, index) => (
+          <li 
+            key={index}
+            style={{ 
+              fontSize: '11pt',
+              margin: '3pt 0',
+              color: '#000000',
+              lineHeight: '1.2'
+            }}
+          >
+            {point}
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
+  const renderCourseDescription = (description: string, writingStyle?: "bullet" | "paragraph") => {
     if (!description.trim()) return null;
 
     if (writingStyle === "paragraph") {
@@ -295,7 +346,7 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
         </section>
       )}
 
-      {/* Projects Section - Fixed to properly render */}
+      {/* Projects Section */}
       {projects.length > 0 && (
         <section style={{ marginBottom: '20pt' }}>
           <h2 
@@ -350,6 +401,65 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
               </div>
               
               {renderProjectDescription(project.description, project.writingStyle)}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* Courses & Certifications Section - Now displays as a main section like others */}
+      {coursesAndCertifications.length > 0 && (
+        <section style={{ marginBottom: '20pt' }}>
+          <h2 
+            style={{ 
+              fontSize: '12pt',
+              fontWeight: 'bold',
+              margin: '0 0 12pt 0',
+              color: '#000000',
+              textTransform: 'uppercase',
+              borderBottom: '1pt solid #000000',
+              paddingBottom: '2pt'
+            }}
+          >
+            COURSES & CERTIFICATIONS
+          </h2>
+          
+          {coursesAndCertifications.map((item, index) => (
+            <div key={item.id} style={{ marginBottom: '16pt' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4pt' }}>
+                <div style={{ flex: 1 }}>
+                  <div 
+                    style={{ 
+                      fontSize: '11pt',
+                      fontWeight: 'bold',
+                      margin: '0',
+                      color: '#000000'
+                    }}
+                  >
+                    {item.title}
+                  </div>
+                  <div 
+                    style={{ 
+                      fontSize: '11pt',
+                      margin: '2pt 0',
+                      color: '#000000'
+                    }}
+                  >
+                    {item.provider}
+                  </div>
+                </div>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    margin: '0',
+                    color: '#000000',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {item.date}
+                </div>
+              </div>
+              
+              {renderCourseDescription(item.description, item.writingStyle)}
             </div>
           ))}
         </section>
@@ -418,81 +528,6 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
                 >
                   {edu.graduationYear}
                 </div>
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-
-      {/* Courses & Certifications Section */}
-      {coursesAndCertifications.length > 0 && (
-        <section style={{ marginBottom: '20pt' }}>
-          <h2 
-            style={{ 
-              fontSize: '12pt',
-              fontWeight: 'bold',
-              margin: '0 0 12pt 0',
-              color: '#000000',
-              textTransform: 'uppercase',
-              borderBottom: '1pt solid #000000',
-              paddingBottom: '2pt'
-            }}
-          >
-            COURSES & CERTIFICATIONS
-          </h2>
-          
-          {coursesAndCertifications.map((item, index) => (
-            <div 
-              key={item.id} 
-              style={{ 
-                marginBottom: '8pt',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start'
-              }}
-            >
-              <div style={{ flex: 1 }}>
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    fontWeight: 'bold',
-                    margin: '0',
-                    color: '#000000'
-                  }}
-                >
-                  {item.title}
-                </div>
-                <div 
-                  style={{ 
-                    fontSize: '11pt',
-                    margin: '2pt 0',
-                    color: '#000000'
-                  }}
-                >
-                  {item.provider}
-                </div>
-                {item.description && (
-                  <div 
-                    style={{ 
-                      fontSize: '10pt',
-                      margin: '2pt 0',
-                      color: '#000000',
-                      fontStyle: 'italic'
-                    }}
-                  >
-                    {item.description}
-                  </div>
-                )}
-              </div>
-              <div 
-                style={{ 
-                  fontSize: '11pt',
-                  margin: '0',
-                  color: '#000000',
-                  fontWeight: 'bold'
-                }}
-              >
-                {item.date}
               </div>
             </div>
           ))}

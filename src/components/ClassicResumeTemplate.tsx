@@ -1,3 +1,4 @@
+
 import React from "react";
 
 interface PersonalInfo {
@@ -388,7 +389,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         )}
       </section>
 
-      {/* Projects Section - Fixed to properly render */}
+      {/* Projects Section */}
       {projects.length > 0 && (
         <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
           <h2 
@@ -441,7 +442,59 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </section>
       )}
 
-      {/* Education Section - Always show and include Courses & Certifications */}
+      {/* Courses & Certifications Section - Now displays as a main section like others */}
+      {coursesAndCertifications.length > 0 && (
+        <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
+          <h2 
+            style={{ 
+              fontSize: '14pt',
+              fontWeight: 'bold',
+              margin: '0 0 14pt 0',
+              color: '#000000',
+              textAlign: 'left',
+              borderBottom: '1pt solid #000000',
+              paddingBottom: '3pt',
+              direction: 'ltr'
+            }}
+          >
+            Courses & Certifications
+          </h2>
+          
+          {coursesAndCertifications.map((item, index) => (
+            <div key={item.id} style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
+              <h3 
+                style={{ 
+                  fontSize: '12pt',
+                  fontWeight: 'bold',
+                  margin: '0 0 5pt 0',
+                  color: '#000000',
+                  direction: 'ltr',
+                  textAlign: 'left'
+                }}
+              >
+                {item.title}
+              </h3>
+              
+              <div 
+                style={{ 
+                  fontSize: '12pt',
+                  margin: '0 0 8pt 0',
+                  color: '#000000',
+                  fontStyle: 'italic',
+                  direction: 'ltr',
+                  textAlign: 'left'
+                }}
+              >
+                {item.provider} | {item.date}
+              </div>
+              
+              {renderDescription(item.description, item.writingStyle)}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* Education Section */}
       <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
         <h2 
           style={{ 
@@ -509,56 +562,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               }}
             >
               University Name - 2020
-            </div>
-          </div>
-        )}
-
-        {/* Courses & Certifications - Always show this subsection */}
-        <h3 
-          style={{ 
-            fontSize: '12pt',
-            fontWeight: 'bold',
-            margin: '18pt 0 10pt 0',
-            color: '#000000',
-            direction: 'ltr',
-            textAlign: 'left'
-          }}
-        >
-          Courses & Certifications
-        </h3>
-        
-        {coursesAndCertifications.length > 0 ? (
-          coursesAndCertifications.map((item, index) => (
-            <div key={item.id} style={{ marginBottom: '10pt', direction: 'ltr', textAlign: 'left' }}>
-              <div 
-                style={{ 
-                  fontSize: '12pt',
-                  fontWeight: 'normal',
-                  margin: '0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                <strong>{item.title}</strong> - {item.provider} ({item.date})
-              </div>
-              {renderDescription(item.description, item.writingStyle)}
-            </div>
-          ))
-        ) : (
-          <div style={{ marginBottom: '10pt', direction: 'ltr', textAlign: 'left' }}>
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                fontWeight: 'normal',
-                margin: '0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left',
-                fontStyle: 'italic'
-              }}
-            >
-              Add your relevant courses and certifications to strengthen your resume
             </div>
           </div>
         )}
