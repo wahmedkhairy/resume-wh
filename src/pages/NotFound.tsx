@@ -1,4 +1,12 @@
+import SEOHead from "@/components/SEOHead";
 
+// Add this at the top of your NotFound component:
+<SEOHead 
+  title="Page Not Found - Resume Builder | 404 Error"
+  description="The page you're looking for doesn't exist. Return to Resume Builder to create ATS-optimized resumes."
+  canonicalUrl="/404"
+  noindex={true}
+/>
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
