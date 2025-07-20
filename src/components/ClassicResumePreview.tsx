@@ -29,6 +29,12 @@ interface Education {
   location: string;
 }
 
+interface Skill {
+  id: string;
+  name: string;
+  level: number;
+}
+
 interface Course {
   id: string;
   title: string;
@@ -55,6 +61,7 @@ interface ClassicResumePreviewProps {
   summary: string;
   workExperience: WorkExperience[];
   education: Education[];
+  skills: Skill[];
   coursesAndCertifications: Course[];
   projects: Project[];
 }

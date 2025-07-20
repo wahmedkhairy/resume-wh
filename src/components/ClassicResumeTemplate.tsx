@@ -29,6 +29,12 @@ interface Education {
   location: string;
 }
 
+interface Skill {
+  id: string;
+  name: string;
+  level: number;
+}
+
 interface Course {
   id: string;
   title: string;
@@ -56,6 +62,7 @@ interface ClassicResumeTemplateProps {
   summary: string;
   workExperience: WorkExperience[];
   education: Education[];
+  skills: Skill[];
   coursesAndCertifications: Course[];
   projects: Project[];
 }
@@ -66,6 +73,7 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
   summary,
   workExperience,
   education,
+  skills,
   coursesAndCertifications,
   projects,
 }) => {

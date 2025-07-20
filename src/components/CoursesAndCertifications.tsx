@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Edit2, Check, X } from "lucide-react";
+import { Plus, Trash2, Edit2, Check } from "lucide-react";
 import WritingStyleSelector from "@/components/WritingStyleSelector";
 
 interface Course {
@@ -133,20 +132,6 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     onCoursesChange(updatedCourses);
   };
 
-  const handleCancel = () => {
-    setIsAdding(false);
-    setEditingId(null);
-    setNewCourse({
-      id: "",
-      title: "",
-      provider: "",
-      date: "",
-      description: "",
-      type: "course",
-      writingStyle: "bullet"
-    });
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -178,31 +163,14 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor={`edit-date-${course.id}`}>Date</Label>
-                    <Input
-                      id={`edit-date-${course.id}`}
-                      value={newCourse.date}
-                      onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
-                      placeholder="January 2023"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`edit-type-${course.id}`}>Type</Label>
-                    <Select
-                      value={newCourse.type}
-                      onValueChange={(value) => setNewCourse({...newCourse, type: value as "course" | "certification"})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="course">Course</SelectItem>
-                        <SelectItem value="certification">Certification</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div>
+                  <Label htmlFor={`edit-date-${course.id}`}>Date</Label>
+                  <Input
+                    id={`edit-date-${course.id}`}
+                    value={newCourse.date}
+                    onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
+                    placeholder="January 2023"
+                  />
                 </div>
 
                 <div>
@@ -232,10 +200,6 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
                     <Check className="w-4 h-4 mr-1" />
                     Save
                   </Button>
-                  <Button onClick={handleCancel} variant="outline" size="sm">
-                    <X className="w-4 h-4 mr-1" />
-                    Cancel
-                  </Button>
                 </div>
               </div>
             ) : (
@@ -244,7 +208,7 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
                   <div>
                     <h4 className="font-semibold">{course.title}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {course.provider} | {course.date} | {course.type}
+                      {course.provider} | {course.date}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -293,31 +257,14 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="new-date">Date</Label>
-                <Input
-                  id="new-date"
-                  value={newCourse.date}
-                  onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
-                  placeholder="January 2023"
-                />
-              </div>
-              <div>
-                <Label htmlFor="new-type">Type</Label>
-                <Select
-                  value={newCourse.type}
-                  onValueChange={(value) => setNewCourse({...newCourse, type: value as "course" | "certification"})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="course">Course</SelectItem>
-                    <SelectItem value="certification">Certification</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label htmlFor="new-date">Date</Label>
+              <Input
+                id="new-date"
+                value={newCourse.date}
+                onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
+                placeholder="January 2023"
+              />
             </div>
 
             <div>
@@ -346,10 +293,6 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
               <Button onClick={handleAddCourse} size="sm">
                 <Check className="w-4 h-4 mr-1" />
                 Add Course/Certification
-              </Button>
-              <Button onClick={handleCancel} variant="outline" size="sm">
-                <X className="w-4 h-4 mr-1" />
-                Cancel
               </Button>
             </div>
           </div>
