@@ -1,4 +1,12 @@
+import SEOHead from "@/components/SEOHead";
 
+// Add this at the top of your PaymentSuccess component:
+<SEOHead 
+  title="Payment Successful - Resume Builder | Premium Access Activated"
+  description="Payment successful! Your Resume Builder premium subscription is now active. Start creating ATS-optimized resumes."
+  canonicalUrl="/payment-success"
+  noindex={true}
+/>
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
