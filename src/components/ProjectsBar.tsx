@@ -115,7 +115,7 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>Projects</CardTitle>
+        <CardTitle>Projects <span className="text-sm font-normal text-muted-foreground">(optional)</span></CardTitle>
         <CardDescription>Showcase your key projects and achievements</CardDescription>
       </CardHeader>
       <CardContent>
@@ -147,7 +147,7 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor={`technologies-${project.id}`}>Technologies Used</Label>
+                  <Label htmlFor={`technologies-${project.id}`}>Technologies Used <span className="text-sm font-normal text-muted-foreground">(optional)</span></Label>
                   <Input
                     id={`technologies-${project.id}`}
                     placeholder="React, Node.js, MongoDB"
@@ -177,7 +177,7 @@ const ProjectsBar: React.FC<ProjectsBarProps> = ({
                 </div>
                 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor={`url-${project.id}`}>Project URL (Optional)</Label>
+                  <Label htmlFor={`url-${project.id}`}>Project URL <span className="text-sm font-normal text-gray-400">(optional)</span></Label>
                   <Input
                     id={`url-${project.id}`}
                     placeholder="https://github.com/username/project"
