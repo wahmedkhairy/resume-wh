@@ -1,3 +1,12 @@
+import SEOHead from "@/components/SEOHead";
+
+// Add this at the top of your TermsOfService component:
+<SEOHead 
+  title="Terms of Service - Resume Builder | User Agreement"
+  description="Read our terms of service and user agreement for Resume Builder's ATS-optimized resume creation platform."
+  canonicalUrl="/terms-of-service"
+  noindex={true}
+/>
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
