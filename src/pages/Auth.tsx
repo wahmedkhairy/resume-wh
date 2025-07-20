@@ -1,4 +1,11 @@
+import SEOHead from "@/components/SEOHead";
 
+// Add this at the top of your Auth component:
+<SEOHead 
+  title="Sign In - Resume Builder | ATS-Optimized Resume Generator"
+  description="Sign in to access your ATS-optimized resume builder account. Create professional resumes that pass applicant tracking systems."
+  canonicalUrl="/auth"
+/>
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
