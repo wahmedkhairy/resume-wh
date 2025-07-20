@@ -298,12 +298,10 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
           </div>
         )}
 
-        {!isAdding && (
-          <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Course/Certification
-          </Button>
-        )}
+        <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full">
+          <Plus className="w-4 h-4 mr-2" />
+          + Add another Course/Certification
+        </Button>
       </CardContent>
     </Card>
   );
