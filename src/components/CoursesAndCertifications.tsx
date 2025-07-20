@@ -28,7 +28,6 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
   initialCourses = []
 }) => {
   const [courses, setCourses] = useState<Course[]>(initialCourses);
-  const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newCourse, setNewCourse] = useState<Course>({
     id: "",
@@ -99,7 +98,6 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
         type: "course",
         writingStyle: "bullet"
       });
-      setIsAdding(false);
     }
   };
 
@@ -234,74 +232,69 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
           </div>
         ))}
 
-        {isAdding && (
-          <div className="border rounded p-4 space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="new-title">Title</Label>
-                <Input
-                  id="new-title"
-                  value={newCourse.title}
-                  onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
-                  placeholder="Course or Certification Title"
-                />
-              </div>
-              <div>
-                <Label htmlFor="new-provider">Provider</Label>
-                <Input
-                  id="new-provider"
-                  value={newCourse.provider}
-                  onChange={(e) => setNewCourse({...newCourse, provider: e.target.value})}
-                  placeholder="Institution or Organization"
-                />
-              </div>
-            </div>
-            
+        {/* Always visible form for adding new courses */}
+        <div className="border rounded p-4 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="new-date">Date</Label>
+              <Label htmlFor="new-title">Title</Label>
               <Input
-                id="new-date"
-                value={newCourse.date}
-                onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
-                placeholder="January 2023"
+                id="new-title"
+                value={newCourse.title}
+                onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
+                placeholder="Course or Certification Title"
               />
             </div>
-
             <div>
-              <div className="mb-2">
-                <WritingStyleSelector
-                  value={newCourse.writingStyle || "bullet"}
-                  onChange={(style) => setNewCourse({...newCourse, writingStyle: style})}
-                  label="Writing Style"
-                />
-              </div>
-              
-              <Label htmlFor="new-description">Description</Label>
-              <Textarea
-                id="new-description"
-                value={newCourse.description}
-                onChange={(e) => handleDescriptionChange(e.target.value, newCourse.writingStyle)}
-                placeholder={getPlaceholderText(newCourse.writingStyle)}
-                className="min-h-[100px]"
-                style={{
-                  fontFamily: newCourse.writingStyle === "bullet" ? "monospace" : "inherit"
-                }}
+              <Label htmlFor="new-provider">Provider</Label>
+              <Input
+                id="new-provider"
+                value={newCourse.provider}
+                onChange={(e) => setNewCourse({...newCourse, provider: e.target.value})}
+                placeholder="Institution or Organization"
               />
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={handleAddCourse} size="sm">
-                <Check className="w-4 h-4 mr-1" />
-                Add Course/Certification
-              </Button>
             </div>
           </div>
-        )}
+          
+          <div>
+            <Label htmlFor="new-date">Date</Label>
+            <Input
+              id="new-date"
+              value={newCourse.date}
+              onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
+              placeholder="January 2023"
+            />
+          </div>
 
-        <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full">
-          <Plus className="w-4 h-4 mr-2" />
-          + Add another Course/Certification
-        </Button>
+          <div>
+            <div className="mb-2">
+              <WritingStyleSelector
+                value={newCourse.writingStyle || "bullet"}
+                onChange={(style) => setNewCourse({...newCourse, writingStyle: style})}
+                label="Writing Style"
+              />
+            </div>
+            
+            <Label htmlFor="new-description">Description</Label>
+            <Textarea
+              id="new-description"
+              value={newCourse.description}
+              onChange={(e) => handleDescriptionChange(e.target.value, newCourse.writingStyle)}
+              placeholder={getPlaceholderText(newCourse.writingStyle)}
+              className="min-h-[100px]"
+              style={{
+                fontFamily: newCourse.writingStyle === "bullet" ? "monospace" : "inherit"
+              }}
+            />
+          </div>
+
+          <Button 
+            onClick={handleAddCourse} 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Course/Certification
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
