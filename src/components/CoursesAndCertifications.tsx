@@ -1,11 +1,11 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Edit2, Check } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import WritingStyleSelector from "@/components/WritingStyleSelector";
 
 interface Course {
@@ -28,32 +28,22 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
   initialCourses = []
 }) => {
   const [courses, setCourses] = useState<Course[]>(initialCourses);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [newCourse, setNewCourse] = useState<Course>({
-    id: "",
-    title: "",
-    provider: "",
-    date: "",
-    description: "",
-    type: "course",
-    writingStyle: "bullet"
-  });
+
+  useEffect(() => {
+    setCourses(initialCourses);
+  }, [initialCourses]);
 
   const formatBulletPoints = (text: string): string => {
     if (!text) return "";
     
-    // Split by lines and process each line
     const lines = text.split('\n');
     const formattedLines = lines.map(line => {
       const trimmedLine = line.trim();
       
-      // If line is empty, return empty
       if (!trimmedLine) return "";
       
-      // Remove existing bullets first to avoid duplicates
       const cleanLine = trimmedLine.replace(/^[•\-\*]\s*/, '');
       
-      // Add bullet only if there's actual content
       if (cleanLine) {
         return `• ${cleanLine}`;
       }
@@ -64,13 +54,36 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
     return formattedLines.join('\n');
   };
 
-  const handleDescriptionChange = (value: string, writingStyle: "bullet" | "paragraph" = "paragraph") => {
-    if (writingStyle === "bullet") {
-      const formattedValue = formatBulletPoints(value);
-      setNewCourse({...newCourse, description: formattedValue});
-    } else {
-      setNewCourse({...newCourse, description: value});
-    }
+  const updateCourses = (updatedCourses: Course[]) => {
+    setCourses(updatedCourses);
+    onCoursesChange(updatedCourses);
+  };
+
+  const handleFieldChange = (id: string, field: keyof Course, value: string) => {
+    const updatedCourses = courses.map(course => {
+      if (course.id === id) {
+        if (field === 'description' && course.writingStyle === 'bullet') {
+          return { ...course, [field]: formatBulletPoints(value) };
+        }
+        return { ...course, [field]: value };
+      }
+      return course;
+    });
+    updateCourses(updatedCourses);
+  };
+
+  const handleWritingStyleChange = (id: string, style: "bullet" | "paragraph") => {
+    const updatedCourses = courses.map(course => {
+      if (course.id === id) {
+        const updatedCourse = { ...course, writingStyle: style };
+        if (style === 'bullet' && course.description) {
+          updatedCourse.description = formatBulletPoints(course.description);
+        }
+        return updatedCourse;
+      }
+      return course;
+    });
+    updateCourses(updatedCourses);
   };
 
   const getPlaceholderText = (writingStyle: "bullet" | "paragraph" = "paragraph") => {
@@ -81,53 +94,22 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
   };
 
   const handleAddCourse = () => {
-    if (newCourse.title.trim() && newCourse.provider.trim()) {
-      const courseWithId = {
-        ...newCourse,
-        id: `course-${Date.now()}`
-      };
-      const updatedCourses = [...courses, courseWithId];
-      setCourses(updatedCourses);
-      onCoursesChange(updatedCourses);
-      setNewCourse({
-        id: "",
-        title: "",
-        provider: "",
-        date: "",
-        description: "",
-        type: "course",
-        writingStyle: "bullet"
-      });
-    }
-  };
-
-  const handleEditCourse = (course: Course) => {
-    setEditingId(course.id);
-    setNewCourse(course);
-  };
-
-  const handleUpdateCourse = () => {
-    const updatedCourses = courses.map(course =>
-      course.id === editingId ? newCourse : course
-    );
-    setCourses(updatedCourses);
-    onCoursesChange(updatedCourses);
-    setEditingId(null);
-    setNewCourse({
-      id: "",
+    const newCourse: Course = {
+      id: `course-${Date.now()}`,
       title: "",
       provider: "",
       date: "",
       description: "",
       type: "course",
       writingStyle: "bullet"
-    });
+    };
+    const updatedCourses = [...courses, newCourse];
+    updateCourses(updatedCourses);
   };
 
   const handleDeleteCourse = (id: string) => {
     const updatedCourses = courses.filter(course => course.id !== id);
-    setCourses(updatedCourses);
-    onCoursesChange(updatedCourses);
+    updateCourses(updatedCourses);
   };
 
   return (
@@ -137,164 +119,80 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {courses.map((course) => (
-          <div key={course.id} className="border rounded p-4 space-y-2">
-            {editingId === course.id ? (
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor={`edit-title-${course.id}`}>Title</Label>
-                    <Input
-                      id={`edit-title-${course.id}`}
-                      value={newCourse.title}
-                      onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
-                      placeholder="Course or Certification Title"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`edit-provider-${course.id}`}>Provider</Label>
-                    <Input
-                      id={`edit-provider-${course.id}`}
-                      value={newCourse.provider}
-                      onChange={(e) => setNewCourse({...newCourse, provider: e.target.value})}
-                      placeholder="Institution or Organization"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor={`edit-date-${course.id}`}>Date</Label>
-                  <Input
-                    id={`edit-date-${course.id}`}
-                    value={newCourse.date}
-                    onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
-                    placeholder="January 2023"
-                  />
-                </div>
-
-                <div>
-                  <div className="mb-2">
-                    <WritingStyleSelector
-                      value={newCourse.writingStyle || "bullet"}
-                      onChange={(style) => setNewCourse({...newCourse, writingStyle: style})}
-                      label="Writing Style"
-                    />
-                  </div>
-                  
-                  <Label htmlFor={`edit-description-${course.id}`}>Description</Label>
-                  <Textarea
-                    id={`edit-description-${course.id}`}
-                    value={newCourse.description}
-                    onChange={(e) => handleDescriptionChange(e.target.value, newCourse.writingStyle)}
-                    placeholder={getPlaceholderText(newCourse.writingStyle)}
-                    className="min-h-[100px]"
-                    style={{
-                      fontFamily: newCourse.writingStyle === "bullet" ? "monospace" : "inherit"
-                    }}
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={handleUpdateCourse} size="sm">
-                    <Check className="w-4 h-4 mr-1" />
-                    Save
-                  </Button>
-                </div>
-              </div>
-            ) : (
+          <div key={course.id} className="border rounded p-4 space-y-3">
+            <div className="flex justify-between items-start mb-2">
+              <h4 className="font-semibold text-sm text-muted-foreground">Course/Certification Entry</h4>
+              <Button
+                onClick={() => handleDeleteCourse(course.id)}
+                variant="outline"
+                size="sm"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-semibold">{course.title}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {course.provider} | {course.date}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleEditCourse(course)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteCourse(course.id)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-sm">{course.description}</p>
+                <Label htmlFor={`title-${course.id}`}>Title</Label>
+                <Input
+                  id={`title-${course.id}`}
+                  value={course.title}
+                  onChange={(e) => handleFieldChange(course.id, 'title', e.target.value)}
+                  placeholder="Course or Certification Title"
+                />
               </div>
-            )}
+              <div>
+                <Label htmlFor={`provider-${course.id}`}>Provider</Label>
+                <Input
+                  id={`provider-${course.id}`}
+                  value={course.provider}
+                  onChange={(e) => handleFieldChange(course.id, 'provider', e.target.value)}
+                  placeholder="Institution or Organization"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor={`date-${course.id}`}>Date</Label>
+              <Input
+                id={`date-${course.id}`}
+                value={course.date}
+                onChange={(e) => handleFieldChange(course.id, 'date', e.target.value)}
+                placeholder="January 2023"
+              />
+            </div>
+
+            <div>
+              <div className="mb-2">
+                <WritingStyleSelector
+                  value={course.writingStyle || "bullet"}
+                  onChange={(style) => handleWritingStyleChange(course.id, style)}
+                  label="Writing Style"
+                />
+              </div>
+              
+              <Label htmlFor={`description-${course.id}`}>Description</Label>
+              <Textarea
+                id={`description-${course.id}`}
+                value={course.description}
+                onChange={(e) => handleFieldChange(course.id, 'description', e.target.value)}
+                placeholder={getPlaceholderText(course.writingStyle)}
+                className="min-h-[100px]"
+                style={{
+                  fontFamily: course.writingStyle === "bullet" ? "monospace" : "inherit"
+                }}
+              />
+            </div>
           </div>
         ))}
 
-        {/* Always visible form for adding new courses */}
-        <div className="border rounded p-4 space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="new-title">Title</Label>
-              <Input
-                id="new-title"
-                value={newCourse.title}
-                onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
-                placeholder="Course or Certification Title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="new-provider">Provider</Label>
-              <Input
-                id="new-provider"
-                value={newCourse.provider}
-                onChange={(e) => setNewCourse({...newCourse, provider: e.target.value})}
-                placeholder="Institution or Organization"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="new-date">Date</Label>
-            <Input
-              id="new-date"
-              value={newCourse.date}
-              onChange={(e) => setNewCourse({...newCourse, date: e.target.value})}
-              placeholder="January 2023"
-            />
-          </div>
-
-          <div>
-            <div className="mb-2">
-              <WritingStyleSelector
-                value={newCourse.writingStyle || "bullet"}
-                onChange={(style) => setNewCourse({...newCourse, writingStyle: style})}
-                label="Writing Style"
-              />
-            </div>
-            
-            <Label htmlFor="new-description">Description</Label>
-            <Textarea
-              id="new-description"
-              value={newCourse.description}
-              onChange={(e) => handleDescriptionChange(e.target.value, newCourse.writingStyle)}
-              placeholder={getPlaceholderText(newCourse.writingStyle)}
-              className="min-h-[100px]"
-              style={{
-                fontFamily: newCourse.writingStyle === "bullet" ? "monospace" : "inherit"
-              }}
-            />
-          </div>
-
-          <Button 
-            onClick={handleAddCourse} 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Course/Certification
-          </Button>
-        </div>
+        <Button 
+          onClick={handleAddCourse} 
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Course/Certification
+        </Button>
       </CardContent>
     </Card>
   );
