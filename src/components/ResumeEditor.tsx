@@ -81,7 +81,7 @@ interface ResumeEditorProps {
   onExport: () => void;
   onExportWord: () => void;
   canExport: () => boolean;
-  getCurrentResumeData: any;
+  getCurrentResumeData?: any;
 }
 
 const ResumeEditor: React.FC<ResumeEditorProps> = ({
@@ -179,7 +179,28 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   };
 
   // Get the current resume data (either tailored or original)
-  const currentResumeData = getCurrentResumeData();
+  const currentResumeData = React.useMemo(() => {
+    // If we have a function to get current resume data, use it
+    if (typeof getCurrentResumeData === 'function') {
+      return getCurrentResumeData();
+    }
+    
+    // Otherwise, check if we have tailored resume data
+    if (tailoredResumeData) {
+      return tailoredResumeData;
+    }
+    
+    // Fallback to the current state data
+    return {
+      personalInfo,
+      summary,
+      workExperience,
+      education,
+      skills,
+      coursesAndCertifications,
+      projects,
+    };
+  }, [getCurrentResumeData, tailoredResumeData, personalInfo, summary, workExperience, education, skills, coursesAndCertifications, projects]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
