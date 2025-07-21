@@ -178,6 +178,9 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     setImprovementTips([]);
   };
 
+  // Get the current resume data (either tailored or original)
+  const currentResumeData = getCurrentResumeData();
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Left Column - Editor */}
@@ -226,13 +229,13 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
       {/* Right Column - Preview */}
       <div className="lg:col-span-6 space-y-6">
         <PreviewSection
-          personalInfo={getCurrentResumeData.personalInfo}
-          summary={getCurrentResumeData.summary}
-          workExperience={getCurrentResumeData.workExperience}
-          education={getCurrentResumeData.education}
-          skills={getCurrentResumeData.skills}
-          coursesAndCertifications={getCurrentResumeData.coursesAndCertifications}
-          projects={getCurrentResumeData.projects}
+          personalInfo={currentResumeData.personalInfo}
+          summary={currentResumeData.summary}
+          workExperience={currentResumeData.workExperience}
+          education={currentResumeData.education}
+          skills={currentResumeData.skills}
+          coursesAndCertifications={currentResumeData.coursesAndCertifications}
+          projects={currentResumeData.projects}
           onSummaryChange={onSummaryChange}
           isPremiumUser={isPremiumUser}
           currentUserId={currentUserId}
@@ -241,12 +244,12 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         
         <ATSScannerToggle
           resumeData={{
-            personalInfo: getCurrentResumeData.personalInfo,
-            summary: getCurrentResumeData.summary,
-            workExperience: getCurrentResumeData.workExperience,
-            education: getCurrentResumeData.education,
-            skills: getCurrentResumeData.skills,
-            coursesAndCertifications: getCurrentResumeData.coursesAndCertifications,
+            personalInfo: currentResumeData.personalInfo,
+            summary: currentResumeData.summary,
+            workExperience: currentResumeData.workExperience,
+            education: currentResumeData.education,
+            skills: currentResumeData.skills,
+            coursesAndCertifications: currentResumeData.coursesAndCertifications,
           }}
         />
       </div>
