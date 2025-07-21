@@ -1,4 +1,3 @@
-
 import React from "react";
 
 interface PersonalInfo {
@@ -442,169 +441,107 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </section>
       )}
 
-      {/* Education Section - Now shows real user data when available */}
-      <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
-        <h2 
-          style={{ 
-            fontSize: '14pt',
-            fontWeight: 'bold',
-            margin: '0 0 14pt 0',
-            color: '#000000',
-            textAlign: 'left',
-            borderBottom: '1pt solid #000000',
-            paddingBottom: '3pt',
-            direction: 'ltr'
-          }}
-        >
-          Education
-        </h2>
-        
-        {education.length > 0 ? education.map((edu, index) => (
-          <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                fontWeight: 'bold',
-                margin: '0 0 5pt 0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              {edu.degree}
+      {/* Education Section - Now only shows user data when available */}
+      {education.length > 0 && (
+        <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
+          <h2 
+            style={{ 
+              fontSize: '14pt',
+              fontWeight: 'bold',
+              margin: '0 0 14pt 0',
+              color: '#000000',
+              textAlign: 'left',
+              borderBottom: '1pt solid #000000',
+              paddingBottom: '3pt',
+              direction: 'ltr'
+            }}
+          >
+            Education
+          </h2>
+          
+          {education.map((edu, index) => (
+            <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
+              <div 
+                style={{ 
+                  fontSize: '12pt',
+                  fontWeight: 'bold',
+                  margin: '0 0 5pt 0',
+                  color: '#000000',
+                  direction: 'ltr',
+                  textAlign: 'left'
+                }}
+              >
+                {edu.degree}
+              </div>
+              <div 
+                style={{ 
+                  fontSize: '12pt',
+                  margin: '0',
+                  color: '#000000',
+                  direction: 'ltr',
+                  textAlign: 'left'
+                }}
+              >
+                {edu.institution} - {edu.graduationYear}
+                {edu.location && <span> | {edu.location}</span>}
+                {edu.gpa && <span> | GPA: {edu.gpa}</span>}
+              </div>
             </div>
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                margin: '0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              {edu.institution} - {edu.graduationYear}
-              {edu.location && <span> | {edu.location}</span>}
-              {edu.gpa && <span> | GPA: {edu.gpa}</span>}
-            </div>
-          </div>
-        )) : (
-          <div style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                fontWeight: 'bold',
-                margin: '0 0 5pt 0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              Bachelor of Science in Computer Science
-            </div>
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                margin: '0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              University Name - 2020
-            </div>
-          </div>
-        )}
-      </section>
+          ))}
+        </section>
+      )}
 
-      {/* Courses & Certifications Section - Now shows real user data when available */}
-      <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
-        <h2 
-          style={{ 
-            fontSize: '14pt',
-            fontWeight: 'bold',
-            margin: '0 0 14pt 0',
-            color: '#000000',
-            textAlign: 'left',
-            borderBottom: '1pt solid #000000',
-            paddingBottom: '3pt',
-            direction: 'ltr'
-          }}
-        >
-          Courses & Certifications
-        </h2>
-        
-        {coursesAndCertifications.length > 0 ? coursesAndCertifications.map((item, index) => (
-          <div key={item.id} style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
-            <h3 
-              style={{ 
-                fontSize: '12pt',
-                fontWeight: 'bold',
-                margin: '0 0 5pt 0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              {item.title}
-            </h3>
-            
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                margin: '0 0 8pt 0',
-                color: '#000000',
-                fontStyle: 'italic',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              {item.provider} | {item.date}
+      {/* Courses & Certifications Section - Now only shows user data when available */}
+      {coursesAndCertifications.length > 0 && (
+        <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
+          <h2 
+            style={{ 
+              fontSize: '14pt',
+              fontWeight: 'bold',
+              margin: '0 0 14pt 0',
+              color: '#000000',
+              textAlign: 'left',
+              borderBottom: '1pt solid #000000',
+              paddingBottom: '3pt',
+              direction: 'ltr'
+            }}
+          >
+            Courses & Certifications
+          </h2>
+          
+          {coursesAndCertifications.map((item, index) => (
+            <div key={item.id} style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
+              <h3 
+                style={{ 
+                  fontSize: '12pt',
+                  fontWeight: 'bold',
+                  margin: '0 0 5pt 0',
+                  color: '#000000',
+                  direction: 'ltr',
+                  textAlign: 'left'
+                }}
+              >
+                {item.title}
+              </h3>
+              
+              <div 
+                style={{ 
+                  fontSize: '12pt',
+                  margin: '0 0 8pt 0',
+                  color: '#000000',
+                  fontStyle: 'italic',
+                  direction: 'ltr',
+                  textAlign: 'left'
+                }}
+              >
+                {item.provider} | {item.date}
+              </div>
+              
+              {renderDescription(item.description, item.writingStyle)}
             </div>
-            
-            {renderDescription(item.description, item.writingStyle)}
-          </div>
-        )) : (
-          <div style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
-            <h3 
-              style={{ 
-                fontSize: '12pt',
-                fontWeight: 'bold',
-                margin: '0 0 5pt 0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              AWS Certified Solutions Architect
-            </h3>
-            
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                margin: '0 0 8pt 0',
-                color: '#000000',
-                fontStyle: 'italic',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              Amazon Web Services | 2023
-            </div>
-            
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                margin: '2pt 0 0 0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              Comprehensive certification covering cloud architecture, security, and deployment best practices
-            </div>
-          </div>
-        )}
-      </section>
+          ))}
+        </section>
+      )}
     </div>
   );
 };
