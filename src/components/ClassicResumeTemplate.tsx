@@ -442,7 +442,81 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </section>
       )}
 
-      {/* Courses & Certifications Section */}
+      {/* Education Section - Now shows real user data when available */}
+      <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
+        <h2 
+          style={{ 
+            fontSize: '14pt',
+            fontWeight: 'bold',
+            margin: '0 0 14pt 0',
+            color: '#000000',
+            textAlign: 'left',
+            borderBottom: '1pt solid #000000',
+            paddingBottom: '3pt',
+            direction: 'ltr'
+          }}
+        >
+          Education
+        </h2>
+        
+        {education.length > 0 ? education.map((edu, index) => (
+          <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                fontWeight: 'bold',
+                margin: '0 0 5pt 0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              {edu.degree}
+            </div>
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                margin: '0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              {edu.institution} - {edu.graduationYear}
+              {edu.location && <span> | {edu.location}</span>}
+              {edu.gpa && <span> | GPA: {edu.gpa}</span>}
+            </div>
+          </div>
+        )) : (
+          <div style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                fontWeight: 'bold',
+                margin: '0 0 5pt 0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              Bachelor of Science in Computer Science
+            </div>
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                margin: '0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              University Name - 2020
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Courses & Certifications Section - Now shows real user data when available */}
       <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
         <h2 
           style={{ 
@@ -527,79 +601,6 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
               }}
             >
               Comprehensive certification covering cloud architecture, security, and deployment best practices
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* Education Section */}
-      <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
-        <h2 
-          style={{ 
-            fontSize: '14pt',
-            fontWeight: 'bold',
-            margin: '0 0 14pt 0',
-            color: '#000000',
-            textAlign: 'left',
-            borderBottom: '1pt solid #000000',
-            paddingBottom: '3pt',
-            direction: 'ltr'
-          }}
-        >
-          Education
-        </h2>
-        
-        {education.length > 0 ? education.map((edu, index) => (
-          <div key={edu.id} style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                fontWeight: 'bold',
-                margin: '0 0 5pt 0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              {edu.degree}
-            </div>
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                margin: '0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              {edu.institution} - {edu.graduationYear}
-              {edu.location && <span> | {edu.location}</span>}
-            </div>
-          </div>
-        )) : (
-          <div style={{ marginBottom: '14pt', direction: 'ltr', textAlign: 'left' }}>
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                fontWeight: 'bold',
-                margin: '0 0 5pt 0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              Bachelor of Science in Computer Science
-            </div>
-            <div 
-              style={{ 
-                fontSize: '12pt',
-                margin: '0',
-                color: '#000000',
-                direction: 'ltr',
-                textAlign: 'left'
-              }}
-            >
-              University Name - 2020
             </div>
           </div>
         )}
