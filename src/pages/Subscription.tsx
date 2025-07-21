@@ -1,11 +1,4 @@
-import SEOHead from "@/components/SEOHead";
 
-// Add this at the top of your Subscription component:
-<SEOHead 
-  title="Premium Plans - Resume Builder Subscription | ATS-Optimized Resume Templates"
-  description="Unlock premium ATS-optimized resume templates and advanced features. Choose the perfect subscription plan for your career needs."
-  canonicalUrl="/subscription"
-/>
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";

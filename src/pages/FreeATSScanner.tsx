@@ -1,12 +1,4 @@
-import SEOHead from "@/components/SEOHead";
 
-// Add this at the top of your FreeATSScanner component:
-<SEOHead 
-  title="Free ATS Resume Scanner - Check Resume ATS Compatibility | Resume Builder"
-  description="Free ATS resume scanner and checker. Test if your resume passes applicant tracking systems. Get instant ATS compatibility score and optimization tips."
-  canonicalUrl="/free-ats-scanner"
-  keywords="free ATS resume scan, ATS resume checker, check if resume passes ATS, optimize resume for ATS, resume scanner online"
-/>
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
