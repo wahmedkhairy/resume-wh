@@ -442,57 +442,95 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
         </section>
       )}
 
-      {/* Courses & Certifications Section - Now displays as a main section like others */}
-      {coursesAndCertifications.length > 0 && (
-        <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
-          <h2 
-            style={{ 
-              fontSize: '14pt',
-              fontWeight: 'bold',
-              margin: '0 0 14pt 0',
-              color: '#000000',
-              textAlign: 'left',
-              borderBottom: '1pt solid #000000',
-              paddingBottom: '3pt',
-              direction: 'ltr'
-            }}
-          >
-            Courses & Certifications
-          </h2>
-          
-          {coursesAndCertifications.map((item, index) => (
-            <div key={item.id} style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
-              <h3 
-                style={{ 
-                  fontSize: '12pt',
-                  fontWeight: 'bold',
-                  margin: '0 0 5pt 0',
-                  color: '#000000',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                {item.title}
-              </h3>
-              
-              <div 
-                style={{ 
-                  fontSize: '12pt',
-                  margin: '0 0 8pt 0',
-                  color: '#000000',
-                  fontStyle: 'italic',
-                  direction: 'ltr',
-                  textAlign: 'left'
-                }}
-              >
-                {item.provider} | {item.date}
-              </div>
-              
-              {renderDescription(item.description, item.writingStyle)}
+      {/* Courses & Certifications Section */}
+      <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>
+        <h2 
+          style={{ 
+            fontSize: '14pt',
+            fontWeight: 'bold',
+            margin: '0 0 14pt 0',
+            color: '#000000',
+            textAlign: 'left',
+            borderBottom: '1pt solid #000000',
+            paddingBottom: '3pt',
+            direction: 'ltr'
+          }}
+        >
+          Courses & Certifications
+        </h2>
+        
+        {coursesAndCertifications.length > 0 ? coursesAndCertifications.map((item, index) => (
+          <div key={item.id} style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
+            <h3 
+              style={{ 
+                fontSize: '12pt',
+                fontWeight: 'bold',
+                margin: '0 0 5pt 0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              {item.title}
+            </h3>
+            
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                margin: '0 0 8pt 0',
+                color: '#000000',
+                fontStyle: 'italic',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              {item.provider} | {item.date}
             </div>
-          ))}
-        </section>
-      )}
+            
+            {renderDescription(item.description, item.writingStyle)}
+          </div>
+        )) : (
+          <div style={{ marginBottom: '18pt', direction: 'ltr', textAlign: 'left' }}>
+            <h3 
+              style={{ 
+                fontSize: '12pt',
+                fontWeight: 'bold',
+                margin: '0 0 5pt 0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              AWS Certified Solutions Architect
+            </h3>
+            
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                margin: '0 0 8pt 0',
+                color: '#000000',
+                fontStyle: 'italic',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              Amazon Web Services | 2023
+            </div>
+            
+            <div 
+              style={{ 
+                fontSize: '12pt',
+                margin: '2pt 0 0 0',
+                color: '#000000',
+                direction: 'ltr',
+                textAlign: 'left'
+              }}
+            >
+              Comprehensive certification covering cloud architecture, security, and deployment best practices
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* Education Section */}
       <section style={{ marginBottom: '24pt', textAlign: 'left', direction: 'ltr' }}>

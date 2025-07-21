@@ -1,4 +1,3 @@
-
 import React from "react";
 
 interface PersonalInfo {
@@ -269,82 +268,149 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
       )}
 
       {/* Professional Experience Section */}
-      {workExperience.length > 0 && (
-        <section style={{ marginBottom: '20pt' }}>
-          <h2 
-            style={{ 
-              fontSize: '12pt',
-              fontWeight: 'bold',
-              margin: '0 0 12pt 0',
-              color: '#000000',
-              textTransform: 'uppercase',
-              borderBottom: '1pt solid #000000',
-              paddingBottom: '2pt'
-            }}
-          >
-            PROFESSIONAL EXPERIENCE
-          </h2>
-          
-          {workExperience.map((job, index) => (
-            <div key={job.id} style={{ marginBottom: '16pt' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4pt' }}>
-                <div style={{ flex: 1 }}>
-                  <div 
-                    style={{ 
-                      fontSize: '11pt',
-                      fontWeight: 'bold',
-                      margin: '0',
-                      color: '#000000'
-                    }}
-                  >
-                    {job.jobTitle}
-                  </div>
-                  <div 
-                    style={{ 
-                      fontSize: '11pt',
-                      margin: '2pt 0',
-                      color: '#000000'
-                    }}
-                  >
-                    {job.company}
-                    {job.location && `, ${job.location}`}
-                  </div>
+      <section style={{ marginBottom: '20pt' }}>
+        <h2 
+          style={{ 
+            fontSize: '12pt',
+            fontWeight: 'bold',
+            margin: '0 0 12pt 0',
+            color: '#000000',
+            textTransform: 'uppercase',
+            borderBottom: '1pt solid #000000',
+            paddingBottom: '2pt'
+          }}
+        >
+          PROFESSIONAL EXPERIENCE
+        </h2>
+        
+        {workExperience.length > 0 ? workExperience.map((job, index) => (
+          <div key={job.id} style={{ marginBottom: '16pt' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4pt' }}>
+              <div style={{ flex: 1 }}>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    fontWeight: 'bold',
+                    margin: '0',
+                    color: '#000000'
+                  }}
+                >
+                  {job.jobTitle}
                 </div>
                 <div 
                   style={{ 
                     fontSize: '11pt',
-                    margin: '0',
-                    color: '#000000',
-                    fontWeight: 'bold'
+                    margin: '2pt 0',
+                    color: '#000000'
                   }}
                 >
-                  {job.startDate} - {job.endDate}
+                  {job.company}
+                  {job.location && `, ${job.location}`}
                 </div>
               </div>
-              
-              {job.responsibilities.length > 0 && (
-                <ul style={{ margin: '6pt 0 0 0', paddingLeft: '18pt', listStyleType: 'disc' }}>
-                  {job.responsibilities
-                    .filter(resp => resp.trim())
-                    .map((responsibility, respIndex) => (
-                    <li 
-                      key={respIndex} 
-                      style={{ 
-                        fontSize: '11pt',
-                        margin: '3pt 0',
-                        color: '#000000',
-                        lineHeight: '1.2'
-                      }}
-                    >
-                      {responsibility}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div 
+                style={{ 
+                  fontSize: '11pt',
+                  margin: '0',
+                  color: '#000000',
+                  fontWeight: 'bold'
+                }}
+              >
+                {job.startDate} - {job.endDate}
+              </div>
             </div>
-          ))}
-        </section>
-      )}
+            
+            {job.responsibilities.length > 0 && (
+              <ul style={{ margin: '6pt 0 0 0', paddingLeft: '18pt', listStyleType: 'disc' }}>
+                {job.responsibilities
+                  .filter(resp => resp.trim())
+                  .map((responsibility, respIndex) => (
+                  <li 
+                    key={respIndex} 
+                    style={{ 
+                      fontSize: '11pt',
+                      margin: '3pt 0',
+                      color: '#000000',
+                      lineHeight: '1.2'
+                    }}
+                  >
+                    {responsibility}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )) : (
+          <div style={{ marginBottom: '16pt' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4pt' }}>
+              <div style={{ flex: 1 }}>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    fontWeight: 'bold',
+                    margin: '0',
+                    color: '#000000'
+                  }}
+                >
+                  Senior Frontend Developer
+                </div>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    margin: '2pt 0',
+                    color: '#000000'
+                  }}
+                >
+                  Tech Solutions Inc.
+                </div>
+              </div>
+              <div 
+                style={{ 
+                  fontSize: '11pt',
+                  margin: '0',
+                  color: '#000000',
+                  fontWeight: 'bold'
+                }}
+              >
+                January 2020 - Present
+              </div>
+            </div>
+            
+            <ul style={{ margin: '6pt 0 0 0', paddingLeft: '18pt', listStyleType: 'disc' }}>
+              <li 
+                style={{ 
+                  fontSize: '11pt',
+                  margin: '3pt 0',
+                  color: '#000000',
+                  lineHeight: '1.2'
+                }}
+              >
+                Led development of company's flagship SaaS product using React and TypeScript
+              </li>
+              <li 
+                style={{ 
+                  fontSize: '11pt',
+                  margin: '3pt 0',
+                  color: '#000000',
+                  lineHeight: '1.2'
+                }}
+              >
+                Improved application performance by 40% through code optimization
+              </li>
+              <li 
+                style={{ 
+                  fontSize: '11pt',
+                  margin: '3pt 0',
+                  color: '#000000',
+                  lineHeight: '1.2'
+                }}
+              >
+                Collaborated with cross-functional teams to deliver high-quality user experiences
+              </li>
+            </ul>
+          </div>
+        )}
+      </section>
 
       {/* Projects Section */}
       {projects.length > 0 && (
@@ -406,96 +472,151 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
         </section>
       )}
 
-      {/* Courses & Certifications Section - Now displays as a main section like others */}
-      {coursesAndCertifications.length > 0 && (
-        <section style={{ marginBottom: '20pt' }}>
-          <h2 
-            style={{ 
-              fontSize: '12pt',
-              fontWeight: 'bold',
-              margin: '0 0 12pt 0',
-              color: '#000000',
-              textTransform: 'uppercase',
-              borderBottom: '1pt solid #000000',
-              paddingBottom: '2pt'
-            }}
-          >
-            COURSES & CERTIFICATIONS
-          </h2>
-          
-          {coursesAndCertifications.map((item, index) => (
-            <div key={item.id} style={{ marginBottom: '16pt' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4pt' }}>
-                <div style={{ flex: 1 }}>
-                  <div 
-                    style={{ 
-                      fontSize: '11pt',
-                      fontWeight: 'bold',
-                      margin: '0',
-                      color: '#000000'
-                    }}
-                  >
-                    {item.title}
-                  </div>
-                  <div 
-                    style={{ 
-                      fontSize: '11pt',
-                      margin: '2pt 0',
-                      color: '#000000'
-                    }}
-                  >
-                    {item.provider}
-                  </div>
+      {/* Courses & Certifications Section */}
+      <section style={{ marginBottom: '20pt' }}>
+        <h2 
+          style={{ 
+            fontSize: '12pt',
+            fontWeight: 'bold',
+            margin: '0 0 12pt 0',
+            color: '#000000',
+            textTransform: 'uppercase',
+            borderBottom: '1pt solid #000000',
+            paddingBottom: '2pt'
+          }}
+        >
+          COURSES & CERTIFICATIONS
+        </h2>
+        
+        {coursesAndCertifications.length > 0 ? coursesAndCertifications.map((item, index) => (
+          <div key={item.id} style={{ marginBottom: '16pt' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4pt' }}>
+              <div style={{ flex: 1 }}>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    fontWeight: 'bold',
+                    margin: '0',
+                    color: '#000000'
+                  }}
+                >
+                  {item.title}
                 </div>
                 <div 
                   style={{ 
                     fontSize: '11pt',
-                    margin: '0',
-                    color: '#000000',
-                    fontWeight: 'bold'
+                    margin: '2pt 0',
+                    color: '#000000'
                   }}
                 >
-                  {item.date}
+                  {item.provider}
                 </div>
               </div>
-              
-              {renderCourseDescription(item.description, item.writingStyle)}
+              <div 
+                style={{ 
+                  fontSize: '11pt',
+                  margin: '0',
+                  color: '#000000',
+                  fontWeight: 'bold'
+                }}
+              >
+                {item.date}
+              </div>
             </div>
-          ))}
-        </section>
-      )}
+            
+            {renderCourseDescription(item.description, item.writingStyle)}
+          </div>
+        )) : (
+          <div style={{ marginBottom: '16pt' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4pt' }}>
+              <div style={{ flex: 1 }}>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    fontWeight: 'bold',
+                    margin: '0',
+                    color: '#000000'
+                  }}
+                >
+                  AWS Certified Solutions Architect
+                </div>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    margin: '2pt 0',
+                    color: '#000000'
+                  }}
+                >
+                  Amazon Web Services
+                </div>
+              </div>
+              <div 
+                style={{ 
+                  fontSize: '11pt',
+                  margin: '0',
+                  color: '#000000',
+                  fontWeight: 'bold'
+                }}
+              >
+                2023
+              </div>
+            </div>
+            
+            <div 
+              style={{ 
+                fontSize: '11pt',
+                margin: '6pt 0 0 0',
+                color: '#000000',
+                lineHeight: '1.2'
+              }}
+            >
+              Comprehensive certification covering cloud architecture, security, and deployment best practices
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* Education Section */}
-      {education.length > 0 && (
-        <section style={{ marginBottom: '20pt' }}>
-          <h2 
-            style={{ 
-              fontSize: '12pt',
-              fontWeight: 'bold',
-              margin: '0 0 12pt 0',
-              color: '#000000',
-              textTransform: 'uppercase',
-              borderBottom: '1pt solid #000000',
-              paddingBottom: '2pt'
-            }}
-          >
-            EDUCATION
-          </h2>
-          
-          {education.map((edu, index) => (
-            <div key={edu.id} style={{ marginBottom: '12pt' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1 }}>
-                  <div 
-                    style={{ 
-                      fontSize: '11pt',
-                      fontWeight: 'bold',
-                      margin: '0',
-                      color: '#000000'
-                    }}
-                  >
-                    {edu.degree}
-                  </div>
+      <section style={{ marginBottom: '20pt' }}>
+        <h2 
+          style={{ 
+            fontSize: '12pt',
+            fontWeight: 'bold',
+            margin: '0 0 12pt 0',
+            color: '#000000',
+            textTransform: 'uppercase',
+            borderBottom: '1pt solid #000000',
+            paddingBottom: '2pt'
+          }}
+        >
+          EDUCATION
+        </h2>
+        
+        {education.length > 0 ? education.map((edu, index) => (
+          <div key={edu.id} style={{ marginBottom: '12pt' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1 }}>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    fontWeight: 'bold',
+                    margin: '0',
+                    color: '#000000'
+                  }}
+                >
+                  {edu.degree}
+                </div>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    margin: '2pt 0',
+                    color: '#000000'
+                  }}
+                >
+                  {edu.institution}
+                  {edu.location && `, ${edu.location}`}
+                </div>
+                {edu.gpa && (
                   <div 
                     style={{ 
                       fontSize: '11pt',
@@ -503,36 +624,60 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
                       color: '#000000'
                     }}
                   >
-                    {edu.institution}
-                    {edu.location && `, ${edu.location}`}
+                    GPA: {edu.gpa}
                   </div>
-                  {edu.gpa && (
-                    <div 
-                      style={{ 
-                        fontSize: '11pt',
-                        margin: '2pt 0',
-                        color: '#000000'
-                      }}
-                    >
-                      GPA: {edu.gpa}
-                    </div>
-                  )}
+                )}
+              </div>
+              <div 
+                style={{ 
+                  fontSize: '11pt',
+                  margin: '0',
+                  color: '#000000',
+                  fontWeight: 'bold'
+                }}
+              >
+                {edu.graduationYear}
+              </div>
+            </div>
+          </div>
+        )) : (
+          <div style={{ marginBottom: '12pt' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1 }}>
+                <div 
+                  style={{ 
+                    fontSize: '11pt',
+                    fontWeight: 'bold',
+                    margin: '0',
+                    color: '#000000'
+                  }}
+                >
+                  Bachelor of Science in Computer Science
                 </div>
                 <div 
                   style={{ 
                     fontSize: '11pt',
-                    margin: '0',
-                    color: '#000000',
-                    fontWeight: 'bold'
+                    margin: '2pt 0',
+                    color: '#000000'
                   }}
                 >
-                  {edu.graduationYear}
+                  University Name
                 </div>
               </div>
+              <div 
+                style={{ 
+                  fontSize: '11pt',
+                  margin: '0',
+                  color: '#000000',
+                  fontWeight: 'bold'
+                }}
+              >
+                2020
+              </div>
             </div>
-          ))}
-        </section>
-      )}
+          </div>
+        )}
+      </section>
     </div>
   );
 };
