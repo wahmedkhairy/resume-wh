@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertTriangle, XCircle, FileText, Zap } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Zap } from "lucide-react";
 
 interface ATSScannerProps {
   resumeData?: {
@@ -42,18 +41,7 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
   });
 
   const [lastAnalyzedData, setLastAnalyzedData] = useState<string>("");
-  const [skipInitialScan, setSkipInitialScan] = useState(false);
-
-  // Check if user came from fix my resume and handle it properly
-  useEffect(() => {
-    const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
-    if (isFromFixMyResume) {
-      console.log('ATS Scanner: User came from fix my resume, skipping initial scan only');
-      setSkipInitialScan(true);
-      // Clear the flag so it doesn't affect future sessions
-      localStorage.removeItem('atsAnalysisCompleted');
-    }
-  }, []);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const performATSScan = useCallback(async (data: any) => {
     // Create a stable hash of the data to prevent unnecessary re-analysis
@@ -62,11 +50,12 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
       return; // Skip if data hasn't changed
     }
 
+    console.log('ATS Scanner: Starting analysis for new data');
     setScanResults(prev => ({ ...prev, isScanning: true }));
     
     try {
       // Simulate realistic scanning time
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       let formatScore = 100; // Perfect format since it's our template
       let keywordScore = 50; // Base score
@@ -75,8 +64,6 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
       const suggestions: string[] = [];
       const strengths: string[] = [];
       const warnings: string[] = [];
-
-      console.log('ATS Scanner: Analyzing resume data', data);
 
       // Structure analysis
       let structurePoints = 0;
@@ -219,26 +206,36 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     }
   }, [lastAnalyzedData]);
 
-  // Perform scan when data changes, but skip initial scan if user came from fix my resume
+  // Handle initial load and data changes with proper debouncing
   useEffect(() => {
     if (!resumeData) return;
 
-    // Skip the very first scan if user came from fix my resume
-    if (skipInitialScan) {
-      console.log('ATS Scanner: Skipping initial scan for fix my resume user');
-      setSkipInitialScan(false); // Reset so future changes will trigger scans
+    // Check if user came from fix my resume
+    const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
+    
+    if (isFromFixMyResume && !hasInitialized) {
+      console.log('ATS Scanner: User came from fix my resume, skipping initial scan');
+      localStorage.removeItem('atsAnalysisCompleted');
+      setHasInitialized(true);
       return;
     }
 
-    console.log('ATS Scanner: Data changed, preparing to scan:', resumeData);
+    if (!hasInitialized) {
+      setHasInitialized(true);
+      console.log('ATS Scanner: Initial scan starting');
+      performATSScan(resumeData);
+      return;
+    }
 
-    // Debounce the scanning to prevent excessive calls
+    console.log('ATS Scanner: Data changed, scheduling scan');
+    
+    // Debounce subsequent scans with longer delay
     const timeoutId = setTimeout(() => {
       performATSScan(resumeData);
-    }, 1000);
+    }, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [resumeData, performATSScan, skipInitialScan]);
+  }, [resumeData, performATSScan, hasInitialized]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";
@@ -254,157 +251,135 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
 
   if (scanResults.isScanning) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            ATS Compatibility Scanner
-          </CardTitle>
-          <CardDescription>
-            Analyzing your resume's ATS compatibility...
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="text-center">
-            <div className="text-4xl font-bold text-blue-600 animate-pulse">
-              Scanning...
-            </div>
-            <p className="text-sm text-muted-foreground">Running comprehensive analysis</p>
-            <Progress value={75} className="mt-2 animate-pulse" />
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="text-4xl font-bold text-blue-600 animate-pulse">
+            Scanning...
           </div>
-        </CardContent>
-      </Card>
+          <p className="text-sm text-muted-foreground">Running comprehensive analysis</p>
+          <Progress value={75} className="mt-2 animate-pulse" />
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          ATS Compatibility Scanner
-        </CardTitle>
-        <CardDescription>
-          Real-time analysis of your resume's ATS compatibility
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Overall Score */}
-        <div className="text-center">
-          <div className={`text-4xl font-bold ${getScoreColor(scanResults.overallScore)}`}>
-            {scanResults.overallScore}%
+    <div className="space-y-6">
+      {/* Overall Score */}
+      <div className="text-center">
+        <div className={`text-4xl font-bold ${getScoreColor(scanResults.overallScore)}`}>
+          {scanResults.overallScore}%
+        </div>
+        <p className="text-sm text-muted-foreground">Overall ATS Score</p>
+        <Progress value={scanResults.overallScore} className="mt-2" />
+      </div>
+
+      {/* Detailed Scores */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Format</span>
+            <div className="flex items-center gap-1">
+              {getScoreIcon(scanResults.formatScore)}
+              <span className={`text-sm ${getScoreColor(scanResults.formatScore)}`}>
+                {scanResults.formatScore}%
+              </span>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">Overall ATS Score</p>
-          <Progress value={scanResults.overallScore} className="mt-2" />
+          <Progress value={scanResults.formatScore} className="h-2" />
         </div>
 
-        {/* Detailed Scores */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Format</span>
-              <div className="flex items-center gap-1">
-                {getScoreIcon(scanResults.formatScore)}
-                <span className={`text-sm ${getScoreColor(scanResults.formatScore)}`}>
-                  {scanResults.formatScore}%
-                </span>
-              </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Keywords</span>
+            <div className="flex items-center gap-1">
+              {getScoreIcon(scanResults.keywordScore)}
+              <span className={`text-sm ${getScoreColor(scanResults.keywordScore)}`}>
+                {scanResults.keywordScore}%
+              </span>
             </div>
-            <Progress value={scanResults.formatScore} className="h-2" />
           </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Keywords</span>
-              <div className="flex items-center gap-1">
-                {getScoreIcon(scanResults.keywordScore)}
-                <span className={`text-sm ${getScoreColor(scanResults.keywordScore)}`}>
-                  {scanResults.keywordScore}%
-                </span>
-              </div>
-            </div>
-            <Progress value={scanResults.keywordScore} className="h-2" />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Structure</span>
-              <div className="flex items-center gap-1">
-                {getScoreIcon(scanResults.structureScore)}
-                <span className={`text-sm ${getScoreColor(scanResults.structureScore)}`}>
-                  {scanResults.structureScore}%
-                </span>
-              </div>
-            </div>
-            <Progress value={scanResults.structureScore} className="h-2" />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Content</span>
-              <div className="flex items-center gap-1">
-                {getScoreIcon(scanResults.contentScore)}
-                <span className={`text-sm ${getScoreColor(scanResults.contentScore)}`}>
-                  {scanResults.contentScore}%
-                </span>
-              </div>
-            </div>
-            <Progress value={scanResults.contentScore} className="h-2" />
-          </div>
+          <Progress value={scanResults.keywordScore} className="h-2" />
         </div>
 
-        {/* Strengths */}
-        {scanResults.strengths.length > 0 && (
-          <div>
-            <h4 className="font-medium text-green-700 mb-2 flex items-center gap-1">
-              <CheckCircle className="h-4 w-4" />
-              Strengths
-            </h4>
-            <div className="space-y-1">
-              {scanResults.strengths.map((strength, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-green-100 text-green-800 mr-2 mb-1">
-                  {strength}
-                </Badge>
-              ))}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Structure</span>
+            <div className="flex items-center gap-1">
+              {getScoreIcon(scanResults.structureScore)}
+              <span className={`text-sm ${getScoreColor(scanResults.structureScore)}`}>
+                {scanResults.structureScore}%
+              </span>
             </div>
           </div>
-        )}
+          <Progress value={scanResults.structureScore} className="h-2" />
+        </div>
 
-        {/* Warnings */}
-        {scanResults.warnings.length > 0 && (
-          <div>
-            <h4 className="font-medium text-yellow-700 mb-2 flex items-center gap-1">
-              <AlertTriangle className="h-4 w-4" />
-              Warnings
-            </h4>
-            <div className="space-y-1">
-              {scanResults.warnings.map((warning, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-yellow-100 text-yellow-800 mr-2 mb-1">
-                  {warning}
-                </Badge>
-              ))}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Content</span>
+            <div className="flex items-center gap-1">
+              {getScoreIcon(scanResults.contentScore)}
+              <span className={`text-sm ${getScoreColor(scanResults.contentScore)}`}>
+                {scanResults.contentScore}%
+              </span>
             </div>
           </div>
-        )}
+          <Progress value={scanResults.contentScore} className="h-2" />
+        </div>
+      </div>
 
-        {/* Suggestions */}
-        {scanResults.suggestions.length > 0 && (
-          <div>
-            <h4 className="font-medium text-blue-700 mb-2 flex items-center gap-1">
-              <Zap className="h-4 w-4" />
-              Suggestions for Improvement
-            </h4>
-            <div className="space-y-1">
-              {scanResults.suggestions.map((suggestion, index) => (
-                <Badge key={index} variant="outline" className="text-xs mr-2 mb-1">
-                  {suggestion}
-                </Badge>
-              ))}
-            </div>
+      {/* Strengths */}
+      {scanResults.strengths.length > 0 && (
+        <div>
+          <h4 className="font-medium text-green-700 mb-2 flex items-center gap-1">
+            <CheckCircle className="h-4 w-4" />
+            Strengths
+          </h4>
+          <div className="space-y-1">
+            {scanResults.strengths.map((strength, index) => (
+              <Badge key={index} variant="secondary" className="text-xs bg-green-100 text-green-800 mr-2 mb-1">
+                {strength}
+              </Badge>
+            ))}
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+
+      {/* Warnings */}
+      {scanResults.warnings.length > 0 && (
+        <div>
+          <h4 className="font-medium text-yellow-700 mb-2 flex items-center gap-1">
+            <AlertTriangle className="h-4 w-4" />
+            Warnings
+          </h4>
+          <div className="space-y-1">
+            {scanResults.warnings.map((warning, index) => (
+              <Badge key={index} variant="secondary" className="text-xs bg-yellow-100 text-yellow-800 mr-2 mb-1">
+                {warning}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Suggestions */}
+      {scanResults.suggestions.length > 0 && (
+        <div>
+          <h4 className="font-medium text-blue-700 mb-2 flex items-center gap-1">
+            <Zap className="h-4 w-4" />
+            Suggestions for Improvement
+          </h4>
+          <div className="space-y-1">
+            {scanResults.suggestions.map((suggestion, index) => (
+              <Badge key={index} variant="outline" className="text-xs mr-2 mb-1">
+                {suggestion}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

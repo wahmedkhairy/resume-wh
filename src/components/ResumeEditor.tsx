@@ -155,7 +155,6 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         // Clear the localStorage after loading
         localStorage.removeItem('uploadedResumeData');
         localStorage.removeItem('resumeImprovementTips');
-        localStorage.removeItem('atsAnalysisCompleted');
         
         toast({
           title: "Resume Data Loaded",
@@ -203,76 +202,78 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
   }, [getCurrentResumeData, tailoredResumeData, personalInfo, summary, workExperience, education, skills, coursesAndCertifications, projects]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      {/* Left Column - Editor */}
-      <div className="lg:col-span-6 space-y-6">
-        {showTips && improvementTips.length > 0 && (
-          <ResumeTipsPanel 
-            tips={improvementTips} 
-            onDismiss={handleDismissTips}
+    <div className="min-h-screen overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+        {/* Left Column - Editor */}
+        <div className="lg:col-span-6 space-y-6 overflow-y-auto max-h-screen pr-2">
+          {showTips && improvementTips.length > 0 && (
+            <ResumeTipsPanel 
+              tips={improvementTips} 
+              onDismiss={handleDismissTips}
+            />
+          )}
+
+          {tailoredResumeData && (
+            <TailoredResumeNotice onSwitchToOriginal={onClearTailoredResume} />
+          )}
+
+          <ExportControls
+            onSave={onSave}
+            isSaving={isSaving}
+            isTailoredResume={!!tailoredResumeData}
+            onExport={onExport}
+            onExportWord={onExportWord}
+            isExporting={isExporting}
+            canExport={canExport()}
           />
-        )}
 
-        {tailoredResumeData && (
-          <TailoredResumeNotice onSwitchToOriginal={onClearTailoredResume} />
-        )}
-
-        <ExportControls
-          onSave={onSave}
-          isSaving={isSaving}
-          isTailoredResume={!!tailoredResumeData}
-          onExport={onExport}
-          onExportWord={onExportWord}
-          isExporting={isExporting}
-          canExport={canExport()}
-        />
-
-        <SubscriptionStatusCard subscription={currentSubscription} />
+          <SubscriptionStatusCard subscription={currentSubscription} />
+          
+          <ResumeData
+            personalInfo={personalInfo}
+            onPersonalInfoChange={onPersonalInfoChange}
+            workExperience={workExperience}
+            onWorkExperienceChange={onWorkExperienceChange}
+            education={education}
+            onEducationChange={onEducationChange}
+            skills={skills}
+            onSkillsChange={onSkillsChange}
+            coursesAndCertifications={coursesAndCertifications}
+            onCoursesChange={onCoursesChange}
+            projects={projects}
+            onProjectsChange={onProjectsChange}
+            summary={summary}
+            onSummaryChange={onSummaryChange}
+          />
+        </div>
         
-        <ResumeData
-          personalInfo={personalInfo}
-          onPersonalInfoChange={onPersonalInfoChange}
-          workExperience={workExperience}
-          onWorkExperienceChange={onWorkExperienceChange}
-          education={education}
-          onEducationChange={onEducationChange}
-          skills={skills}
-          onSkillsChange={onSkillsChange}
-          coursesAndCertifications={coursesAndCertifications}
-          onCoursesChange={onCoursesChange}
-          projects={projects}
-          onProjectsChange={onProjectsChange}
-          summary={summary}
-          onSummaryChange={onSummaryChange}
-        />
-      </div>
-      
-      {/* Right Column - Preview */}
-      <div className="lg:col-span-6 space-y-6">
-        <PreviewSection
-          personalInfo={currentResumeData.personalInfo}
-          summary={currentResumeData.summary}
-          workExperience={currentResumeData.workExperience}
-          education={currentResumeData.education}
-          skills={currentResumeData.skills}
-          coursesAndCertifications={currentResumeData.coursesAndCertifications}
-          projects={currentResumeData.projects}
-          onSummaryChange={onSummaryChange}
-          isPremiumUser={isPremiumUser}
-          currentUserId={currentUserId}
-          sessionId={sessionId}
-        />
-        
-        <ATSScannerToggle
-          resumeData={{
-            personalInfo: currentResumeData.personalInfo,
-            summary: currentResumeData.summary,
-            workExperience: currentResumeData.workExperience,
-            education: currentResumeData.education,
-            skills: currentResumeData.skills,
-            coursesAndCertifications: currentResumeData.coursesAndCertifications,
-          }}
-        />
+        {/* Right Column - Preview */}
+        <div className="lg:col-span-6 space-y-6 overflow-y-auto max-h-screen pr-2">
+          <PreviewSection
+            personalInfo={currentResumeData.personalInfo}
+            summary={currentResumeData.summary}
+            workExperience={currentResumeData.workExperience}
+            education={currentResumeData.education}
+            skills={currentResumeData.skills}
+            coursesAndCertifications={currentResumeData.coursesAndCertifications}
+            projects={currentResumeData.projects}
+            onSummaryChange={onSummaryChange}
+            isPremiumUser={isPremiumUser}
+            currentUserId={currentUserId}
+            sessionId={sessionId}
+          />
+          
+          <ATSScannerToggle
+            resumeData={{
+              personalInfo: currentResumeData.personalInfo,
+              summary: currentResumeData.summary,
+              workExperience: currentResumeData.workExperience,
+              education: currentResumeData.education,
+              skills: currentResumeData.skills,
+              coursesAndCertifications: currentResumeData.coursesAndCertifications,
+            }}
+          />
+        </div>
       </div>
     </div>
   );
