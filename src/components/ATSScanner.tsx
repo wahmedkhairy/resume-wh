@@ -29,9 +29,6 @@ interface ScanResults {
 }
 
 const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
-  // Check immediately if scanning should be disabled
-  const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
-  
   const [scanResults, setScanResults] = useState<ScanResults>({
     overallScore: 0,
     formatScore: 0,
@@ -45,15 +42,18 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
   });
 
   const [lastAnalyzedData, setLastAnalyzedData] = useState<string>("");
-  const [scanningDisabled, setScanningDisabled] = useState(isFromFixMyResume);
+  const [skipInitialScan, setSkipInitialScan] = useState(false);
 
-  // Clear the flag if it was set
+  // Check if user came from fix my resume and handle it properly
   useEffect(() => {
+    const isFromFixMyResume = localStorage.getItem('atsAnalysisCompleted') === 'true';
     if (isFromFixMyResume) {
-      console.log('ATS Scanner: Disabling automatic scans - user came from fix my resume');
+      console.log('ATS Scanner: User came from fix my resume, skipping initial scan only');
+      setSkipInitialScan(true);
+      // Clear the flag so it doesn't affect future sessions
       localStorage.removeItem('atsAnalysisCompleted');
     }
-  }, [isFromFixMyResume]);
+  }, []);
 
   const performATSScan = useCallback(async (data: any) => {
     // Create a stable hash of the data to prevent unnecessary re-analysis
@@ -219,22 +219,24 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     }
   }, [lastAnalyzedData]);
 
-  // Only perform scan if scanning is enabled and we have data
+  // Perform scan when data changes, but skip initial scan if user came from fix my resume
   useEffect(() => {
-    if (scanningDisabled) {
-      console.log('ATS Scanner: Scanning is disabled, skipping analysis');
+    if (!resumeData) return;
+
+    // Skip the very first scan if user came from fix my resume
+    if (skipInitialScan) {
+      console.log('ATS Scanner: Skipping initial scan for fix my resume user');
+      setSkipInitialScan(false); // Reset so future changes will trigger scans
       return;
     }
 
-    if (resumeData) {
-      // Debounce the scanning to prevent excessive calls
-      const timeoutId = setTimeout(() => {
-        performATSScan(resumeData);
-      }, 1000);
+    // Debounce the scanning to prevent excessive calls
+    const timeoutId = setTimeout(() => {
+      performATSScan(resumeData);
+    }, 1000);
 
-      return () => clearTimeout(timeoutId);
-    }
-  }, [resumeData, performATSScan, scanningDisabled]);
+    return () => clearTimeout(timeoutId);
+  }, [resumeData, performATSScan, skipInitialScan]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";
@@ -247,30 +249,6 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     if (score >= 60) return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
     return <XCircle className="h-5 w-5 text-red-600" />;
   };
-
-  if (scanningDisabled) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            ATS Compatibility Scanner
-          </CardTitle>
-          <CardDescription>
-            Scanner disabled - resume data imported from ATS analysis
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="text-center py-8">
-            <CheckCircle className="h-12 w-12 mx-auto text-green-600 mb-4" />
-            <p className="text-muted-foreground">
-              Your resume has been imported and the scanner is disabled to prevent interference with your imported data.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   if (scanResults.isScanning) {
     return (
