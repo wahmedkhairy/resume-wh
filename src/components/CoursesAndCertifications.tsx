@@ -120,8 +120,7 @@ const CoursesAndCertifications: React.FC<CoursesAndCertificationsProps> = ({
       <CardContent className="space-y-4">
         {courses.map((course) => (
           <div key={course.id} className="border rounded p-4 space-y-3">
-            <div className="flex justify-between items-start mb-2">
-              <h4 className="font-semibold text-sm text-muted-foreground">Course/Certification Entry</h4>
+            <div className="flex justify-end items-start mb-2">
               <Button
                 onClick={() => handleDeleteCourse(course.id)}
                 variant="outline"

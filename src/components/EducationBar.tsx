@@ -68,8 +68,7 @@ const EducationBar: React.FC<EducationBarProps> = ({
       <CardContent className="space-y-4">
         {education.map((edu) => (
           <div key={edu.id} className="border rounded p-4 space-y-3">
-            <div className="flex justify-between items-start mb-2">
-              <h4 className="font-semibold text-sm text-muted-foreground">Education Entry</h4>
+            <div className="flex justify-end items-start mb-2">
               <Button
                 onClick={() => handleDeleteEducation(edu.id)}
                 variant="outline"

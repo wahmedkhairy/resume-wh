@@ -107,15 +107,15 @@ const ResumeData: React.FC<ResumeDataProps> = ({
         onExperienceChange={onWorkExperienceChange}
         initialExperience={workExperience}
       />
-      
-      <EducationBar 
-        onEducationChange={onEducationChange}
-        initialEducation={education}
-      />
 
       <ProjectsBar
         onProjectsChange={onProjectsChange}
         initialProjects={projects}
+      />
+      
+      <EducationBar 
+        onEducationChange={onEducationChange}
+        initialEducation={education}
       />
       
       <CoursesAndCertifications 
