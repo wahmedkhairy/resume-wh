@@ -230,6 +230,8 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
       return;
     }
 
+    console.log('ATS Scanner: Data changed, preparing to scan:', resumeData);
+
     // Debounce the scanning to prevent excessive calls
     const timeoutId = setTimeout(() => {
       performATSScan(resumeData);
