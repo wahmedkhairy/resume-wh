@@ -1,7 +1,6 @@
 
 import React from "react";
 import ResumePreview from "@/components/ResumePreview";
-import ATSScanner from "@/components/ATSScanner";
 import AntiTheftProtection from "@/components/AntiTheftProtection";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
 
@@ -81,17 +80,6 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
   currentUserId,
   sessionId,
 }) => {
-  // Prepare resume data for ATS Scanner
-  const resumeData = {
-    personalInfo,
-    summary,
-    workExperience,
-    education,
-    skills,
-    coursesAndCertifications,
-    projects,
-  };
-
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
@@ -118,8 +106,6 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
           />
         </div>
       </div>
-      
-      <ATSScanner resumeData={resumeData} />
     </div>
   );
 };
