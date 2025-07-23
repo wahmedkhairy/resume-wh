@@ -127,9 +127,9 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         const parsedData = JSON.parse(uploadedData);
         const parsedTips = JSON.parse(tips);
         
-        // Batch all state updates to prevent multiple re-renders
-        setTimeout(() => {
-          // Load the extracted resume data all at once
+        // Use React.startTransition to batch all updates
+        React.startTransition(() => {
+          // Load the extracted resume data all at once in a single batch
           if (parsedData.personalInfo) {
             onPersonalInfoChange(parsedData.personalInfo);
           }
@@ -154,16 +154,16 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
           setImprovementTips(parsedTips);
           setShowTips(true);
           
+          // Clear the localStorage after loading
+          localStorage.removeItem('uploadedResumeData');
+          localStorage.removeItem('resumeImprovementTips');
+          // Keep atsAnalysisCompleted flag to signal ATS scanner
+          
           toast({
             title: "Resume Data Loaded",
             description: "Your resume has been imported from the ATS scanner. Review the improvement tips below.",
           });
-        }, 100); // Small delay to batch updates
-        
-        // Clear the localStorage after loading
-        localStorage.removeItem('uploadedResumeData');
-        localStorage.removeItem('resumeImprovementTips');
-        // Keep atsAnalysisCompleted flag to signal ATS scanner
+        });
         
       } catch (error) {
         console.error('Error parsing uploaded resume data:', error);
@@ -204,6 +204,16 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
       projects,
     };
   }, [getCurrentResumeData, tailoredResumeData, personalInfo, summary, workExperience, education, skills, coursesAndCertifications, projects]);
+
+  // Memoize the data for ATS scanner to prevent unnecessary re-renders
+  const atsResumeData = React.useMemo(() => ({
+    personalInfo: currentResumeData.personalInfo,
+    summary: currentResumeData.summary,
+    workExperience: currentResumeData.workExperience,
+    education: currentResumeData.education,
+    skills: currentResumeData.skills,
+    coursesAndCertifications: currentResumeData.coursesAndCertifications,
+  }), [currentResumeData]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -267,14 +277,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         />
         
         <ATSScannerToggle
-          resumeData={{
-            personalInfo: currentResumeData.personalInfo,
-            summary: currentResumeData.summary,
-            workExperience: currentResumeData.workExperience,
-            education: currentResumeData.education,
-            skills: currentResumeData.skills,
-            coursesAndCertifications: currentResumeData.coursesAndCertifications,
-          }}
+          resumeData={atsResumeData}
         />
       </div>
     </div>
