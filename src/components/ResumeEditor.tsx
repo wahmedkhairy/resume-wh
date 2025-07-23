@@ -181,7 +181,7 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
     setImprovementTips([]);
   };
 
-  // Get the current resume data (either tailored or original)
+  // Get the current resume data (either tailored or original) - properly memoized
   const currentResumeData = React.useMemo(() => {
     // If we have a function to get current resume data, use it
     if (typeof getCurrentResumeData === 'function') {

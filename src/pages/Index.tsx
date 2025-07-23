@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -82,8 +82,8 @@ const Index = () => {
     initializeUser();
   }, []);
 
-  // Create current resume data object
-  const getCurrentResumeData = () => {
+  // Create current resume data object - memoized to prevent unnecessary re-renders
+  const getCurrentResumeData = useCallback(() => {
     return tailoredResumeData || {
       personalInfo,
       summary: resumeState.summary,
@@ -93,7 +93,7 @@ const Index = () => {
       coursesAndCertifications,
       projects
     };
-  };
+  }, [tailoredResumeData, personalInfo, resumeState.summary, workExperience, education, skills, coursesAndCertifications, projects]);
 
   const handlePersonalInfoChange = (info: any) => {
     setPersonalInfo(info);
@@ -251,7 +251,7 @@ const Index = () => {
             onExport={handleExportResume}
             onExportWord={handleExportResumeAsWord}
             canExport={canExport}
-            getCurrentResumeData={getCurrentResumeData()}
+            getCurrentResumeData={getCurrentResumeData}
           />
         </div>
       </main>
