@@ -127,40 +127,43 @@ const ResumeEditor: React.FC<ResumeEditorProps> = ({
         const parsedData = JSON.parse(uploadedData);
         const parsedTips = JSON.parse(tips);
         
-        // Load the extracted resume data
-        if (parsedData.personalInfo) {
-          onPersonalInfoChange(parsedData.personalInfo);
-        }
-        
-        if (parsedData.summary) {
-          onSummaryChange(parsedData.summary);
-        }
-        
-        if (parsedData.workExperience) {
-          onWorkExperienceChange(parsedData.workExperience);
-        }
-        
-        if (parsedData.education) {
-          onEducationChange(parsedData.education);
-        }
-        
-        if (parsedData.skills) {
-          onSkillsChange(parsedData.skills);
-        }
-        
-        // Set improvement tips
-        setImprovementTips(parsedTips);
-        setShowTips(true);
+        // Batch all state updates to prevent multiple re-renders
+        setTimeout(() => {
+          // Load the extracted resume data all at once
+          if (parsedData.personalInfo) {
+            onPersonalInfoChange(parsedData.personalInfo);
+          }
+          
+          if (parsedData.summary) {
+            onSummaryChange(parsedData.summary);
+          }
+          
+          if (parsedData.workExperience) {
+            onWorkExperienceChange(parsedData.workExperience);
+          }
+          
+          if (parsedData.education) {
+            onEducationChange(parsedData.education);
+          }
+          
+          if (parsedData.skills) {
+            onSkillsChange(parsedData.skills);
+          }
+          
+          // Set improvement tips after data loading
+          setImprovementTips(parsedTips);
+          setShowTips(true);
+          
+          toast({
+            title: "Resume Data Loaded",
+            description: "Your resume has been imported from the ATS scanner. Review the improvement tips below.",
+          });
+        }, 100); // Small delay to batch updates
         
         // Clear the localStorage after loading
         localStorage.removeItem('uploadedResumeData');
         localStorage.removeItem('resumeImprovementTips');
-        localStorage.removeItem('atsAnalysisCompleted');
-        
-        toast({
-          title: "Resume Data Loaded",
-          description: "Your resume has been imported from the ATS scanner. Review the improvement tips below.",
-        });
+        // Keep atsAnalysisCompleted flag to signal ATS scanner
         
       } catch (error) {
         console.error('Error parsing uploaded resume data:', error);

@@ -59,9 +59,11 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     // Create a stable hash of the data to prevent unnecessary re-analysis
     const dataHash = JSON.stringify(data);
     if (dataHash === lastAnalyzedData) {
+      console.log('ATS Scanner: Skipping scan - data unchanged');
       return; // Skip if data hasn't changed
     }
 
+    console.log('ATS Scanner: Starting scan with new data');
     setScanResults(prev => ({ ...prev, isScanning: true }));
     
     try {
@@ -232,10 +234,10 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
 
     console.log('ATS Scanner: Data changed, preparing to scan:', resumeData);
 
-    // Debounce the scanning to prevent excessive calls
+    // Longer debounce to prevent excessive calls during data loading
     const timeoutId = setTimeout(() => {
       performATSScan(resumeData);
-    }, 1000);
+    }, 2000); // Increased from 1000 to 2000ms
 
     return () => clearTimeout(timeoutId);
   }, [resumeData, performATSScan, skipInitialScan]);
