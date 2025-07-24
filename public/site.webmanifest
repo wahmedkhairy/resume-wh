@@ -4,12 +4,12 @@
   "description": "Create ATS-optimized resumes that get past applicant tracking systems and into the hands of recruiters",
   "icons": [
     {
-      "src": "/src/assets/favicon-document.png",
+      "src": "/lovable-uploads/favicon-document.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "/src/assets/android-chrome-document.png",
+      "src": "/lovable-uploads/android-chrome-document.png",
       "sizes": "192x192",
       "type": "image/png"
     }
