@@ -46,7 +46,7 @@ const Header = () => {
           <img 
             src="/lovable-uploads/380572e4-1ce6-458d-bcba-62fd80109316.png" 
             alt="Resume Builder Logo" 
-            className="h-8 w-8"
+            className="h-12 w-12"
           />
           <span className="text-xl font-bold">
             Resume<span className="text-resume-primary"> Builder</span>
