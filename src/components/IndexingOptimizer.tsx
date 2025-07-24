@@ -29,7 +29,12 @@ const IndexingOptimizer: React.FC<IndexingOptimizerProps> = ({ children }) => {
         document.head.appendChild(canonicalLink);
       }
       
-      const canonicalUrl = `https://resumewh.com${location.pathname}`;
+      // Ensure canonical URL is properly formatted (no trailing slash for non-root paths)
+      let canonicalPath = location.pathname;
+      if (canonicalPath.length > 1 && canonicalPath.endsWith('/')) {
+        canonicalPath = canonicalPath.slice(0, -1);
+      }
+      const canonicalUrl = `https://resumewh.com${canonicalPath}`;
       canonicalLink.setAttribute('href', canonicalUrl);
 
       // Add hreflang for internationalization support

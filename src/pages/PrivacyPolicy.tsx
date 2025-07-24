@@ -1,20 +1,22 @@
-import SEOHead from "@/components/SEOHead";
-
-// Add this at the top of your PrivacyPolicy component:
-<SEOHead 
-  title="Privacy Policy - Resume Builder | Data Protection & Security"
-  description="Read our privacy policy to understand how Resume Builder protects your personal data and resume information."
-  canonicalUrl="/privacy-policy"
-  noindex={true}
-/>
-  import React from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 
 const PrivacyPolicy = () => {
   return (
+    <>
+      <SEOHead 
+        title="Privacy Policy - Resume Builder | Data Protection"
+        description="Learn how we protect your personal information and data privacy on Resume Builder's ATS-optimized platform."
+        canonicalUrl="https://resumewh.com/privacy-policy"
+        keywords="privacy policy, data protection, resume builder privacy, ATS resume privacy"
+        ogTitle="Privacy Policy - Resume Builder"
+        ogDescription="Learn how we protect your personal information and data privacy on Resume Builder's ATS-optimized platform."
+        ogUrl="https://resumewh.com/privacy-policy"
+      />
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-6">
         <div className="mb-6">
@@ -99,8 +101,9 @@ const PrivacyPolicy = () => {
             </section>
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

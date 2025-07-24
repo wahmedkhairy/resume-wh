@@ -1,27 +1,22 @@
-import SEOHead from "@/components/SEOHead";
-
-// Add this at the top of your TermsOfService component:
-<SEOHead 
-  title="Terms of Service - Resume Builder | User Agreement"
-  description="Read our terms of service and user agreement for Resume Builder's ATS-optimized resume creation platform."
-  canonicalUrl="/terms-of-service"
-  noindex={true}
-/>
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { Helmet } from "react-helmet-async";
+import SEOHead from "@/components/SEOHead";
 
 const TermsOfService = () => {
   return (
     <>
-      <Helmet>
-        <title>Terms of Service - Resume Builder</title>
-        <link rel="canonical" href="https://resumewh.com/terms-of-service" />
-        <meta name="description" content="Terms of Service for ResumeWH.com - Professional ATS-optimized resume builder platform." />
-      </Helmet>
+      <SEOHead 
+        title="Terms of Service - Resume Builder | User Agreement"
+        description="Read our terms of service and user agreement for Resume Builder's ATS-optimized resume creation platform."
+        canonicalUrl="https://resumewh.com/terms-of-service"
+        keywords="terms of service, user agreement, resume builder terms, ATS resume terms"
+        ogTitle="Terms of Service - Resume Builder"
+        ogDescription="Read our terms of service and user agreement for Resume Builder's ATS-optimized resume creation platform."
+        ogUrl="https://resumewh.com/terms-of-service"
+      />
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
         <div className="max-w-4xl mx-auto px-6">
           <div className="mb-6">

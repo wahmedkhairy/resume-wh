@@ -21,16 +21,24 @@ const DEFAULT_REDIRECT_RULES: RedirectRule[] = [
   { from: '/home', to: '/', permanent: true, type: 'exact' },
   { from: '/Home', to: '/', permanent: true, type: 'exact' },
   
-  // Handle trailing slash inconsistencies
+  // Handle trailing slash inconsistencies (301 redirects)
   { from: '/auth/', to: '/auth', permanent: true, type: 'exact' },
   { from: '/free-ats-scanner/', to: '/free-ats-scanner', permanent: true, type: 'exact' },
   { from: '/subscription/', to: '/subscription', permanent: true, type: 'exact' },
+  { from: '/terms-of-service/', to: '/terms-of-service', permanent: true, type: 'exact' },
+  { from: '/privacy-policy/', to: '/privacy-policy', permanent: true, type: 'exact' },
+  { from: '/payment-success/', to: '/payment-success', permanent: true, type: 'exact' },
+  { from: '/payment-cancelled/', to: '/payment-cancelled', permanent: true, type: 'exact' },
   
   // Handle case sensitivity issues
   { from: '/AUTH', to: '/auth', permanent: true, type: 'exact' },
   { from: '/Auth', to: '/auth', permanent: true, type: 'exact' },
   { from: '/FREE-ATS-SCANNER', to: '/free-ats-scanner', permanent: true, type: 'exact' },
   { from: '/Free-ATS-Scanner', to: '/free-ats-scanner', permanent: true, type: 'exact' },
+  { from: '/TERMS-OF-SERVICE', to: '/terms-of-service', permanent: true, type: 'exact' },
+  { from: '/Terms-Of-Service', to: '/terms-of-service', permanent: true, type: 'exact' },
+  { from: '/PRIVACY-POLICY', to: '/privacy-policy', permanent: true, type: 'exact' },
+  { from: '/Privacy-Policy', to: '/privacy-policy', permanent: true, type: 'exact' },
   
   // Handle old URL patterns that might exist
   { from: '/resume-builder', to: '/', permanent: true, type: 'exact' },
@@ -39,7 +47,7 @@ const DEFAULT_REDIRECT_RULES: RedirectRule[] = [
   { from: '/signup', to: '/auth', permanent: true, type: 'exact' },
   { from: '/register', to: '/auth', permanent: true, type: 'exact' },
   
-  // Handle admin redirects
+  // Handle admin redirects - NO redirect for /admin as it's a valid route
   { from: '/admin/', to: '/admin', permanent: true, type: 'exact' },
   { from: '/Admin', to: '/admin', permanent: true, type: 'exact' },
   { from: '/ADMIN', to: '/admin', permanent: true, type: 'exact' },
