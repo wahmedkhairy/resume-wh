@@ -44,7 +44,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <img 
-            src="/lovable-uploads/a962d0b8-93d6-44ee-bf91-1cb5a307f7c3.png" 
+            src="/src/assets/favicon-base.png" 
             alt="Resume Builder Logo" 
             className="h-8 w-8"
           />

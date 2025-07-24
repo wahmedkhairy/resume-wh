@@ -32,10 +32,10 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   ogTitle,
   ogDescription,
   ogUrl,
-  ogImage = "https://resumewh.com/lovable-uploads/a962d0b8-93d6-44ee-bf91-1cb5a307f7c3.png",
+  ogImage = "https://resumewh.com/src/assets/og-image-1200x630.png",
   twitterTitle,
   twitterDescription,
-  twitterImage = "https://resumewh.com/lovable-uploads/a962d0b8-93d6-44ee-bf91-1cb5a307f7c3.png",
+  twitterImage = "https://resumewh.com/src/assets/og-image-1200x630.png",
   twitterCard = "summary_large_image",
   noindex = false,
   nofollow = false,
@@ -104,7 +104,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
           "name": "Resume Builder",
           "description": description,
           "url": absoluteCanonicalUrl,
-          "logo": "https://resumewh.com/lovable-uploads/a962d0b8-93d6-44ee-bf91-1cb5a307f7c3.png",
+          "logo": "https://resumewh.com/src/assets/og-image-1200x630.png",
           "applicationCategory": "BusinessApplication",
           "operatingSystem": "Any",
           "offers": {
@@ -123,7 +123,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
             "name": "Resume Builder",
             "logo": {
               "@type": "ImageObject",
-              "url": "https://resumewh.com/lovable-uploads/a962d0b8-93d6-44ee-bf91-1cb5a307f7c3.png"
+              "url": "https://resumewh.com/src/assets/og-image-1200x630.png"
             }
           }
         })}
