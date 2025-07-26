@@ -12,6 +12,7 @@ import IndexingOptimizer from "@/components/IndexingOptimizer";
 import AdminRoute from "@/components/AdminRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import UserAuth from "./pages/UserAuth";
 import Subscription from "./pages/Subscription";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
@@ -67,6 +68,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/user-auth" element={<UserAuth />} />
                 <Route path="/subscription" element={<Subscription />} />
                 <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />

@@ -28,11 +28,11 @@ const Header = () => {
   }, []);
 
   const handleSignIn = () => {
-    navigate("/auth");
+    navigate("/user-auth");
   };
 
   const handleSignUp = () => {
-    navigate("/auth");
+    navigate("/user-auth");
   };
 
   const handleFreeATSScanner = () => {
