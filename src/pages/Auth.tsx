@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
@@ -41,9 +40,8 @@ const Auth = () => {
             description: "You have successfully signed in.",
           });
           
-          // Redirect to home page or intended destination
-          const redirectTo = searchParams.get('redirect') || '/';
-          navigate(redirectTo);
+          // Always redirect to home page after successful authentication
+          navigate('/');
         }
         
         // Handle sign out
@@ -59,15 +57,14 @@ const Auth = () => {
       setUser(session?.user ?? null);
       setIsInitialLoading(false);
       
-      // If user is already authenticated, redirect them
+      // If user is already authenticated, redirect them to home
       if (session?.user) {
-        const redirectTo = searchParams.get('redirect') || '/';
-        navigate(redirectTo);
+        navigate('/');
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast, searchParams]);
+  }, [navigate, toast]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

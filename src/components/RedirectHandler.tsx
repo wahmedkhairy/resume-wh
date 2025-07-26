@@ -47,7 +47,7 @@ const DEFAULT_REDIRECT_RULES: RedirectRule[] = [
   { from: '/signup', to: '/auth', permanent: true, type: 'exact' },
   { from: '/register', to: '/auth', permanent: true, type: 'exact' },
   
-  // Handle admin redirects - NO redirect for /admin as it's a valid route
+  // Handle admin redirects - case sensitivity only
   { from: '/admin/', to: '/admin', permanent: true, type: 'exact' },
   { from: '/Admin', to: '/admin', permanent: true, type: 'exact' },
   { from: '/ADMIN', to: '/admin', permanent: true, type: 'exact' },

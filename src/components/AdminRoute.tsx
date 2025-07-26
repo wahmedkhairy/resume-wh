@@ -29,14 +29,14 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
           <Shield className="h-12 w-12 mx-auto mb-4 text-destructive" />
           <h2 className="text-xl font-semibold mb-2">Authentication Error</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
-          <Navigate to="/auth?redirect=admin" replace />
+          <Navigate to="/auth" replace />
         </div>
       </div>
     );
   }
 
   if (!user) {
-    return <Navigate to="/auth?redirect=admin" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   if (!isAdmin) {
