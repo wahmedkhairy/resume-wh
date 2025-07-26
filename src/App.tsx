@@ -59,7 +59,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <CanonicalRedirectHandler />
+            {/* <CanonicalRedirectHandler /> */}
             <IndexingOptimizer>
               <RedirectHandler />
               <Routes>
