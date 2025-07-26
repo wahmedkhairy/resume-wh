@@ -3,19 +3,17 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import MobileNotification from "@/components/MobileNotification";
 import RedirectHandler from "@/components/RedirectHandler";
 import CanonicalRedirectHandler from "@/components/CanonicalRedirectHandler";
 import IndexingOptimizer from "@/components/IndexingOptimizer";
-import AdminRoute from "@/components/AdminRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Subscription from "./pages/Subscription";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
-import Admin from "./pages/Admin";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import FreeATSScannerPage from "./pages/FreeATSScanner";
@@ -68,7 +66,7 @@ const App = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/subscription" element={<Subscription />} />
-                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+                <Route path="/admin" element={<Navigate to="/auth" replace />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-cancelled" element={<PaymentCancelled />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
