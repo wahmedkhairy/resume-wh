@@ -43,9 +43,9 @@ const DEFAULT_REDIRECT_RULES: RedirectRule[] = [
   // Handle old URL patterns that might exist
   { from: '/resume-builder', to: '/', permanent: true, type: 'exact' },
   { from: '/ats-scanner', to: '/free-ats-scanner', permanent: true, type: 'exact' },
-  { from: '/login', to: '/user-auth', permanent: true, type: 'exact' },
-  { from: '/signup', to: '/user-auth', permanent: true, type: 'exact' },
-  { from: '/register', to: '/user-auth', permanent: true, type: 'exact' },
+  { from: '/login', to: '/auth', permanent: true, type: 'exact' },
+  { from: '/signup', to: '/auth', permanent: true, type: 'exact' },
+  { from: '/register', to: '/auth', permanent: true, type: 'exact' },
   
   // Handle admin redirects - NO redirect for /admin as it's a valid route
   { from: '/admin/', to: '/admin', permanent: true, type: 'exact' },
