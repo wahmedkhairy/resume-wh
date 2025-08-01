@@ -16,9 +16,12 @@ const Auth = () => {
   const { toast } = useToast();
   
   const [isSignUp, setIsSignUp] = useState(searchParams.get('signup') === 'true');
+  const [isPasswordReset, setIsPasswordReset] = useState(searchParams.get('reset') === 'true');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -212,6 +215,111 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+
+      if (error) {
+        toast({
+          title: "Password Reset Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Password Reset Email Sent",
+          description: `Check your email at ${email} for password reset instructions.`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validatePassword(newPassword)) {
+      toast({
+        title: "Invalid Password",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        toast({
+          title: "Password Update Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Password Updated Successfully",
+          description: "Your password has been updated. You can now sign in with your new password.",
+        });
+        // Reset the form and redirect
+        setIsPasswordReset(false);
+        setNewPassword("");
+        setConfirmNewPassword("");
+        navigate('/auth');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isInitialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -257,80 +365,74 @@ const Auth = () => {
                 Continue with Google
               </Button>
 
-              {/* Tab Buttons */}
-              <div className="flex mb-6">
-                <button
-                  onClick={() => setIsSignUp(false)}
-                  className={`flex-1 py-3 px-4 text-center font-medium rounded-l-lg transition-colors ${
-                    !isSignUp 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => setIsSignUp(true)}
-                  className={`flex-1 py-3 px-4 text-center font-medium rounded-r-lg transition-colors ${
-                    isSignUp 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Sign Up
-                </button>
-              </div>
+              {/* Tab Buttons - Hide during password reset */}
+              {!isPasswordReset && (
+                <div className="flex mb-6">
+                  <button
+                    onClick={() => setIsSignUp(false)}
+                    className={`flex-1 py-3 px-4 text-center font-medium rounded-l-lg transition-colors ${
+                      !isSignUp 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => setIsSignUp(true)}
+                    className={`flex-1 py-3 px-4 text-center font-medium rounded-r-lg transition-colors ${
+                      isSignUp 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              )}
 
               {/* Form */}
-              <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
-                {/* Email Field */}
-                <div>
-                  <Label htmlFor="email" className="text-gray-900 font-medium">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="mt-1 h-12"
-                    required
-                  />
-                </div>
-
-                {/* Password Field */}
-                <div>
-                  <Label htmlFor="password" className="text-gray-900 font-medium">Password</Label>
-                  <div className="relative mt-1">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder={isSignUp ? "Create a password (min 6 characters)" : "Enter your password"}
-                      className="h-12 pr-10"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
+              {isPasswordReset ? (
+                /* Password Reset Form */
+                <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                  <div className="text-center mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Reset Your Password</h3>
+                    <p className="text-gray-600 text-sm">Enter your new password below</p>
                   </div>
-                </div>
 
-                {/* Confirm Password Field (Sign Up only) */}
-                {isSignUp && (
+                  {/* New Password Field */}
                   <div>
-                    <Label htmlFor="confirmPassword" className="text-gray-900 font-medium">Confirm Password</Label>
+                    <Label htmlFor="newPassword" className="text-gray-900 font-medium">New Password</Label>
                     <div className="relative mt-1">
                       <Input
-                        id="confirmPassword"
+                        id="newPassword"
+                        type={showPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter your new password (min 6 characters)"
+                        className="h-12 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm New Password Field */}
+                  <div>
+                    <Label htmlFor="confirmNewPassword" className="text-gray-900 font-medium">Confirm New Password</Label>
+                    <div className="relative mt-1">
+                      <Input
+                        id="confirmNewPassword"
                         type={showConfirmPassword ? "text" : "password"}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirm your password"
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        placeholder="Confirm your new password"
                         className="h-12 pr-10"
                         required
                       />
@@ -343,41 +445,120 @@ const Auth = () => {
                       </button>
                     </div>
                   </div>
-                )}
 
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium mt-6"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-current mr-2"></div>
-                      {isSignUp ? "Creating Account..." : "Signing In..."}
-                    </div>
-                  ) : (
-                    isSignUp ? "Sign Up" : "Sign In"
-                  )}
-                </Button>
-              </form>
-
-              {/* Forgot Password Link (Sign In only) */}
-              {!isSignUp && (
-                <div className="text-center mt-4">
-                  <button
-                    type="button"
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                    onClick={() => {
-                      toast({
-                        title: "Password Reset",
-                        description: "Password reset functionality will be available soon.",
-                      });
-                    }}
+                  {/* Update Password Button */}
+                  <Button
+                    type="submit"
+                    className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium mt-6"
+                    disabled={isLoading}
                   >
-                    Forget your password?
-                  </button>
-                </div>
+                    {isLoading ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-current mr-2"></div>
+                        Updating Password...
+                      </div>
+                    ) : (
+                      "Update Password"
+                    )}
+                  </Button>
+                </form>
+              ) : (
+                /* Regular Sign In/Up Form */
+                <>
+                  <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
+                    {/* Email Field */}
+                    <div>
+                      <Label htmlFor="email" className="text-gray-900 font-medium">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="mt-1 h-12"
+                        required
+                      />
+                    </div>
+
+                    {/* Password Field */}
+                    <div>
+                      <Label htmlFor="password" className="text-gray-900 font-medium">Password</Label>
+                      <div className="relative mt-1">
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder={isSignUp ? "Create a password (min 6 characters)" : "Enter your password"}
+                          className="h-12 pr-10"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Confirm Password Field (Sign Up only) */}
+                    {isSignUp && (
+                      <div>
+                        <Label htmlFor="confirmPassword" className="text-gray-900 font-medium">Confirm Password</Label>
+                        <div className="relative mt-1">
+                          <Input
+                            id="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm your password"
+                            className="h-12 pr-10"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          >
+                            {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Submit Button */}
+                    <Button
+                      type="submit"
+                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium mt-6"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-current mr-2"></div>
+                          {isSignUp ? "Creating Account..." : "Signing In..."}
+                        </div>
+                      ) : (
+                        isSignUp ? "Sign Up" : "Sign In"
+                      )}
+                    </Button>
+                  </form>
+
+                  {/* Forgot Password Link (Sign In only) */}
+                  {!isSignUp && (
+                    <div className="text-center mt-4">
+                      <button
+                        type="button"
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        onClick={handleForgotPassword}
+                        disabled={isLoading}
+                      >
+                        Forget your password?
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
