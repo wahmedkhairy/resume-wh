@@ -30,9 +30,13 @@ const Auth = () => {
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
+    // Test toast functionality
+    console.log("Auth component mounted, testing toast...");
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -103,6 +107,7 @@ const Auth = () => {
       });
 
       if (error) {
+        console.log("Sign in error:", error.message);
         let errorMessage = "An error occurred during sign in.";
         
         if (error.message.includes("Invalid login credentials")) {
@@ -115,6 +120,7 @@ const Auth = () => {
           errorMessage = error.message;
         }
         
+        console.log("Showing toast with message:", errorMessage);
         toast({
           title: "Sign In Failed",
           description: errorMessage,
@@ -176,6 +182,7 @@ const Auth = () => {
       });
 
       if (error) {
+        console.log("Sign up error:", error.message);
         let errorMessage = "An error occurred during sign up.";
         
         if (error.message.includes("User already registered")) {
@@ -190,6 +197,7 @@ const Auth = () => {
           errorMessage = error.message;
         }
         
+        console.log("Showing sign up toast with message:", errorMessage);
         toast({
           title: "Sign Up Failed",
           description: errorMessage,
@@ -329,6 +337,23 @@ const Auth = () => {
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome</h1>
                 <p className="text-gray-600">Sign in to your account or create a new one</p>
               </div>
+
+              {/* Test Toast Button */}
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  console.log("Test toast button clicked");
+                  toast({
+                    title: "Test Toast",
+                    description: "This is a test message to verify toast is working",
+                    variant: "destructive",
+                  });
+                }}
+                className="w-full mb-4"
+              >
+                Test Error Message (Debug)
+              </Button>
 
               {/* Google Button */}
               <Button 
