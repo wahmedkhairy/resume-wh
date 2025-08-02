@@ -254,6 +254,8 @@ const Auth = () => {
           title: "Password Reset Email Sent",
           description: `Check your email at ${email} for password reset instructions.`,
         });
+        // Set the form to password reset mode
+        setIsPasswordReset(true);
       }
     } catch (error: any) {
       toast({
