@@ -103,9 +103,21 @@ const Auth = () => {
       });
 
       if (error) {
+        let errorMessage = "An error occurred during sign in.";
+        
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Incorrect email or password. Please check your credentials and try again.";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "Please check your email and click the verification link before signing in.";
+        } else if (error.message.includes("Too many requests")) {
+          errorMessage = "Too many login attempts. Please wait a moment before trying again.";
+        } else {
+          errorMessage = error.message;
+        }
+        
         toast({
           title: "Sign In Failed",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       }
@@ -164,9 +176,23 @@ const Auth = () => {
       });
 
       if (error) {
+        let errorMessage = "An error occurred during sign up.";
+        
+        if (error.message.includes("User already registered")) {
+          errorMessage = "An account with this email already exists. Please sign in instead.";
+        } else if (error.message.includes("Password should be at least")) {
+          errorMessage = "Password must be at least 6 characters long.";
+        } else if (error.message.includes("Unable to validate email address")) {
+          errorMessage = "Please enter a valid email address.";
+        } else if (error.message.includes("Invalid email")) {
+          errorMessage = "Please enter a valid email address.";
+        } else {
+          errorMessage = error.message;
+        }
+        
         toast({
           title: "Sign Up Failed",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       } else {
