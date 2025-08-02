@@ -215,56 +215,8 @@ const Auth = () => {
     }
   };
 
-  const handleForgotPassword = async () => {
-    console.log("Forgot password clicked, email:", email);
-    
-    if (!email) {
-      toast({
-        title: "Email Required",
-        description: "Please enter your email address first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
-      });
-
-      if (error) {
-        toast({
-          title: "Password Reset Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Password Reset Email Sent",
-          description: `Check your email at ${email} for password reset instructions.`,
-        });
-        // Don't show reset form until they click the email link
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleForgotPassword = () => {
+    navigate('/forgot-password');
   };
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {

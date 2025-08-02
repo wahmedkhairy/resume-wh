@@ -11,6 +11,7 @@ import CanonicalRedirectHandler from "@/components/CanonicalRedirectHandler";
 import IndexingOptimizer from "@/components/IndexingOptimizer";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
 import Subscription from "./pages/Subscription";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
@@ -65,6 +66,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/subscription" element={<Subscription />} />
                 <Route path="/admin" element={<Navigate to="/auth" replace />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
