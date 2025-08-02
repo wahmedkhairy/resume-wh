@@ -216,6 +216,8 @@ const Auth = () => {
   };
 
   const handleForgotPassword = async () => {
+    console.log("Forgot password clicked, email:", email);
+    
     if (!email) {
       toast({
         title: "Email Required",
