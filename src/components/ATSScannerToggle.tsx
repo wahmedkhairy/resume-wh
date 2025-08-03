@@ -1,7 +1,5 @@
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import React from "react";
 import ATSScanner from "@/components/ATSScanner";
 
 interface ATSScannerToggleProps {
@@ -16,27 +14,7 @@ interface ATSScannerToggleProps {
 }
 
 const ATSScannerToggle: React.FC<ATSScannerToggleProps> = ({ resumeData }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
-
-  return (
-    <div className="relative">
-      <div className="absolute top-4 right-4 z-10">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="shrink-0 bg-white/80 hover:bg-white/90 shadow-sm"
-        >
-          {isExpanded ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
-      {isExpanded && <ATSScanner resumeData={resumeData} />}
-    </div>
-  );
+  return <ATSScanner resumeData={resumeData} />;
 };
 
 export default ATSScannerToggle;
