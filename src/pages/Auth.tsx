@@ -9,6 +9,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import SEOHead from "@/components/SEOHead";
+import EmailVerification from "@/components/EmailVerification";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ const Auth = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
 
   useEffect(() => {
     // Test toast functionality
@@ -204,6 +207,9 @@ const Auth = () => {
           variant: "destructive",
         });
       } else {
+        // Show email verification screen
+        setShowEmailVerification(true);
+        setPendingEmail(email);
         toast({
           title: "Account Created!",
           description: "Please check your email to verify your account.",
@@ -309,6 +315,21 @@ const Auth = () => {
     }
   };
 
+  const handleVerificationComplete = () => {
+    setShowEmailVerification(false);
+    setPendingEmail("");
+    toast({
+      title: "Email Verified!",
+      description: "Your account has been verified. You can now sign in.",
+    });
+  };
+
+  const handleBackToSignup = () => {
+    setShowEmailVerification(false);
+    setPendingEmail("");
+    setIsSignUp(true);
+  };
+
   if (isInitialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -317,6 +338,27 @@ const Auth = () => {
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  // Show email verification screen if needed
+  if (showEmailVerification) {
+    return (
+      <>
+        <SEOHead 
+          title="Verify Email - Resume Builder"
+          description="Verify your email address to complete your account setup"
+          canonicalUrl="https://resumewh.com/auth"
+        />
+        
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <EmailVerification
+            email={pendingEmail}
+            onVerificationComplete={handleVerificationComplete}
+            onBackToSignup={handleBackToSignup}
+          />
+        </div>
+      </>
     );
   }
 
