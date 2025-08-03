@@ -47,69 +47,100 @@ const AdminUserManagement: React.FC = () => {
       setIsLoading(true);
       console.log("Starting to fetch users...");
 
-      // Use the admin client to get all users from auth.users
-      const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers();
-      
-      if (authError) {
-        console.error("Error fetching auth users:", authError);
-        // Fall back to profiles-based approach if auth admin API fails
-        await fetchUsersFromProfiles();
-        return;
-      }
+      // Get all users from all relevant tables to ensure we capture everyone
+      const [subscriptionsResult, profilesResult, resumesResult] = await Promise.all([
+        supabase.from('subscriptions').select('user_id, tier, status, scan_count, max_scans, created_at'),
+        supabase.from('profiles').select('id, email, created_at'),
+        supabase.from('resumes').select('user_id')
+      ]);
 
-      console.log("Auth users found:", authUsers.users?.length || 0);
-
-      // Get all subscription data using the regular client
-      const { data: subscriptions, error: subscriptionsError } = await supabase
-        .from('subscriptions')
-        .select('user_id, tier, status, scan_count, max_scans, created_at');
+      const { data: subscriptions, error: subscriptionsError } = subscriptionsResult;
+      const { data: profiles, error: profilesError } = profilesResult;
+      const { data: resumes, error: resumesError } = resumesResult;
 
       if (subscriptionsError) {
         console.error("Error fetching subscriptions:", subscriptionsError);
       }
-
-      console.log("Subscriptions found:", subscriptions?.length || 0);
-
-      // Get all profile data using the regular client
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, email, created_at');
-
       if (profilesError) {
         console.error("Error fetching profiles:", profilesError);
       }
-
-      console.log("Profiles found:", profiles?.length || 0);
-
-      // Get resume counts for all users using the regular client
-      const { data: resumes, error: resumesError } = await supabase
-        .from('resumes')
-        .select('user_id');
-
       if (resumesError) {
         console.error("Error fetching resumes:", resumesError);
       }
 
+      console.log("Subscriptions found:", subscriptions?.length || 0);
+      console.log("Profiles found:", profiles?.length || 0);
       console.log("Resumes found:", resumes?.length || 0);
 
-      // Create comprehensive user list starting from auth users
-      const usersArray = authUsers.users.map(authUser => {
-        const profile = profiles?.find(p => p.id === authUser.id);
-        const subscription = subscriptions?.find(s => s.user_id === authUser.id);
-        const userResumeCount = resumes?.filter(r => r.user_id === authUser.id).length || 0;
+      // Create a comprehensive user map to collect all unique user IDs
+      const userMap = new Map();
 
-        return {
-          id: authUser.id,
-          email: authUser.email || profile?.email || `user-${authUser.id.slice(0, 8)}@unknown.email`,
-          created_at: authUser.created_at || profile?.created_at,
-          last_sign_in_at: authUser.last_sign_in_at || authUser.created_at || profile?.created_at,
-          subscription_tier: subscription?.tier || 'demo',
-          subscription_status: subscription?.status || 'inactive',
-          resume_count: userResumeCount,
-          scan_count: subscription?.scan_count || 0,
-          max_scans: subscription?.max_scans || 0
-        };
+      // Add users from subscriptions (most likely to have all users)
+      subscriptions?.forEach(subscription => {
+        if (!userMap.has(subscription.user_id)) {
+          userMap.set(subscription.user_id, {
+            id: subscription.user_id,
+            subscription_tier: subscription.tier || 'demo',
+            subscription_status: subscription.status || 'inactive',
+            scan_count: subscription.scan_count || 0,
+            max_scans: subscription.max_scans || 0,
+            subscription_created_at: subscription.created_at
+          });
+        }
       });
+
+      // Add users from profiles and merge data
+      profiles?.forEach(profile => {
+        if (userMap.has(profile.id)) {
+          const existing = userMap.get(profile.id);
+          userMap.set(profile.id, {
+            ...existing,
+            email: profile.email,
+            created_at: profile.created_at
+          });
+        } else {
+          // User has profile but no subscription - create entry
+          userMap.set(profile.id, {
+            id: profile.id,
+            email: profile.email,
+            created_at: profile.created_at,
+            subscription_tier: 'demo',
+            subscription_status: 'inactive',
+            scan_count: 0,
+            max_scans: 0
+          });
+        }
+      });
+
+      // Add users from resumes (users who created resumes but might not have complete profiles)
+      resumes?.forEach(resume => {
+        if (!userMap.has(resume.user_id)) {
+          userMap.set(resume.user_id, {
+            id: resume.user_id,
+            email: `user-${resume.user_id.slice(0, 8)}@unknown.email`,
+            subscription_tier: 'demo',
+            subscription_status: 'inactive',
+            scan_count: 0,
+            max_scans: 0
+          });
+        }
+      });
+
+      // Calculate resume counts for each user
+      const resumeCountMap = new Map();
+      resumes?.forEach(resume => {
+        const count = resumeCountMap.get(resume.user_id) || 0;
+        resumeCountMap.set(resume.user_id, count + 1);
+      });
+
+      // Convert map to array and add resume counts
+      const usersArray = Array.from(userMap.values()).map(user => ({
+        ...user,
+        email: user.email || `user-${user.id.slice(0, 8)}@unknown.email`,
+        created_at: user.created_at || user.subscription_created_at || new Date().toISOString(),
+        last_sign_in_at: user.created_at || user.subscription_created_at || new Date().toISOString(),
+        resume_count: resumeCountMap.get(user.id) || 0
+      }));
 
       console.log("Final users array:", usersArray.length);
       
@@ -119,117 +150,16 @@ const AdminUserManagement: React.FC = () => {
       setUsers(usersArray);
     } catch (error) {
       console.error('Error fetching users:', error);
-      // Fall back to profiles-based approach
-      await fetchUsersFromProfiles();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchUsersFromProfiles = async () => {
-    try {
-      console.log("Falling back to profiles-based user fetching...");
-
-      // Get all subscription data to identify all users who have ever interacted with the system
-      const { data: subscriptions, error: subscriptionsError } = await supabase
-        .from('subscriptions')
-        .select('user_id, tier, status, scan_count, max_scans, created_at');
-
-      if (subscriptionsError) {
-        console.error("Error fetching subscriptions:", subscriptionsError);
-        throw subscriptionsError;
-      }
-
-      console.log("Subscriptions found:", subscriptions?.length || 0);
-
-      // Get all profile data
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, email, created_at');
-
-      if (profilesError) {
-        console.error("Error fetching profiles:", profilesError);
-        // Don't throw here, as profiles might not exist for all users
-      }
-
-      console.log("Profiles found:", profiles?.length || 0);
-
-      // Get resume counts for all users
-      const { data: resumes, error: resumesError } = await supabase
-        .from('resumes')
-        .select('user_id');
-
-      if (resumesError) {
-        console.error("Error fetching resumes:", resumesError);
-        // Don't throw here, as this is not critical
-      }
-
-      console.log("Resumes found:", resumes?.length || 0);
-
-      // Create a comprehensive user list starting from subscriptions (which should exist for all users)
-      const userMap = new Map();
-
-      // Add users from subscriptions (this should be the most comprehensive list)
-      subscriptions?.forEach(subscription => {
-        if (!userMap.has(subscription.user_id)) {
-          const profile = profiles?.find(p => p.id === subscription.user_id);
-          const userResumeCount = resumes?.filter(r => r.user_id === subscription.user_id).length || 0;
-
-          userMap.set(subscription.user_id, {
-            id: subscription.user_id,
-            email: profile?.email || `user-${subscription.user_id.slice(0, 8)}@unknown.email`,
-            created_at: profile?.created_at || subscription.created_at,
-            last_sign_in_at: profile?.created_at || subscription.created_at,
-            subscription_tier: subscription.tier || 'demo',
-            subscription_status: subscription.status || 'inactive',
-            resume_count: userResumeCount,
-            scan_count: subscription.scan_count || 0,
-            max_scans: subscription.max_scans || 0
-          });
-        }
-      });
-
-      // Add any users from profiles that might not have subscriptions yet
-      profiles?.forEach(profile => {
-        if (!userMap.has(profile.id)) {
-          const userResumeCount = resumes?.filter(r => r.user_id === profile.id).length || 0;
-          
-          userMap.set(profile.id, {
-            id: profile.id,
-            email: profile.email || `user-${profile.id.slice(0, 8)}@unknown.email`,
-            created_at: profile.created_at,
-            last_sign_in_at: profile.created_at,
-            subscription_tier: 'demo',
-            subscription_status: 'inactive',
-            resume_count: userResumeCount,
-            scan_count: 0,
-            max_scans: 0
-          });
-        }
-      });
-
-      const usersArray = Array.from(userMap.values());
-      console.log("Fallback users array:", usersArray.length);
-      
-      // Sort by creation date (newest first)
-      usersArray.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      
-      setUsers(usersArray);
-
-      toast({
-        title: "Limited User Data",
-        description: "Using fallback method to load users. Some user information may be incomplete.",
-        variant: "default"
-      });
-    } catch (error) {
-      console.error('Error in fallback user fetch:', error);
       toast({
         title: "Error",
         description: "Failed to load user data. Please check the console for details.",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
+
 
   const filterUsers = () => {
     let filtered = users;
