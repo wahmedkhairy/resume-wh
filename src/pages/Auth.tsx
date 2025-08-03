@@ -338,22 +338,6 @@ const Auth = () => {
                 <p className="text-gray-600">Sign in to your account or create a new one</p>
               </div>
 
-              {/* Test Toast Button */}
-              <Button 
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  console.log("Test toast button clicked");
-                  toast({
-                    title: "Test Toast",
-                    description: "This is a test message to verify toast is working",
-                    variant: "destructive",
-                  });
-                }}
-                className="w-full mb-4"
-              >
-                Test Error Message (Debug)
-              </Button>
 
               {/* Google Button */}
               <Button 
