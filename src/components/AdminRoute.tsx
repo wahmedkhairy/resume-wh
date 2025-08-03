@@ -29,14 +29,21 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
           <Shield className="h-12 w-12 mx-auto mb-4 text-destructive" />
           <h2 className="text-xl font-semibold mb-2">Authentication Error</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
-          <Navigate to="/auth" replace />
         </div>
       </div>
     );
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
+          <p className="text-muted-foreground">Please sign in to access the admin panel.</p>
+        </div>
+      </div>
+    );
   }
 
   if (!isAdmin) {
