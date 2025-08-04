@@ -183,7 +183,7 @@ const FreeATSScanner: React.FC = () => {
 
       // Read file content for basic analysis
       const text = await extractTextFromFile(selectedFile);
-      const analysis = performATSAnalysis(text, selectedFile.name, extractedData);
+      const analysis = await performATSAnalysis(text, selectedFile.name, extractedData);
 
       setAnalysisResult(analysis);
 
@@ -224,7 +224,52 @@ const FreeATSScanner: React.FC = () => {
     return baseText.repeat(Math.max(1, Math.floor(contentMultiplier)));
   };
 
-  const performATSAnalysis = (text: string, fileName: string, extractedData: any): ATSAnalysisResult => {
+  const performATSAnalysis = async (text: string, fileName: string, extractedData: any): Promise<ATSAnalysisResult> => {
+    try {
+      console.log('Starting AI-powered free ATS analysis...');
+
+      // Call the new AI-powered ATS analysis
+      const response = await fetch('/supabase/functions/v1/advanced-ats-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeData: extractedData,
+          analysisType: 'resume-only'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Analysis failed with status: ${response.status}`);
+      }
+
+      const aiAnalysis = await response.json();
+      
+      console.log('AI free ATS analysis complete:', aiAnalysis);
+
+      const isWeak = aiAnalysis.overallScore < 80;
+
+      return {
+        overallScore: aiAnalysis.overallScore,
+        formatScore: aiAnalysis.formatScore,
+        keywordScore: aiAnalysis.keywordScore,
+        contentScore: aiAnalysis.contentScore,
+        suggestions: aiAnalysis.suggestions || [],
+        strengths: aiAnalysis.strengths || [],
+        isWeak,
+        extractedData
+      };
+
+    } catch (error) {
+      console.error('AI analysis failed, using fallback analysis:', error);
+      
+      // Fallback to basic analysis
+      return performBasicATSAnalysis(text, fileName, extractedData);
+    }
+  };
+
+  const performBasicATSAnalysis = (text: string, fileName: string, extractedData: any): ATSAnalysisResult => {
     let formatScore = 85; // Good format score for uploaded files
     let keywordScore = Math.floor(Math.random() * 40) + 30; // 30-70 range
     let contentScore = Math.floor(Math.random() * 50) + 40; // 40-90 range

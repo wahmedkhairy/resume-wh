@@ -63,163 +63,147 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
       return; // Skip if data hasn't changed
     }
 
-    console.log('ATS Scanner: Starting scan with new data');
+    console.log('ATS Scanner: Starting AI-powered ATS scan');
     setScanResults(prev => ({ ...prev, isScanning: true }));
     
     try {
-      // Simulate realistic scanning time
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      let formatScore = 100; // Perfect format since it's our template
-      let keywordScore = 50; // Base score
-      let structureScore = 0;
-      let contentScore = 0;
-      const suggestions: string[] = [];
-      const strengths: string[] = [];
-      const warnings: string[] = [];
-
-      console.log('ATS Scanner: Analyzing resume data', data);
-
-      // Structure analysis
-      let structurePoints = 0;
-      if (data.personalInfo?.name && data.personalInfo?.email && data.personalInfo?.phone) {
-        structurePoints += 25;
-        strengths.push("Complete contact information provided");
-      } else {
-        suggestions.push("Add complete contact information (name, email, phone)");
-      }
-
-      if (data.summary && data.summary.length > 50) {
-        structurePoints += 25;
-        strengths.push("Professional summary included");
-      } else {
-        suggestions.push("Add a professional summary (150-300 words recommended)");
-      }
-
-      if (data.workExperience && data.workExperience.length > 0) {
-        structurePoints += 25;
-        strengths.push("Work experience section present");
-      } else {
-        suggestions.push("Add work experience details");
-      }
-
-      if (data.education && data.education.length > 0) {
-        structurePoints += 25;
-        strengths.push("Education information included");
-      } else {
-        suggestions.push("Add education details");
-      }
-
-      structureScore = structurePoints;
-
-      // Content analysis
-      let contentPoints = 0;
-      const totalWords = [
-        data.summary || '',
-        ...(data.workExperience?.map((exp: any) => exp.responsibilities?.join(' ') || '') || [])
-      ].join(' ').split(' ').filter(word => word.length > 0).length;
-
-      if (totalWords > 100) {
-        contentPoints += 25;
-        strengths.push("Adequate content length");
-      } else {
-        suggestions.push("Add more detailed descriptions to your experience");
-      }
-
-      // Skills analysis
-      if (data.skills && data.skills.length >= 5) {
-        contentPoints += 25;
-        keywordScore += 20;
-        strengths.push("Good variety of skills listed");
-      } else if (data.skills && data.skills.length > 0) {
-        contentPoints += 15;
-        keywordScore += 10;
-        suggestions.push("Consider adding more relevant skills");
-      } else {
-        suggestions.push("Add technical and professional skills");
-      }
-
-      // Experience details
-      if (data.workExperience?.some((exp: any) => exp.responsibilities && exp.responsibilities.length > 2)) {
-        contentPoints += 25;
-        keywordScore += 15;
-        strengths.push("Detailed job responsibilities provided");
-      } else {
-        suggestions.push("Add more detailed job responsibilities and achievements");
-      }
-
-      // Quantifiable achievements
-      const hasNumbers = [data.summary, ...(data.workExperience?.map((exp: any) => exp.responsibilities?.join(' ')) || [])]
-        .join(' ')
-        .match(/\d+%|\d+\+|\$\d+|\d+ years?|\d+ months?/gi);
-
-      if (hasNumbers && hasNumbers.length > 0) {
-        contentPoints += 25;
-        keywordScore += 15;
-        strengths.push("Quantifiable achievements included");
-      } else {
-        suggestions.push("Add quantifiable achievements with numbers and percentages");
-      }
-
-      contentScore = contentPoints;
-
-      // Additional keyword analysis
-      const commonKeywords = ['manage', 'lead', 'develop', 'implement', 'improve', 'increase', 'reduce', 'collaborate', 'analyze', 'optimize'];
-      const contentText = [data.summary, ...(data.workExperience?.map((exp: any) => exp.responsibilities?.join(' ')) || [])].join(' ').toLowerCase();
-      
-      const foundKeywords = commonKeywords.filter(keyword => contentText.includes(keyword));
-      keywordScore += foundKeywords.length * 2;
-
-      if (keywordScore > 100) keywordScore = 100;
-
-      // Warnings
-      if (contentText.includes('responsible for')) {
-        warnings.push("Avoid passive phrases like 'responsible for' - use action verbs instead");
-      }
-
-      if (data.summary && data.summary.length > 500) {
-        warnings.push("Professional summary might be too long - keep it under 300 words");
-      }
-
-      if (!data.personalInfo?.jobTitle) {
-        suggestions.push("Add a professional title/job position");
-      }
-
-      // Calculate overall score
-      const overallScore = Math.round((formatScore + keywordScore + structureScore + contentScore) / 4);
-
-      console.log('ATS Scanner: Analysis complete', {
-        overallScore,
-        formatScore,
-        keywordScore,
-        structureScore,
-        contentScore
+      // Call the new AI-powered ATS analysis
+      const response = await fetch('/supabase/functions/v1/advanced-ats-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeData: data,
+          analysisType: 'resume-only'
+        }),
       });
 
+      if (!response.ok) {
+        throw new Error(`Analysis failed with status: ${response.status}`);
+      }
+
+      const analysis = await response.json();
+
+      console.log('ATS Scanner: AI analysis complete', analysis);
+
       setScanResults({
-        overallScore,
-        formatScore,
-        keywordScore,
-        structureScore,
-        contentScore,
-        suggestions,
-        strengths,
-        warnings,
+        overallScore: analysis.overallScore,
+        formatScore: analysis.formatScore,
+        keywordScore: analysis.keywordScore,
+        structureScore: analysis.structureScore,
+        contentScore: analysis.contentScore,
+        suggestions: analysis.suggestions || [],
+        strengths: analysis.strengths || [],
+        warnings: analysis.warnings || [],
         isScanning: false
       });
 
       setLastAnalyzedData(dataHash);
 
     } catch (error) {
-      console.error('ATS Scanner: Analysis error', error);
-      setScanResults(prev => ({
-        ...prev,
-        isScanning: false,
-        suggestions: ['Analysis failed. Please try again.'],
-        warnings: ['There was an error analyzing your resume.']
-      }));
+      console.error('ATS Scanner: AI analysis error, falling back to basic analysis', error);
+      
+      // Fallback to basic rule-based analysis
+      await performBasicATSScan(data);
+      setLastAnalyzedData(dataHash);
     }
   }, [lastAnalyzedData]);
+
+  const performBasicATSScan = async (data: any) => {
+    let formatScore = 100; // Perfect format since it's our template
+    let keywordScore = 50; // Base score
+    let structureScore = 0;
+    let contentScore = 0;
+    const suggestions: string[] = [];
+    const strengths: string[] = [];
+    const warnings: string[] = [];
+
+    // Structure analysis
+    let structurePoints = 0;
+    if (data.personalInfo?.name && data.personalInfo?.email && data.personalInfo?.phone) {
+      structurePoints += 25;
+      strengths.push("Complete contact information provided");
+    } else {
+      suggestions.push("Add complete contact information (name, email, phone)");
+    }
+
+    if (data.summary && data.summary.length > 50) {
+      structurePoints += 25;
+      strengths.push("Professional summary included");
+    } else {
+      suggestions.push("Add a professional summary (150-300 words recommended)");
+    }
+
+    if (data.workExperience && data.workExperience.length > 0) {
+      structurePoints += 25;
+      strengths.push("Work experience section present");
+    } else {
+      suggestions.push("Add work experience details");
+    }
+
+    if (data.education && data.education.length > 0) {
+      structurePoints += 25;
+      strengths.push("Education information included");
+    } else {
+      suggestions.push("Add education details");
+    }
+
+    structureScore = structurePoints;
+
+    // Content analysis
+    let contentPoints = 0;
+    const totalWords = [
+      data.summary || '',
+      ...(data.workExperience?.map((exp: any) => exp.responsibilities?.join(' ') || '') || [])
+    ].join(' ').split(' ').filter(word => word.length > 0).length;
+
+    if (totalWords > 100) {
+      contentPoints += 25;
+      strengths.push("Adequate content length");
+    } else {
+      suggestions.push("Add more detailed descriptions to your experience");
+    }
+
+    // Skills analysis
+    if (data.skills && data.skills.length >= 5) {
+      contentPoints += 25;
+      keywordScore += 20;
+      strengths.push("Good variety of skills listed");
+    } else if (data.skills && data.skills.length > 0) {
+      contentPoints += 15;
+      keywordScore += 10;
+      suggestions.push("Consider adding more relevant skills");
+    } else {
+      suggestions.push("Add technical and professional skills");
+    }
+
+    // Experience details
+    if (data.workExperience?.some((exp: any) => exp.responsibilities && exp.responsibilities.length > 2)) {
+      contentPoints += 25;
+      keywordScore += 15;
+      strengths.push("Detailed job responsibilities provided");
+    } else {
+      suggestions.push("Add more detailed job responsibilities and achievements");
+    }
+
+    contentScore = contentPoints;
+
+    // Calculate overall score
+    const overallScore = Math.round((formatScore + keywordScore + structureScore + contentScore) / 4);
+
+    setScanResults({
+      overallScore,
+      formatScore,
+      keywordScore,
+      structureScore,
+      contentScore,
+      suggestions,
+      strengths,
+      warnings,
+      isScanning: false
+    });
+  };
 
   // Perform scan when data changes, but skip initial scan if user came from fix my resume
   useEffect(() => {

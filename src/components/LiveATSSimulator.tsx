@@ -61,71 +61,120 @@ const LiveATSSimulator: React.FC<LiveATSSimulatorProps> = ({ resumeData }) => {
     setIsAnalyzing(true);
 
     try {
-      // Simulate AI analysis with realistic timing
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      console.log('Starting AI-powered job match analysis...');
 
-      // Extract keywords from job description
-      const jobKeywords = extractKeywords(jobDescription);
-      const resumeText = buildResumeText(resumeData);
-      const resumeKeywords = extractKeywords(resumeText);
+      // Call the new AI-powered ATS analysis for job matching
+      const response = await fetch('/supabase/functions/v1/advanced-ats-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeData,
+          jobDescription,
+          analysisType: 'job-match'
+        }),
+      });
 
-      // Calculate matches
-      const matchedKeywords = jobKeywords.filter(keyword => 
-        resumeKeywords.some(rKeyword => 
-          rKeyword.toLowerCase().includes(keyword.toLowerCase()) ||
-          keyword.toLowerCase().includes(rKeyword.toLowerCase())
-        )
-      );
+      if (!response.ok) {
+        throw new Error(`Analysis failed with status: ${response.status}`);
+      }
 
-      const missingKeywords = jobKeywords.filter(keyword => 
-        !matchedKeywords.some(matched => 
-          matched.toLowerCase() === keyword.toLowerCase()
-        )
-      ).slice(0, 8); // Limit to most important missing keywords
+      const aiAnalysis = await response.json();
+      
+      console.log('AI job match analysis complete:', aiAnalysis);
 
-      // Calculate scores
-      const keywordMatch = Math.round((matchedKeywords.length / jobKeywords.length) * 100);
-      const formatScore = calculateFormatScore(resumeData);
-      const experienceMatch = calculateExperienceMatch(resumeData, jobDescription);
-      const skillsMatch = calculateSkillsMatch(resumeData, jobDescription);
-      const overallScore = Math.round((keywordMatch + formatScore + experienceMatch + skillsMatch) / 4);
-
-      // Determine compatibility
+      // Determine compatibility based on overall score
       let atsCompatibility: 'excellent' | 'good' | 'fair' | 'poor';
-      if (overallScore >= 85) atsCompatibility = 'excellent';
-      else if (overallScore >= 70) atsCompatibility = 'good';
-      else if (overallScore >= 55) atsCompatibility = 'fair';
+      if (aiAnalysis.overallScore >= 85) atsCompatibility = 'excellent';
+      else if (aiAnalysis.overallScore >= 70) atsCompatibility = 'good';
+      else if (aiAnalysis.overallScore >= 55) atsCompatibility = 'fair';
       else atsCompatibility = 'poor';
 
-      // Generate recommendations
-      const recommendations = generateRecommendations(overallScore, keywordMatch, missingKeywords);
-
       setAnalysis({
-        overallScore,
-        keywordMatch,
-        formatScore,
-        experienceMatch,
-        skillsMatch,
-        matchedKeywords: matchedKeywords.slice(0, 10),
-        missingKeywords,
-        recommendations,
+        overallScore: aiAnalysis.overallScore,
+        keywordMatch: aiAnalysis.keywordScore,
+        formatScore: aiAnalysis.formatScore,
+        experienceMatch: aiAnalysis.contentScore, // Map content score to experience match
+        skillsMatch: aiAnalysis.structureScore, // Map structure score to skills match
+        matchedKeywords: aiAnalysis.matchedKeywords || [],
+        missingKeywords: aiAnalysis.missingKeywords || [],
+        recommendations: aiAnalysis.suggestions || [],
         atsCompatibility
       });
 
       toast({
-        title: "ATS Analysis Complete",
-        description: `Your resume scored ${overallScore}% for this position.`,
+        title: "AI Analysis Complete",
+        description: `Your resume scored ${aiAnalysis.overallScore}% for this position.`,
       });
 
     } catch (error) {
+      console.error('AI analysis failed, using fallback analysis:', error);
+      
+      // Fallback to basic analysis if AI fails
+      await performFallbackAnalysis();
+      
       toast({
-        title: "Analysis Failed",
-        description: "There was an error analyzing your resume. Please try again.",
-        variant: "destructive",
+        title: "Analysis Complete (Basic Mode)",
+        description: "Analysis completed using basic algorithms. For enhanced AI analysis, please try again later.",
+        variant: "default",
       });
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const performFallbackAnalysis = async () => {
+    // Simulate realistic timing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Extract keywords from job description
+    const jobKeywords = extractKeywords(jobDescription);
+    const resumeText = buildResumeText(resumeData);
+    const resumeKeywords = extractKeywords(resumeText);
+
+    // Calculate matches
+    const matchedKeywords = jobKeywords.filter(keyword => 
+      resumeKeywords.some(rKeyword => 
+        rKeyword.toLowerCase().includes(keyword.toLowerCase()) ||
+        keyword.toLowerCase().includes(rKeyword.toLowerCase())
+      )
+    );
+
+    const missingKeywords = jobKeywords.filter(keyword => 
+      !matchedKeywords.some(matched => 
+        matched.toLowerCase() === keyword.toLowerCase()
+      )
+    ).slice(0, 8);
+
+    // Calculate scores
+    const keywordMatch = Math.round((matchedKeywords.length / Math.max(jobKeywords.length, 1)) * 100);
+    const formatScore = calculateFormatScore(resumeData);
+    const experienceMatch = calculateExperienceMatch(resumeData, jobDescription);
+    const skillsMatch = calculateSkillsMatch(resumeData, jobDescription);
+    const overallScore = Math.round((keywordMatch + formatScore + experienceMatch + skillsMatch) / 4);
+
+    // Determine compatibility
+    let atsCompatibility: 'excellent' | 'good' | 'fair' | 'poor';
+    if (overallScore >= 85) atsCompatibility = 'excellent';
+    else if (overallScore >= 70) atsCompatibility = 'good';
+    else if (overallScore >= 55) atsCompatibility = 'fair';
+    else atsCompatibility = 'poor';
+
+    // Generate recommendations
+    const recommendations = generateRecommendations(overallScore, keywordMatch, missingKeywords);
+
+    setAnalysis({
+      overallScore,
+      keywordMatch,
+      formatScore,
+      experienceMatch,
+      skillsMatch,
+      matchedKeywords: matchedKeywords.slice(0, 10),
+      missingKeywords,
+      recommendations,
+      atsCompatibility
+    });
   };
 
   const extractKeywords = (text: string): string[] => {
