@@ -6,13 +6,13 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import UserSettings from "@/components/UserSettings";
 import SitemapUploader from "@/components/SitemapUploader";
-import PayPalLiveSettings from "@/components/PayPalLiveSettings";
+
 import AdminAnalytics from "@/components/AdminAnalytics";
 import AdminUserManagement from "@/components/AdminUserManagement";
 import AIIntegrationTester from "@/components/AIIntegrationTester";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, FileText, CreditCard, BarChart, TestTube, Users } from "lucide-react";
+import { Settings, FileText, BarChart, TestTube, Users } from "lucide-react";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 
 const Admin = () => {
@@ -36,7 +36,7 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart className="h-4 w-4" />
                 Analytics
@@ -52,10 +52,6 @@ const Admin = () => {
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
                 Settings
-              </TabsTrigger>
-              <TabsTrigger value="paypal" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                PayPal
               </TabsTrigger>
               <TabsTrigger value="sitemap" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
@@ -92,9 +88,6 @@ const Admin = () => {
               <UserSettings />
             </TabsContent>
 
-            <TabsContent value="paypal">
-              <PayPalLiveSettings />
-            </TabsContent>
 
             <TabsContent value="sitemap">
               <SitemapUploader />
