@@ -500,9 +500,9 @@ TECHNICAL SKILLS
 
   const performBasicATSAnalysis = (text: string, fileName: string, extractedData: any): ATSAnalysisResult => {
     // Enhanced rule-based analysis with more accurate scoring
-    let formatScore = 75;
-    let keywordScore = 60;
-    let contentScore = 55;
+    let formatScore = 40;
+    let keywordScore = 30;
+    let contentScore = 25;
 
     // Analyze the extracted data structure for better accuracy
     if (extractedData) {
