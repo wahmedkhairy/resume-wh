@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, XCircle, FileText, Zap } from "lucide-react";
-
+import { supabase } from "@/integrations/supabase/client";
 interface ATSScannerProps {
   resumeData?: {
     personalInfo?: any;
@@ -68,22 +68,16 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
     
     try {
       // Call the new AI-powered ATS analysis
-      const response = await fetch('/supabase/functions/v1/advanced-ats-analysis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data: analysis, error } = await supabase.functions.invoke('advanced-ats-analysis', {
+        body: {
           resumeData: data,
           analysisType: 'resume-only'
-        }),
+        },
       });
 
-      if (!response.ok) {
-        throw new Error(`Analysis failed with status: ${response.status}`);
+      if (error) {
+        throw new Error(error.message || 'Edge function error');
       }
-
-      const analysis = await response.json();
 
       console.log('ATS Scanner: AI analysis complete', analysis);
 
@@ -111,15 +105,15 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
   }, [lastAnalyzedData]);
 
   const performBasicATSScan = async (data: any) => {
-    let formatScore = 100; // Perfect format since it's our template
-    let keywordScore = 50; // Base score
+    let formatScore = 90; // Using our template layout
+    let keywordScore = 30;
     let structureScore = 0;
-    let contentScore = 0;
+    let contentScore = 25;
     const suggestions: string[] = [];
     const strengths: string[] = [];
     const warnings: string[] = [];
 
-    // Structure analysis
+    // Structure analysis (sections present)
     let structurePoints = 0;
     if (data.personalInfo?.name && data.personalInfo?.email && data.personalInfo?.phone) {
       structurePoints += 25;
@@ -151,45 +145,68 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
 
     structureScore = structurePoints;
 
-    // Content analysis
-    let contentPoints = 0;
-    const totalWords = [
-      data.summary || '',
-      ...(data.workExperience?.map((exp: any) => exp.responsibilities?.join(' ') || '') || [])
-    ].join(' ').split(' ').filter(word => word.length > 0).length;
+    // Build text for content/keyword analysis
+    const parts: string[] = [];
+    if (data.summary) parts.push(data.summary);
+    data.workExperience?.forEach((job: any) => {
+      if (job.jobTitle) parts.push(job.jobTitle);
+      if (job.company) parts.push(job.company);
+      (job.responsibilities || []).forEach((r: string) => parts.push(r));
+    });
+    (data.skills || []).forEach((s: any) => s?.name && parts.push(s.name));
+    const fullText = parts.join(' ').trim();
 
-    if (totalWords > 100) {
-      contentPoints += 25;
-      strengths.push("Adequate content length");
-    } else {
-      suggestions.push("Add more detailed descriptions to your experience");
+    // Gibberish/quality checks
+    const cleaned = fullText.toLowerCase().replace(/[^a-z0-9%\s.\-]/g, ' ');
+    const words = cleaned.split(/\s+/).filter(Boolean);
+    const longNoVowel = words.filter(w => w.length >= 5 && !/[aeiou]/.test(w));
+    const repeatedSeq = /(.)\1{3,}/i.test(cleaned);
+    const nonsenseRate = words.length ? (longNoVowel.length / words.length) : 1;
+    const tooShort = words.length < 80; // require some real content
+
+    if (repeatedSeq || nonsenseRate > 0.3 || tooShort) {
+      warnings.push("Detected low-quality or non-meaningful text. Replace placeholder or random letters with real sentences.");
+      contentScore = Math.max(0, contentScore - 20);
+      keywordScore = Math.max(0, keywordScore - 20);
+      suggestions.push("Write clear, grammatical bullet points with real achievements.");
     }
 
-    // Skills analysis
-    if (data.skills && data.skills.length >= 5) {
-      contentPoints += 25;
-      keywordScore += 20;
-      strengths.push("Good variety of skills listed");
-    } else if (data.skills && data.skills.length > 0) {
-      contentPoints += 15;
+    // Action verbs and quantification
+    const actionVerbs = ['led','managed','built','created','implemented','designed','optimized','improved','launched','delivered','increased','reduced','developed','analyzed','collaborated','negotiated','trained','mentored','automated'];
+    const hasActionVerb = actionVerbs.some(v => new RegExp(`\\b${v}\\b`, 'i').test(fullText));
+    if (hasActionVerb) {
       keywordScore += 10;
-      suggestions.push("Consider adding more relevant skills");
+      strengths.push("Good use of action verbs");
     } else {
-      suggestions.push("Add technical and professional skills");
+      suggestions.push("Start bullets with strong action verbs (e.g., Led, Implemented, Built)");
     }
 
-    // Experience details
-    if (data.workExperience?.some((exp: any) => exp.responsibilities && exp.responsibilities.length > 2)) {
-      contentPoints += 25;
-      keywordScore += 15;
-      strengths.push("Detailed job responsibilities provided");
+    const hasMetrics = /(\b\d{1,3}(?:,\d{3})*(?:\.\d+)?\b|\b\d+%\b)/.test(fullText);
+    if (hasMetrics) {
+      contentScore += 10;
+      strengths.push("Includes quantified achievements");
     } else {
-      suggestions.push("Add more detailed job responsibilities and achievements");
+      suggestions.push("Add metrics (%,$, time saved, growth) to quantify impact");
     }
 
-    contentScore = contentPoints;
+    // General ATS keyword groups (broad, role-agnostic)
+    const generalKeywords = ['project management','stakeholder','kpi','metrics','analysis','strategy','communication','leadership','collaboration','budget','process improvement','crm','sql','excel','reporting','presentation','problem solving','agile','api','cloud','automation','compliance','risk','roadmap'];
+    const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matched = generalKeywords.filter(k => new RegExp(`\\b${escape(k)}\\b`, 'i').test(fullText));
+    keywordScore += Math.min(30, matched.length * 3);
 
-    // Calculate overall score
+    // Keyword stuffing penalty
+    const overuse = generalKeywords.some(k => (fullText.match(new RegExp(`\\b${escape(k)}\\b`, 'gi')) || []).length > 10);
+    if (overuse) {
+      keywordScore = Math.max(0, keywordScore - 10);
+      warnings.push('Detected keyword stuffing; keep wording natural.');
+    }
+
+    // Clamp scores
+    formatScore = Math.min(100, Math.max(0, formatScore));
+    keywordScore = Math.min(100, Math.max(0, keywordScore));
+    contentScore = Math.min(100, Math.max(0, contentScore));
+
     const overallScore = Math.round((formatScore + keywordScore + structureScore + contentScore) / 4);
 
     setScanResults({

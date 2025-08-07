@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, AlertTriangle, XCircle, Zap, Target, TrendingUp, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
+import { supabase } from "@/integrations/supabase/client";
 interface LiveATSSimulatorProps {
   resumeData?: {
     personalInfo?: any;
@@ -64,24 +64,18 @@ const LiveATSSimulator: React.FC<LiveATSSimulatorProps> = ({ resumeData }) => {
       console.log('Starting AI-powered job match analysis...');
 
       // Call the new AI-powered ATS analysis for job matching
-      const response = await fetch('/supabase/functions/v1/advanced-ats-analysis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data: aiAnalysis, error } = await supabase.functions.invoke('advanced-ats-analysis', {
+        body: {
           resumeData,
           jobDescription,
           analysisType: 'job-match'
-        }),
+        },
       });
 
-      if (!response.ok) {
-        throw new Error(`Analysis failed with status: ${response.status}`);
+      if (error) {
+        throw new Error(error.message || 'Edge function error');
       }
 
-      const aiAnalysis = await response.json();
-      
       console.log('AI job match analysis complete:', aiAnalysis);
 
       // Determine compatibility based on overall score

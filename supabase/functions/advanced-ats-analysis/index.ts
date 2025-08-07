@@ -274,56 +274,118 @@ async function combineAnalysis(
 }
 
 function addRuleBasedChecks(analysis: ATSAnalysisResult, resumeData: any): void {
-  // Ensure minimum checks are performed
+  const resumeText = buildResumeText(resumeData);
+  const cleaned = resumeText.toLowerCase().replace(/[^a-z0-9%\s.\-]/g, ' ');
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  const longNoVowel = words.filter(w => w.length >= 5 && !/[aeiou]/.test(w));
+  const repeatedSeq = /(.)\1{3,}/i.test(cleaned);
+  const nonsenseRate = words.length ? (longNoVowel.length / words.length) : 1;
+  const tooShort = words.length < 80;
+
+  // Keyword sets (general)
+  const generalKeywords = ['project management','stakeholder','kpi','metrics','analysis','strategy','communication','leadership','collaboration','budget','process improvement','crm','sql','excel','reporting','presentation','problem solving','agile','api','cloud','automation','compliance','risk','roadmap'];
+  const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const matched = generalKeywords.filter(k => new RegExp(`\\b${escape(k)}\\b`, 'i').test(resumeText));
+
+  // Penalize low-quality text
+  if (repeatedSeq || nonsenseRate > 0.3 || tooShort) {
+    analysis.warnings.push('Detected low-quality or non-meaningful text. Add real sentences and concrete experience.');
+    analysis.contentScore = Math.max(0, Math.min(analysis.contentScore, 40));
+    analysis.keywordScore = Math.max(0, Math.min(analysis.keywordScore, 40));
+  }
+
+  // Action verbs and metrics
+  const actionVerbs = ['led','managed','built','created','implemented','designed','optimized','improved','launched','delivered','increased','reduced','developed','analyzed','collaborated','negotiated','trained','mentored','automated'];
+  if (actionVerbs.some(v => new RegExp(`\\b${v}\\b`, 'i').test(resumeText))) {
+    analysis.strengths.push('Uses strong action verbs');
+    analysis.keywordScore = Math.min(100, analysis.keywordScore + 8);
+  } else {
+    analysis.suggestions.push('Start bullets with action verbs (Led, Built, Implemented)');
+  }
+
+  if (/(\b\d{1,3}(?:,\d{3})*(?:\.\d+)?\b|\b\d+%\b)/.test(resumeText)) {
+    analysis.strengths.push('Includes quantified achievements');
+    analysis.contentScore = Math.min(100, analysis.contentScore + 10);
+  } else {
+    analysis.suggestions.push('Add metrics (%,$, time saved, growth) to quantify impact');
+  }
+
+  // General keyword coverage (cap to avoid stuffing)
+  analysis.keywordScore = Math.min(100, analysis.keywordScore + Math.min(30, matched.length * 3));
+  analysis.matchedKeywords = Array.from(new Set([...(analysis.matchedKeywords || []), ...matched])).slice(0, 20);
+  const missing = generalKeywords.filter(k => !analysis.matchedKeywords?.includes(k)).slice(0, 10);
+  analysis.missingKeywords = missing.length ? missing : analysis.missingKeywords;
+
+  // Basic structure checks
   if (!resumeData.personalInfo?.email) {
     analysis.warnings.push('Missing email address - critical for ATS systems');
     analysis.structureScore = Math.max(0, analysis.structureScore - 10);
   }
-  
   if (!resumeData.summary || resumeData.summary.length < 50) {
     analysis.suggestions.push('Add a professional summary (150-300 words recommended)');
   }
-  
   if (!resumeData.workExperience?.length) {
     analysis.warnings.push('No work experience found - this may significantly impact ATS scoring');
     analysis.contentScore = Math.max(0, analysis.contentScore - 20);
   }
-  
-  // Recalculate overall score based on adjusted component scores
+
+  // Recalculate overall score
   analysis.overallScore = Math.round(
     (analysis.formatScore + analysis.keywordScore + analysis.structureScore + analysis.contentScore) / 4
   );
 }
 
 function createFallbackAnalysis(resumeData: any, aiAnalysis: string): ATSAnalysisResult {
-  // Basic rule-based analysis as fallback
-  let formatScore = 70;
-  let keywordScore = 50;
-  let structureScore = 50;
-  let contentScore = 50;
-  
+  // Stronger rule-based fallback
+  let formatScore = 50;
+  let keywordScore = 30;
+  let structureScore = 45;
+  let contentScore = 30;
+
   const suggestions: string[] = [];
   const strengths: string[] = [];
   const warnings: string[] = [];
-  
-  // Basic scoring logic
+
+  const text = buildResumeText(resumeData);
+  const cleaned = text.toLowerCase().replace(/[^a-z0-9%\s.\-]/g, ' ');
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  const longNoVowel = words.filter(w => w.length >= 5 && !/[aeiou]/.test(w));
+  const repeatedSeq = /(.)\1{3,}/i.test(cleaned);
+  const nonsenseRate = words.length ? (longNoVowel.length / words.length) : 1;
+  const tooShort = words.length < 80;
+
   if (resumeData.personalInfo?.email && resumeData.personalInfo?.phone) {
     formatScore += 10;
     strengths.push('Complete contact information');
+  } else {
+    suggestions.push('Add email and phone');
   }
-  
   if (resumeData.summary && resumeData.summary.length > 100) {
     contentScore += 15;
-    strengths.push('Professional summary included');
+  } else {
+    suggestions.push('Add a professional summary (150–300 words)');
   }
-  
   if (resumeData.workExperience?.length > 0) {
-    structureScore += 20;
-    contentScore += 20;
+    structureScore += 15;
+    contentScore += 15;
+  } else {
+    suggestions.push('Add work experience with bullets');
   }
-  
+
+  if (repeatedSeq || nonsenseRate > 0.3 || tooShort) {
+    warnings.push('Detected low-quality or non-meaningful text');
+    contentScore = Math.max(0, Math.min(contentScore, 40));
+    keywordScore = Math.max(0, Math.min(keywordScore, 40));
+  }
+
+  // Keyword coverage
+  const generalKeywords = ['project management','stakeholder','kpi','metrics','analysis','strategy','communication','leadership','collaboration','budget','process improvement','crm','sql','excel','reporting','presentation','problem solving','agile','api','cloud','automation','compliance','risk','roadmap'];
+  const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const matched = generalKeywords.filter(k => new RegExp(`\\b${escape(k)}\\b`, 'i').test(text));
+  keywordScore += Math.min(25, matched.length * 3);
+
   const overallScore = Math.round((formatScore + keywordScore + structureScore + contentScore) / 4);
-  
+
   return {
     overallScore,
     formatScore,
@@ -333,6 +395,8 @@ function createFallbackAnalysis(resumeData: any, aiAnalysis: string): ATSAnalysi
     suggestions,
     strengths,
     warnings,
-    detailedAnalysis: `AI analysis: ${aiAnalysis.substring(0, 500)}...`
+    detailedAnalysis: `AI analysis (raw): ${aiAnalysis?.substring(0, 400) || 'N/A'}...`,
+    matchedKeywords: matched.slice(0, 20),
+    missingKeywords: generalKeywords.filter(k => !matched.includes(k)).slice(0, 10),
   };
 }

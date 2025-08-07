@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, FileText, CheckCircle, AlertTriangle, XCircle, Zap, Wrench } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-
+import { supabase } from "@/integrations/supabase/client";
 interface ATSAnalysisResult {
   overallScore: number;
   formatScore: number;
@@ -458,22 +458,16 @@ TECHNICAL SKILLS
       console.log('Starting AI-powered free ATS analysis...');
 
       // Call the new AI-powered ATS analysis
-      const response = await fetch('/supabase/functions/v1/advanced-ats-analysis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data: aiAnalysis, error } = await supabase.functions.invoke('advanced-ats-analysis', {
+        body: {
           resumeData: extractedData,
           analysisType: 'resume-only'
-        }),
+        },
       });
 
-      if (!response.ok) {
-        throw new Error(`Analysis failed with status: ${response.status}`);
+      if (error) {
+        throw new Error(error.message || 'Edge function error');
       }
-
-      const aiAnalysis = await response.json();
       
       console.log('AI free ATS analysis complete:', aiAnalysis);
 
@@ -499,87 +493,111 @@ TECHNICAL SKILLS
   };
 
   const performBasicATSAnalysis = (text: string, fileName: string, extractedData: any): ATSAnalysisResult => {
-    // Enhanced rule-based analysis with more accurate scoring
+    // Stronger rule-based analysis to avoid false positives on gibberish
     let formatScore = 40;
     let keywordScore = 30;
     let contentScore = 25;
 
-    // Analyze the extracted data structure for better accuracy
-    if (extractedData) {
-      // Personal Info Analysis
-      if (extractedData.personalInfo?.email && extractedData.personalInfo?.phone) {
-        formatScore += 15;
-      }
-      if (extractedData.personalInfo?.name && extractedData.personalInfo?.location) {
-        formatScore += 10;
-      }
+    const suggestions: string[] = [];
+    const strengths: string[] = [];
 
-      // Summary Analysis
-      if (extractedData.summary && extractedData.summary.length >= 100) {
-        contentScore += 20;
-        if (extractedData.summary.length >= 200) {
-          contentScore += 10;
-        }
-      }
+    const safeStr = (s?: string) => (s || '').toString();
 
-      // Work Experience Analysis
-      if (extractedData.workExperience?.length > 0) {
-        contentScore += 25;
-        formatScore += 10;
-        
-        // Check for detailed responsibilities
-        const hasDetailedResponsibilities = extractedData.workExperience.some(job => 
-          job.responsibilities && job.responsibilities.length >= 2
-        );
-        if (hasDetailedResponsibilities) {
-          contentScore += 15;
-          keywordScore += 20;
-        }
+    // Build full text from extracted data
+    const fullText = [
+      safeStr(extractedData?.summary),
+      ...(extractedData?.workExperience || []).flatMap((j: any) => [safeStr(j.jobTitle), safeStr(j.company), ...(j.responsibilities || [])]),
+      ...(extractedData?.skills || []).map((s: any) => safeStr(s.name))
+    ].join(' ').trim();
 
-        // Check for recent experience
-        const hasRecentExperience = extractedData.workExperience.some(job =>
-          job.endDate === "Present" || new Date(job.endDate).getFullYear() >= 2022
-        );
-        if (hasRecentExperience) {
-          contentScore += 10;
-        }
-      }
+    const cleaned = fullText.toLowerCase().replace(/[^a-z0-9%\s.\-]/g, ' ');
+    const words = cleaned.split(/\s+/).filter(Boolean);
+    const longNoVowel = words.filter(w => w.length >= 5 && !/[aeiou]/.test(w));
+    const repeatedSeq = /(.)\1{3,}/i.test(cleaned);
+    const nonsenseRate = words.length ? (longNoVowel.length / words.length) : 1;
+    const tooShort = words.length < 80;
 
-      // Education Analysis
-      if (extractedData.education?.length > 0) {
+    if (repeatedSeq || nonsenseRate > 0.3 || tooShort) {
+      contentScore = Math.max(0, contentScore - 25);
+      keywordScore = Math.max(0, keywordScore - 20);
+      suggestions.push("Replace random letters/placeholder text with meaningful sentences.");
+    }
+
+    // Personal Info
+    if (extractedData?.personalInfo?.email && extractedData?.personalInfo?.phone) {
+      formatScore += 15;
+      strengths.push("Contact details included");
+    } else {
+      suggestions.push("Add email and phone in the header");
+    }
+    if (extractedData?.personalInfo?.name && extractedData?.personalInfo?.location) {
+      formatScore += 10;
+    }
+
+    // Summary
+    if (safeStr(extractedData?.summary).length >= 120) {
+      contentScore += 20;
+      strengths.push("Clear professional summary");
+    } else {
+      suggestions.push("Add a 150–300 word professional summary");
+    }
+
+    // Experience
+    if ((extractedData?.workExperience || []).length > 0) {
+      contentScore += 25;
+      formatScore += 10;
+
+      const hasDetailedResponsibilities = (extractedData.workExperience || []).some((job: any) => job.responsibilities && job.responsibilities.length >= 2);
+      if (hasDetailedResponsibilities) {
         contentScore += 15;
-        formatScore += 5;
+        keywordScore += 15;
+      } else {
+        suggestions.push("Add 3–6 impact-focused bullets per role");
       }
-
-      // Skills Analysis
-      if (extractedData.skills?.length >= 5) {
-        keywordScore += 25;
-        if (extractedData.skills.length >= 8) {
-          keywordScore += 15;
-        }
-      }
-
-      // Industry-specific keyword scoring
-      const industryKeywords = getIndustryKeywords(fileName);
-      const skillNames = extractedData.skills?.map(s => s.name.toLowerCase()) || [];
-      const responsibilityText = extractedData.workExperience?.flatMap(job => 
-        job.responsibilities || []
-      ).join(' ').toLowerCase() || '';
-      
-      const keywordMatches = industryKeywords.filter(keyword =>
-        skillNames.some(skill => skill.includes(keyword.toLowerCase())) ||
-        responsibilityText.includes(keyword.toLowerCase())
-      );
-      
-      keywordScore += Math.min(keywordMatches.length * 5, 25);
+    } else {
+      suggestions.push("Add work experience with responsibilities");
     }
 
-    // File characteristics analysis
-    if (fileName.toLowerCase().includes('resume') || fileName.toLowerCase().includes('cv')) {
-      formatScore += 5;
+    // Education
+    if ((extractedData?.education || []).length > 0) {
+      contentScore += 15;
+    } else {
+      suggestions.push("Include your education details");
     }
 
-    // Ensure scores are within bounds
+    // Skills depth
+    if ((extractedData?.skills || []).length >= 6) {
+      keywordScore += 25;
+      strengths.push("Good skills coverage");
+    } else if ((extractedData?.skills || []).length > 0) {
+      keywordScore += 10;
+      suggestions.push("Add more role-relevant skills");
+    } else {
+      suggestions.push("Add a skills section (tools, methods, technologies)");
+    }
+
+    // Action verbs and metrics
+    const actionVerbs = ['led','managed','built','created','implemented','designed','optimized','improved','launched','delivered','increased','reduced','developed','analyzed','collaborated','negotiated','trained','mentored','automated'];
+    const hasActionVerb = actionVerbs.some(v => new RegExp(`\\b${v}\\b`, 'i').test(fullText));
+    if (hasActionVerb) strengths.push("Uses strong action verbs"); else suggestions.push("Start bullets with action verbs (Led, Built, Implemented)");
+
+    const hasMetrics = /(\b\d{1,3}(?:,\d{3})*(?:\.\d+)?\b|\b\d+%\b)/.test(fullText);
+    if (hasMetrics) { contentScore += 10; strengths.push("Quantified achievements present"); } else { suggestions.push("Quantify impact with numbers/percentages"); }
+
+    // General ATS keywords (role-agnostic) + light industry hint from filename
+    const generalKeywords = ['project management','stakeholder','kpi','metrics','analysis','strategy','communication','leadership','collaboration','budget','process improvement','crm','sql','excel','reporting','presentation','problem solving','agile','api','cloud','automation','compliance','risk','roadmap'];
+    const industryKeywords = getIndustryKeywords(fileName);
+    const allKeywords = Array.from(new Set([...generalKeywords, ...industryKeywords]));
+    const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matched = allKeywords.filter(k => new RegExp(`\\b${escape(k)}\\b`, 'i').test(fullText));
+    keywordScore += Math.min(30, matched.length * 3);
+
+    const overuse = allKeywords.some(k => (fullText.match(new RegExp(`\\b${escape(k)}\\b`, 'gi')) || []).length > 10);
+    if (overuse) {
+      keywordScore = Math.max(0, keywordScore - 10);
+    }
+
+    // Clamp and compute overall
     formatScore = Math.min(100, Math.max(0, formatScore));
     keywordScore = Math.min(100, Math.max(0, keywordScore));
     contentScore = Math.min(100, Math.max(0, contentScore));
@@ -587,48 +605,12 @@ TECHNICAL SKILLS
     const overallScore = Math.round((formatScore + keywordScore + contentScore) / 3);
     const isWeak = overallScore < 80;
 
-    // Generate contextual suggestions and strengths
-    const suggestions = [];
-    const strengths = [];
-
-    // Format analysis
-    if (formatScore >= 85) {
-      strengths.push("Professional document structure and formatting");
-    } else if (formatScore >= 70) {
-      strengths.push("Good document organization");
-      suggestions.push("Consider adding missing contact information");
-    } else {
-      suggestions.push("Improve document formatting and ensure all contact details are included");
+    // Final suggestions/strengths summarization
+    if (keywordScore < 60) {
+      suggestions.push("Add industry keywords naturally (avoid stuffing)");
     }
-
-    // Keyword analysis
-    if (keywordScore >= 80) {
-      strengths.push("Strong keyword optimization for ATS systems");
-    } else if (keywordScore >= 60) {
-      strengths.push("Decent keyword coverage");
-      suggestions.push("Add more industry-specific keywords and technical skills");
-    } else {
-      suggestions.push("Significantly improve keyword optimization with industry-relevant terms");
-      suggestions.push("Include more technical skills and action verbs in descriptions");
-    }
-
-    // Content analysis
-    if (contentScore >= 80) {
-      strengths.push("Comprehensive and well-detailed content");
-    } else if (contentScore >= 60) {
-      strengths.push("Good content foundation");
-      suggestions.push("Add quantifiable achievements and specific metrics");
-    } else {
-      suggestions.push("Expand work experience with specific accomplishments and results");
-      suggestions.push("Include a professional summary highlighting key qualifications");
-    }
-
-    // Additional contextual suggestions
-    if (overallScore < 80) {
-      suggestions.push("Use strong action verbs to begin bullet points");
-      if (!extractedData.summary || extractedData.summary.length < 150) {
-        suggestions.push("Add a compelling professional summary (150-300 words)");
-      }
+    if (contentScore < 60) {
+      suggestions.push("Expand bullets with concrete outcomes and scope");
     }
 
     return {
