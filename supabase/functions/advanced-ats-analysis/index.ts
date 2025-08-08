@@ -34,48 +34,64 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let resumeDataLocal: any = null;
+  let jobDescriptionLocal: string | undefined = undefined;
+  let analysisTypeLocal: 'resume-only' | 'job-match' = 'resume-only';
+
   try {
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
 
-    const { resumeData, jobDescription, analysisType }: ATSAnalysisRequest = await req.json();
+    const body: ATSAnalysisRequest = await req.json();
+    resumeDataLocal = body.resumeData;
+    jobDescriptionLocal = body.jobDescription;
+    analysisTypeLocal = body.analysisType || 'resume-only';
 
-    if (!resumeData) {
+    if (!resumeDataLocal) {
       throw new Error('Resume data is required');
     }
 
     // Build resume text for analysis
-    const resumeText = buildResumeText(resumeData);
+    const resumeText = buildResumeText(resumeDataLocal);
     
     let prompt = '';
-    if (analysisType === 'job-match' && jobDescription) {
-      prompt = createJobMatchPrompt(resumeText, jobDescription);
+    if (analysisTypeLocal === 'job-match' && jobDescriptionLocal) {
+      prompt = createJobMatchPrompt(resumeText, jobDescriptionLocal);
     } else {
       prompt = createResumeAnalysisPrompt(resumeText);
     }
 
     console.log('Analyzing resume with AI...');
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are an expert ATS (Applicant Tracking System) analyzer and career counselor with deep knowledge of modern recruitment practices. Provide detailed, actionable feedback to help candidates optimize their resumes for ATS systems and recruiters.' 
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 2000,
-      }),
-    });
+    const makeRequest = async () => {
+      return await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { 
+              role: 'system', 
+              content: 'You are an expert ATS (Applicant Tracking System) analyzer and career counselor with deep knowledge of modern recruitment practices. Provide detailed, actionable feedback to help candidates optimize their resumes for ATS systems and recruiters.' 
+            },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 2000,
+        }),
+      });
+    };
+
+    let response = await makeRequest();
+    if (!response.ok && response.status === 429) {
+      // Retry once after a short backoff on rate limit
+      await new Promise((r) => setTimeout(r, 800));
+      response = await makeRequest();
+    }
 
     if (!response.ok) {
       throw new Error(`OpenAI API error: ${response.status}`);
@@ -85,7 +101,7 @@ serve(async (req) => {
     const aiAnalysis = data.choices[0].message.content;
 
     // Parse AI response and combine with rule-based analysis
-    const combinedAnalysis = await combineAnalysis(resumeData, aiAnalysis, jobDescription, analysisType);
+    const combinedAnalysis = await combineAnalysis(resumeDataLocal, aiAnalysis, jobDescriptionLocal, analysisTypeLocal);
 
     return new Response(JSON.stringify(combinedAnalysis), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -93,21 +109,30 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in advanced-ats-analysis function:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      overallScore: 0,
-      formatScore: 0,
-      keywordScore: 0,
-      structureScore: 0,
-      contentScore: 0,
-      suggestions: ['Analysis failed. Please try again.'],
-      strengths: [],
-      warnings: ['There was an error analyzing your resume.'],
-      detailedAnalysis: 'Analysis could not be completed due to an error.'
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    
+    try {
+      const fallback = createFallbackAnalysis(resumeDataLocal || {}, `AI error: ${error?.message || 'Unknown error'}`);
+      return new Response(JSON.stringify(fallback), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (innerError) {
+      return new Response(JSON.stringify({ 
+        error: (error as any)?.message || 'Unknown error',
+        overallScore: 0,
+        formatScore: 0,
+        keywordScore: 0,
+        structureScore: 0,
+        contentScore: 0,
+        suggestions: ['Analysis failed. Please try again.'],
+        strengths: [],
+        warnings: ['There was an error analyzing your resume.'],
+        detailedAnalysis: 'Analysis could not be completed due to an error.'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
   }
 });
 

@@ -112,46 +112,33 @@ const FreeATSScanner: React.FC = () => {
   };
 
   const simulateAdvancedPDFExtraction = async (file: File): Promise<string> => {
-    // Simulate more realistic PDF text extraction based on file characteristics
-    const baseContent = `
-${getNameFromFileName(file.name)}
-Email: ${generateEmail(file.name)} | Phone: (555) 123-4567 | Location: New York, NY
-
-PROFESSIONAL SUMMARY
-Experienced professional with ${Math.floor(Math.random() * 8) + 3}+ years in the industry. Strong background in project management, team leadership, and strategic planning. Proven track record of delivering results and exceeding expectations.
-
-WORK EXPERIENCE
-Senior ${getJobTitleFromFileName(file.name)} | Current Company | 2022 - Present
-• Led cross-functional teams to achieve project objectives
-• Implemented process improvements resulting in 25% efficiency gains
-• Managed budgets exceeding $500K annually
-• Collaborated with stakeholders to deliver strategic initiatives
-
-${getJobTitleFromFileName(file.name)} | Previous Company | 2020 - 2022
-• Developed and executed comprehensive project plans
-• Coordinated with multiple departments to ensure timely delivery
-• Analyzed data to inform business decisions and strategy
-
-EDUCATION
-Bachelor's Degree in ${getDegreeFromFileName(file.name)} | University Name | 2020
-
-SKILLS
-• Project Management
-• Leadership
-• Strategic Planning
-• Data Analysis
-• Communication
-• Problem Solving
-`;
-    
-    // Add industry-specific content based on filename
-    const industryContent = getIndustrySpecificContent(file.name);
-    return baseContent + industryContent;
+    try {
+      const buf = await file.arrayBuffer();
+      const raw = new TextDecoder('latin1').decode(new Uint8Array(buf));
+      // Naive PDF text extraction: collect text between parentheses
+      const matches = Array.from(raw.matchAll(/\(([^)]+)\)/g)).map(m => m[1]);
+      const extracted = matches.join('\n');
+      return (extracted && extracted.trim().length > 0) ? extracted : raw.slice(0, 5000);
+    } catch (e) {
+      console.error('PDF extraction failed, using filename hints:', e);
+      return file.name.replace(/[_\-\.]/g, ' ');
+    }
   };
 
   const simulateAdvancedWordExtraction = async (file: File): Promise<string> => {
-    // Similar to PDF but with slightly different formatting simulation
-    return simulateAdvancedPDFExtraction(file);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      // Dynamically import browser build of mammoth to keep bundle lean
+      // @ts-ignore - mammoth browser build has no types
+      const mammoth = await import('mammoth/mammoth.browser');
+      const result = await mammoth.convertToHtml({ arrayBuffer });
+      const html: string = result.value || '';
+      const text = html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+      return text;
+    } catch (e) {
+      console.error('DOCX extraction failed, falling back to filename:', e);
+      return file.name.replace(/[_\-\.]/g, ' ');
+    }
   };
 
   const parseExtractedText = (text: string, fileName: string): ATSAnalysisResult['extractedData'] => {
