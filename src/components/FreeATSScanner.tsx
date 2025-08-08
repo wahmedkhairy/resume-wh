@@ -46,6 +46,7 @@ interface ATSAnalysisResult {
       name: string;
       level: number;
     }>;
+    rawText?: string; // original extracted text for higher-accuracy AI analysis
   };
 }
 
@@ -112,10 +113,11 @@ const FreeATSScanner: React.FC = () => {
         extractedText = await file.text();
       }
 
-      return parseExtractedText(extractedText, file.name);
+      const structured = parseExtractedText(extractedText, file.name);
+      return { ...structured, rawText: extractedText };
     } catch (error) {
-      console.error('Error extracting resume data:', error);
-      return parseExtractedText("", file.name);
+      const structured = parseExtractedText("", file.name);
+      return { ...structured, rawText: "" };
     }
   };
 
@@ -438,8 +440,8 @@ TECHNICAL SKILLS
       // Extract resume data
       const extractedData = await extractResumeData(selectedFile);
 
-      // Read file content for basic analysis
-      const text = await extractTextFromFile(selectedFile);
+      // Use extracted raw text for highest fidelity
+      const text = (extractedData as any)?.rawText || '';
       const analysis = await performATSAnalysis(text, selectedFile.name, extractedData);
 
       setAnalysisResult(analysis);
@@ -484,6 +486,7 @@ TECHNICAL SKILLS
       const { data: aiAnalysis, error } = await supabase.functions.invoke('advanced-ats-analysis', {
         body: {
           resumeData: extractedData,
+          resumeText: text,
           analysisType: 'resume-only'
         },
       });
@@ -528,6 +531,7 @@ TECHNICAL SKILLS
 
     // Build full text from extracted data
     const fullText = [
+      safeStr(extractedData?.rawText),
       safeStr(extractedData?.summary),
       ...(extractedData?.workExperience || []).flatMap((j: any) => [safeStr(j.jobTitle), safeStr(j.company), ...(j.responsibilities || [])]),
       ...(extractedData?.skills || []).map((s: any) => safeStr(s.name))

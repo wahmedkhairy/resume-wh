@@ -12,6 +12,7 @@ interface ATSAnalysisRequest {
   resumeData: any;
   jobDescription?: string;
   analysisType: 'resume-only' | 'job-match';
+  resumeText?: string;
 }
 
 interface ATSAnalysisResult {
@@ -37,6 +38,7 @@ serve(async (req) => {
   let resumeDataLocal: any = null;
   let jobDescriptionLocal: string | undefined = undefined;
   let analysisTypeLocal: 'resume-only' | 'job-match' = 'resume-only';
+  let resumeTextLocal: string | undefined = undefined;
 
   try {
     if (!openAIApiKey) {
@@ -47,13 +49,18 @@ serve(async (req) => {
     resumeDataLocal = body.resumeData;
     jobDescriptionLocal = body.jobDescription;
     analysisTypeLocal = body.analysisType || 'resume-only';
+    resumeTextLocal = body.resumeText;
 
     if (!resumeDataLocal) {
       throw new Error('Resume data is required');
     }
 
-    // Build resume text for analysis
-    const resumeText = buildResumeText(resumeDataLocal);
+    // Build resume text for analysis (prefer provided raw text if available)
+    const baseText = buildResumeText(resumeDataLocal);
+    const providedText = (resumeTextLocal || '').trim();
+    const resumeText = providedText && providedText.length > 40
+      ? `${providedText}\n\n${baseText}`
+      : baseText;
     
     let prompt = '';
     if (analysisTypeLocal === 'job-match' && jobDescriptionLocal) {
@@ -82,19 +89,25 @@ serve(async (req) => {
           ],
           temperature: 0.3,
           max_tokens: 2000,
+          response_format: { type: 'json_object' }
         }),
       });
     };
 
-    let response = await makeRequest();
-    if (!response.ok && response.status === 429) {
-      // Retry once after a short backoff on rate limit
-      await new Promise((r) => setTimeout(r, 800));
+    let response: Response | undefined;
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       response = await makeRequest();
+      if (response.ok) break;
+      const retryable = response.status === 429 || response.status >= 500;
+      if (!retryable || attempt === maxAttempts) break;
+      const delay = 800 * Math.pow(2, attempt - 1);
+      console.log(`OpenAI error ${response.status}, retrying in ${delay}ms (attempt ${attempt}/${maxAttempts})`);
+      await new Promise((r) => setTimeout(r, delay));
     }
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+    if (!response || !response.ok) {
+      throw new Error(`OpenAI API error: ${response?.status}`);
     }
 
     const data = await response.json();
