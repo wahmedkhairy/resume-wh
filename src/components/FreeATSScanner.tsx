@@ -81,6 +81,13 @@ const FreeATSScanner: React.FC = () => {
         return;
       }
 
+      if (file.type === 'application/msword') {
+        toast({
+          title: "Limited support for .doc",
+          description: "Legacy .doc parsing is limited. For best accuracy, upload PDF or DOCX.",
+        });
+      }
+
       setSelectedFile(file);
       setAnalysisResult(null);
       setError(null);
@@ -92,21 +99,22 @@ const FreeATSScanner: React.FC = () => {
       let extractedText = "";
       
       if (file.type === 'application/pdf') {
-        // For PDF files, we'll simulate extraction with more realistic content
         extractedText = await simulateAdvancedPDFExtraction(file);
-      } else if (file.type.includes('word')) {
-        // For Word documents, simulate extraction
+      } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        // DOCX: use Mammoth for reliable text extraction
         extractedText = await simulateAdvancedWordExtraction(file);
+      } else if (file.type === 'application/msword') {
+        // Legacy .doc is not reliably parseable in-browser
+        console.warn('Legacy .doc detected: limited parsing support');
+        extractedText = file.name.replace(/[_\-\.]/g, ' ');
       } else {
-        // For other files, basic text extraction
+        // Other: basic text extraction
         extractedText = await file.text();
       }
 
-      // Parse the extracted text to build structured resume data
       return parseExtractedText(extractedText, file.name);
     } catch (error) {
       console.error('Error extracting resume data:', error);
-      // Fallback to basic parsing
       return parseExtractedText("", file.name);
     }
   };
@@ -311,59 +319,87 @@ TECHNICAL SKILLS
   };
 
   const extractWorkExperience = (lines: string[], fileName: string): any[] => {
-    const jobTitle = getJobTitleFromFileName(fileName);
-    return [
-      {
-        id: "exp1",
-        jobTitle: `Senior ${jobTitle}`,
-        company: "Current Company",
-        startDate: "2022-01",
-        endDate: "Present",
-        location: "New York, NY",
-        responsibilities: [
-          "Led strategic initiatives and cross-functional team collaboration",
-          "Implemented process improvements resulting in measurable efficiency gains",
-          "Managed projects with budgets exceeding industry standards"
-        ]
-      },
-      {
-        id: "exp2",
-        jobTitle: jobTitle,
-        company: "Previous Company",
-        startDate: "2020-06",
-        endDate: "2021-12",
-        location: "San Francisco, CA",
-        responsibilities: [
-          "Developed comprehensive strategies and executed key deliverables",
-          "Collaborated with stakeholders to achieve organizational objectives"
-        ]
+    const bullets = lines.filter(l => /^[\u2022•\-–\*]\s+/.test(l.trim())).map(l => l.replace(/^[\u2022•\-–\*]\s+/, '').trim());
+    const roles: any[] = [];
+
+    // Try to find likely role lines near 'experience' section
+    const expIndex = lines.findIndex(l => /experience|work history/i.test(l));
+    const windowStart = Math.max(0, expIndex === -1 ? 0 : expIndex);
+    const windowLines = lines.slice(windowStart, windowStart + 80);
+
+    const titleRegex = /(engineer|developer|designer|manager|analyst|consultant|specialist|director|lead)/i;
+    const dateRegex = /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\s+\d{4}|\b\d{4}\b/g;
+
+    for (let i = 0; i < windowLines.length; i++) {
+      const line = windowLines[i].trim();
+      if (titleRegex.test(line) && !line.includes('@')) {
+        const jobTitle = line;
+        // Look ahead for company line and dates
+        let company = '';
+        let dates = '';
+        for (let j = i + 1; j < Math.min(i + 4, windowLines.length); j++) {
+          const l2 = windowLines[j];
+          if (!company && /(inc\.|llc|ltd|company|corp|technologies|studios|solutions|systems|labs)/i.test(l2)) {
+            company = l2.trim();
+          }
+          const dd = (l2.match(dateRegex) || []).join(' - ');
+          if (!dates && dd) dates = dd;
+        }
+        roles.push({ id: `exp${roles.length+1}`, jobTitle, company: company || 'Company', startDate: dates || '', endDate: '', location: '', responsibilities: [] });
+        if (roles.length >= 3) break;
       }
-    ];
+    }
+
+    // Distribute bullets to roles
+    if (roles.length === 0 && bullets.length > 0) {
+      roles.push({ id: 'exp1', jobTitle: 'Experience', company: 'Company', startDate: '', endDate: '', location: '', responsibilities: bullets.slice(0, 5) });
+    } else if (roles.length > 0) {
+      const per = Math.max(2, Math.floor(bullets.length / roles.length));
+      roles.forEach((r, idx) => { r.responsibilities = bullets.slice(idx*per, idx*per + per); });
+    }
+
+    return roles.slice(0, 3);
   };
 
   const extractEducation = (lines: string[], fileName: string): any[] => {
-    return [
-      {
-        id: "edu1",
-        degree: `Bachelor of Science in ${getDegreeFromFileName(fileName)}`,
-        institution: "University Name",
-        graduationYear: "2020",
-        location: "California"
+    const edu: any[] = [];
+    const degreeRegex = /(bachelor|master|mba|phd|b\.?sc|m\.?sc|b\.?a|b\.tech|m\.tech)/i;
+    const instRegex = /(university|college|institute|school)/i;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (degreeRegex.test(line) || instRegex.test(line)) {
+        const degree = (line.match(degreeRegex)?.[0] || '').replace(/\./g, '').toUpperCase();
+        const institution = instRegex.test(line) ? line.trim() : (lines[i+1] || '').trim();
+        edu.push({ id: `edu${edu.length+1}`, degree: degree || 'Degree', institution: institution || 'Institution', graduationYear: (line.match(/\b\d{4}\b/) || [])[0] || '', location: '' });
+        if (edu.length >= 2) break;
       }
-    ];
+    }
+    return edu;
   };
 
   const extractSkills = (lines: string[], fileName: string): any[] => {
-    const commonSkills = ["Communication", "Leadership", "Problem Solving", "Project Management", "Team Collaboration"];
-    const industrySkills = getIndustrySkills(fileName);
-    
-    const allSkills = [...commonSkills, ...industrySkills];
-    
-    return allSkills.map((skill, index) => ({
-      id: `skill${index + 1}`,
-      name: skill,
-      level: Math.floor(Math.random() * 30) + 70 // 70-100 range
-    }));
+    const text = lines.join(' ');
+    // Try dedicated Skills section first
+    const skillsStart = lines.findIndex(l => /\bskills?\b/i.test(l));
+    let raw = '';
+    if (skillsStart !== -1) {
+      const block = lines.slice(skillsStart + 1, skillsStart + 8).join(' ');
+      raw = block;
+    } else {
+      raw = text;
+    }
+
+    const candidates = Array.from(new Set(raw.split(/[\n,;•\u2022\|]/).map(s => s.trim()).filter(s => s.length >= 2 && s.length <= 40)));
+
+    // Filter to likely skill tokens (letters, numbers, + some symbols)
+    const likely = candidates.filter(s => /[a-z]/i.test(s) && !/@|http|www|\d{5,}/i.test(s));
+
+    // If still empty, fallback lightly to industry hints
+    const final = likely.slice(0, 12);
+    const fill = final.length < 6 ? getIndustrySkills(fileName).slice(0, 12 - final.length) : [];
+    const all = [...final, ...fill].slice(0, 12);
+
+    return all.map((name, idx) => ({ id: `skill${idx+1}`, name, level: 60 + ((idx*7)%40) }));
   };
 
   const getIndustrySkills = (fileName: string): string[] => {
