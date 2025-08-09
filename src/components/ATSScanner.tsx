@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, XCircle, FileText, Zap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+
 interface ATSScannerProps {
   resumeData?: {
     personalInfo?: any;
@@ -63,164 +63,163 @@ const ATSScanner: React.FC<ATSScannerProps> = ({ resumeData }) => {
       return; // Skip if data hasn't changed
     }
 
-    console.log('ATS Scanner: Starting AI-powered ATS scan');
+    console.log('ATS Scanner: Starting scan with new data');
     setScanResults(prev => ({ ...prev, isScanning: true }));
     
     try {
-      // Call the new AI-powered ATS analysis
-      const { data: analysis, error } = await supabase.functions.invoke('advanced-ats-analysis', {
-        body: {
-          resumeData: data,
-          analysisType: 'resume-only'
-        },
-      });
+      // Simulate realistic scanning time
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (error) {
-        throw new Error(error.message || 'Edge function error');
+      let formatScore = 100; // Perfect format since it's our template
+      let keywordScore = 50; // Base score
+      let structureScore = 0;
+      let contentScore = 0;
+      const suggestions: string[] = [];
+      const strengths: string[] = [];
+      const warnings: string[] = [];
+
+      console.log('ATS Scanner: Analyzing resume data', data);
+
+      // Structure analysis
+      let structurePoints = 0;
+      if (data.personalInfo?.name && data.personalInfo?.email && data.personalInfo?.phone) {
+        structurePoints += 25;
+        strengths.push("Complete contact information provided");
+      } else {
+        suggestions.push("Add complete contact information (name, email, phone)");
       }
 
-      console.log('ATS Scanner: AI analysis complete', analysis);
+      if (data.summary && data.summary.length > 50) {
+        structurePoints += 25;
+        strengths.push("Professional summary included");
+      } else {
+        suggestions.push("Add a professional summary (150-300 words recommended)");
+      }
+
+      if (data.workExperience && data.workExperience.length > 0) {
+        structurePoints += 25;
+        strengths.push("Work experience section present");
+      } else {
+        suggestions.push("Add work experience details");
+      }
+
+      if (data.education && data.education.length > 0) {
+        structurePoints += 25;
+        strengths.push("Education information included");
+      } else {
+        suggestions.push("Add education details");
+      }
+
+      structureScore = structurePoints;
+
+      // Content analysis
+      let contentPoints = 0;
+      const totalWords = [
+        data.summary || '',
+        ...(data.workExperience?.map((exp: any) => exp.responsibilities?.join(' ') || '') || [])
+      ].join(' ').split(' ').filter(word => word.length > 0).length;
+
+      if (totalWords > 100) {
+        contentPoints += 25;
+        strengths.push("Adequate content length");
+      } else {
+        suggestions.push("Add more detailed descriptions to your experience");
+      }
+
+      // Skills analysis
+      if (data.skills && data.skills.length >= 5) {
+        contentPoints += 25;
+        keywordScore += 20;
+        strengths.push("Good variety of skills listed");
+      } else if (data.skills && data.skills.length > 0) {
+        contentPoints += 15;
+        keywordScore += 10;
+        suggestions.push("Consider adding more relevant skills");
+      } else {
+        suggestions.push("Add technical and professional skills");
+      }
+
+      // Experience details
+      if (data.workExperience?.some((exp: any) => exp.responsibilities && exp.responsibilities.length > 2)) {
+        contentPoints += 25;
+        keywordScore += 15;
+        strengths.push("Detailed job responsibilities provided");
+      } else {
+        suggestions.push("Add more detailed job responsibilities and achievements");
+      }
+
+      // Quantifiable achievements
+      const hasNumbers = [data.summary, ...(data.workExperience?.map((exp: any) => exp.responsibilities?.join(' ')) || [])]
+        .join(' ')
+        .match(/\d+%|\d+\+|\$\d+|\d+ years?|\d+ months?/gi);
+
+      if (hasNumbers && hasNumbers.length > 0) {
+        contentPoints += 25;
+        keywordScore += 15;
+        strengths.push("Quantifiable achievements included");
+      } else {
+        suggestions.push("Add quantifiable achievements with numbers and percentages");
+      }
+
+      contentScore = contentPoints;
+
+      // Additional keyword analysis
+      const commonKeywords = ['manage', 'lead', 'develop', 'implement', 'improve', 'increase', 'reduce', 'collaborate', 'analyze', 'optimize'];
+      const contentText = [data.summary, ...(data.workExperience?.map((exp: any) => exp.responsibilities?.join(' ')) || [])].join(' ').toLowerCase();
+      
+      const foundKeywords = commonKeywords.filter(keyword => contentText.includes(keyword));
+      keywordScore += foundKeywords.length * 2;
+
+      if (keywordScore > 100) keywordScore = 100;
+
+      // Warnings
+      if (contentText.includes('responsible for')) {
+        warnings.push("Avoid passive phrases like 'responsible for' - use action verbs instead");
+      }
+
+      if (data.summary && data.summary.length > 500) {
+        warnings.push("Professional summary might be too long - keep it under 300 words");
+      }
+
+      if (!data.personalInfo?.jobTitle) {
+        suggestions.push("Add a professional title/job position");
+      }
+
+      // Calculate overall score
+      const overallScore = Math.round((formatScore + keywordScore + structureScore + contentScore) / 4);
+
+      console.log('ATS Scanner: Analysis complete', {
+        overallScore,
+        formatScore,
+        keywordScore,
+        structureScore,
+        contentScore
+      });
 
       setScanResults({
-        overallScore: analysis.overallScore,
-        formatScore: analysis.formatScore,
-        keywordScore: analysis.keywordScore,
-        structureScore: analysis.structureScore,
-        contentScore: analysis.contentScore,
-        suggestions: analysis.suggestions || [],
-        strengths: analysis.strengths || [],
-        warnings: analysis.warnings || [],
+        overallScore,
+        formatScore,
+        keywordScore,
+        structureScore,
+        contentScore,
+        suggestions,
+        strengths,
+        warnings,
         isScanning: false
       });
 
       setLastAnalyzedData(dataHash);
 
     } catch (error) {
-      console.error('ATS Scanner: AI analysis error, falling back to basic analysis', error);
-      
-      // Fallback to basic rule-based analysis
-      await performBasicATSScan(data);
-      setLastAnalyzedData(dataHash);
+      console.error('ATS Scanner: Analysis error', error);
+      setScanResults(prev => ({
+        ...prev,
+        isScanning: false,
+        suggestions: ['Analysis failed. Please try again.'],
+        warnings: ['There was an error analyzing your resume.']
+      }));
     }
   }, [lastAnalyzedData]);
-
-  const performBasicATSScan = async (data: any) => {
-    let formatScore = 90; // Using our template layout
-    let keywordScore = 30;
-    let structureScore = 0;
-    let contentScore = 25;
-    const suggestions: string[] = [];
-    const strengths: string[] = [];
-    const warnings: string[] = [];
-
-    // Structure analysis (sections present)
-    let structurePoints = 0;
-    if (data.personalInfo?.name && data.personalInfo?.email && data.personalInfo?.phone) {
-      structurePoints += 25;
-      strengths.push("Complete contact information provided");
-    } else {
-      suggestions.push("Add complete contact information (name, email, phone)");
-    }
-
-    if (data.summary && data.summary.length > 50) {
-      structurePoints += 25;
-      strengths.push("Professional summary included");
-    } else {
-      suggestions.push("Add a professional summary (150-300 words recommended)");
-    }
-
-    if (data.workExperience && data.workExperience.length > 0) {
-      structurePoints += 25;
-      strengths.push("Work experience section present");
-    } else {
-      suggestions.push("Add work experience details");
-    }
-
-    if (data.education && data.education.length > 0) {
-      structurePoints += 25;
-      strengths.push("Education information included");
-    } else {
-      suggestions.push("Add education details");
-    }
-
-    structureScore = structurePoints;
-
-    // Build text for content/keyword analysis
-    const parts: string[] = [];
-    if (data.summary) parts.push(data.summary);
-    data.workExperience?.forEach((job: any) => {
-      if (job.jobTitle) parts.push(job.jobTitle);
-      if (job.company) parts.push(job.company);
-      (job.responsibilities || []).forEach((r: string) => parts.push(r));
-    });
-    (data.skills || []).forEach((s: any) => s?.name && parts.push(s.name));
-    const fullText = parts.join(' ').trim();
-
-    // Gibberish/quality checks
-    const cleaned = fullText.toLowerCase().replace(/[^a-z0-9%\s.\-]/g, ' ');
-    const words = cleaned.split(/\s+/).filter(Boolean);
-    const longNoVowel = words.filter(w => w.length >= 5 && !/[aeiou]/.test(w));
-    const repeatedSeq = /(.)\1{3,}/i.test(cleaned);
-    const nonsenseRate = words.length ? (longNoVowel.length / words.length) : 1;
-    const tooShort = words.length < 80; // require some real content
-
-    if (repeatedSeq || nonsenseRate > 0.3 || tooShort) {
-      warnings.push("Detected low-quality or non-meaningful text. Replace placeholder or random letters with real sentences.");
-      contentScore = Math.max(0, contentScore - 20);
-      keywordScore = Math.max(0, keywordScore - 20);
-      suggestions.push("Write clear, grammatical bullet points with real achievements.");
-    }
-
-    // Action verbs and quantification
-    const actionVerbs = ['led','managed','built','created','implemented','designed','optimized','improved','launched','delivered','increased','reduced','developed','analyzed','collaborated','negotiated','trained','mentored','automated'];
-    const hasActionVerb = actionVerbs.some(v => new RegExp(`\\b${v}\\b`, 'i').test(fullText));
-    if (hasActionVerb) {
-      keywordScore += 10;
-      strengths.push("Good use of action verbs");
-    } else {
-      suggestions.push("Start bullets with strong action verbs (e.g., Led, Implemented, Built)");
-    }
-
-    const hasMetrics = /(\b\d{1,3}(?:,\d{3})*(?:\.\d+)?\b|\b\d+%\b)/.test(fullText);
-    if (hasMetrics) {
-      contentScore += 10;
-      strengths.push("Includes quantified achievements");
-    } else {
-      suggestions.push("Add metrics (%,$, time saved, growth) to quantify impact");
-    }
-
-    // General ATS keyword groups (broad, role-agnostic)
-    const generalKeywords = ['project management','stakeholder','kpi','metrics','analysis','strategy','communication','leadership','collaboration','budget','process improvement','crm','sql','excel','reporting','presentation','problem solving','agile','api','cloud','automation','compliance','risk','roadmap'];
-    const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const matched = generalKeywords.filter(k => new RegExp(`\\b${escape(k)}\\b`, 'i').test(fullText));
-    keywordScore += Math.min(30, matched.length * 3);
-
-    // Keyword stuffing penalty
-    const overuse = generalKeywords.some(k => (fullText.match(new RegExp(`\\b${escape(k)}\\b`, 'gi')) || []).length > 10);
-    if (overuse) {
-      keywordScore = Math.max(0, keywordScore - 10);
-      warnings.push('Detected keyword stuffing; keep wording natural.');
-    }
-
-    // Clamp scores
-    formatScore = Math.min(100, Math.max(0, formatScore));
-    keywordScore = Math.min(100, Math.max(0, keywordScore));
-    contentScore = Math.min(100, Math.max(0, contentScore));
-
-    const overallScore = Math.round((formatScore + keywordScore + structureScore + contentScore) / 4);
-
-    setScanResults({
-      overallScore,
-      formatScore,
-      keywordScore,
-      structureScore,
-      contentScore,
-      suggestions,
-      strengths,
-      warnings,
-      isScanning: false
-    });
-  };
 
   // Perform scan when data changes, but skip initial scan if user came from fix my resume
   useEffect(() => {

@@ -1,4 +1,1 @@
 project_id = "wjijfiwweppsxcltggna"
-
-[functions.advanced-ats-analysis]
-verify_jwt = false
