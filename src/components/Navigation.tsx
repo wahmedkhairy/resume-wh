@@ -29,24 +29,6 @@ const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection
       description: "Customize for jobs"
     },
     {
-      id: "free-ats-scanner",
-      label: "Free ATS Scanner",
-      icon: ScanLine,
-      description: "Free resume scan"
-    },
-    {
-      id: "subscription",
-      label: "Subscription",
-      icon: CreditCard,
-      description: "Pricing plans"
-    },
-    {
-      id: "auth",
-      label: "Sign In/Up",
-      icon: UserCheck,
-      description: "Account access"
-    },
-    {
       id: "settings",
       label: "Settings",
       icon: Settings,

@@ -182,22 +182,6 @@ const MainContent: React.FC<MainContentProps> = ({
         </Suspense>
       );
 
-    case "auth":
-      return (
-        <AuthSection
-          onSectionChange={onSectionChange}
-        />
-      );
-
-    case "subscription":
-      return (
-        <SubscriptionSection
-          onSectionChange={onSectionChange}
-        />
-      );
-
-    case "free-ats-scanner":
-      return <FreeATSScannerSection />;
 
     case "privacy-policy":
       return <PrivacyPolicySection />;
