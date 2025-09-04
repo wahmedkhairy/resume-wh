@@ -4,6 +4,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import UserSuccessStories from "@/components/UserSuccessStories";
 import ResumeEditor from "@/components/ResumeEditor";
 import { PersonalInfo } from "@/components/PersonalInfoBar";
+import AuthSection from "@/components/sections/AuthSection";
+import SubscriptionSection from "@/components/sections/SubscriptionSection";
+import FreeATSScannerSection from "@/components/sections/FreeATSScannerSection";
+import PrivacyPolicySection from "@/components/sections/PrivacyPolicySection";
+import TermsOfServiceSection from "@/components/sections/TermsOfServiceSection";
+import ForgotPasswordSection from "@/components/sections/ForgotPasswordSection";
 
 const SettingsSection = React.lazy(() => import("@/components/SettingsSection"));
 const ATSSection = React.lazy(() => import("@/components/ATSSection"));
@@ -174,6 +180,36 @@ const MainContent: React.FC<MainContentProps> = ({
             onTailoredResumeGenerated={onTailoredResumeGenerated}
           />
         </Suspense>
+      );
+
+    case "auth":
+      return (
+        <AuthSection
+          onSectionChange={onSectionChange}
+        />
+      );
+
+    case "subscription":
+      return (
+        <SubscriptionSection
+          onSectionChange={onSectionChange}
+        />
+      );
+
+    case "free-ats-scanner":
+      return <FreeATSScannerSection />;
+
+    case "privacy-policy":
+      return <PrivacyPolicySection />;
+
+    case "terms-of-service":
+      return <TermsOfServiceSection />;
+
+    case "forgot-password":
+      return (
+        <ForgotPasswordSection
+          onSectionChange={onSectionChange}
+        />
       );
     
     default:

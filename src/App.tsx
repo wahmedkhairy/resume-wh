@@ -67,17 +67,7 @@ const App = () => {
               <RedirectHandler />
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/subscription" element={<Subscription />} />
-                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-                <Route path="/payment-success" element={<PaymentSuccess />} />
-                <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/terms-of-service" element={<TermsOfService />} />
-                <Route path="/free-ats-scanner" element={<FreeATSScannerPage />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
+                <Route path="*" element={<Index />} />
               </Routes>
             </IndexingOptimizer>
           </BrowserRouter>
