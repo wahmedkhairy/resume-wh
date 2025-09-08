@@ -80,6 +80,24 @@ const Index = () => {
     };
     
     initializeUser();
+
+    // Listen for custom events to change sections
+    const handleFreeATSEvent = () => setCurrentSection('free-ats-scanner');
+    const handleSubscriptionEvent = () => setCurrentSection('subscription');
+    const handlePrivacyEvent = () => setCurrentSection('privacy-policy');
+    const handleTermsEvent = () => setCurrentSection('terms-of-service');
+
+    window.addEventListener('changeSectionToFreeATS', handleFreeATSEvent);
+    window.addEventListener('changeSectionToSubscription', handleSubscriptionEvent);
+    window.addEventListener('changeSectionToPrivacyPolicy', handlePrivacyEvent);
+    window.addEventListener('changeSectionToTermsOfService', handleTermsEvent);
+
+    return () => {
+      window.removeEventListener('changeSectionToFreeATS', handleFreeATSEvent);
+      window.removeEventListener('changeSectionToSubscription', handleSubscriptionEvent);
+      window.removeEventListener('changeSectionToPrivacyPolicy', handlePrivacyEvent);
+      window.removeEventListener('changeSectionToTermsOfService', handleTermsEvent);
+    };
   }, []);
 
   // Create current resume data object - memoized to prevent unnecessary re-renders

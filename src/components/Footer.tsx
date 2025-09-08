@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -17,18 +16,18 @@ const Footer = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
-            <Link 
-              to="/privacy-policy" 
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('changeSectionToPrivacyPolicy'))}
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Privacy Policy
-            </Link>
-            <Link 
-              to="/terms-of-service" 
+            </button>
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('changeSectionToTermsOfService'))}
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Terms of Service
-            </Link>
+            </button>
           </div>
         </div>
         

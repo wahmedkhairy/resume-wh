@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { FileEdit, Settings, BarChart3, Target, Star, Shield, ScrollText, CreditCard, UserCheck, ScanLine } from "lucide-react";
+import { FileEdit, Settings, BarChart3, Target, Star } from "lucide-react";
 
 interface NavigationProps {
   onSectionChange: (section: string) => void;
@@ -36,20 +36,6 @@ const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection
     }
   ];
 
-  const footerItems = [
-    {
-      id: "privacy-policy",
-      label: "Privacy Policy",
-      icon: Shield,
-      description: "Data protection"
-    },
-    {
-      id: "terms-of-service",
-      label: "Terms of Service",
-      icon: ScrollText,
-      description: "User agreement"
-    }
-  ];
 
   return (
     <nav className="border-b bg-white dark:bg-gray-800 shadow-sm">
@@ -89,31 +75,6 @@ const Navigation: React.FC<NavigationProps> = ({ onSectionChange, currentSection
             <Star className="h-4 w-4" />
             <span className="hidden sm:inline">Success Stories</span>
           </Button>
-        </div>
-        
-        {/* Footer Items */}
-        <div className="flex items-center justify-center space-x-4 py-2 border-t border-gray-200 dark:border-gray-700">
-          {footerItems.map((item) => {
-            const isActive = currentSection === item.id;
-            const Icon = item.icon;
-            
-            return (
-              <Button
-                key={item.id}
-                variant="ghost"
-                size="sm"
-                onClick={() => onSectionChange(item.id)}
-                className={`flex items-center gap-1 text-xs ${
-                  isActive 
-                    ? "text-primary" 
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Icon className="h-3 w-3" />
-                <span>{item.label}</span>
-              </Button>
-            );
-          })}
         </div>
       </div>
     </nav>

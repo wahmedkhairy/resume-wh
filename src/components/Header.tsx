@@ -36,7 +36,8 @@ const Header = () => {
   };
 
   const handleFreeATSScanner = () => {
-    navigate("/free-ats-scanner");
+    // Trigger the free ATS scanner section on the main page
+    window.dispatchEvent(new CustomEvent('changeSectionToFreeATS'));
   };
 
   return (

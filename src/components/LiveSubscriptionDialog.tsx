@@ -12,7 +12,8 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    navigate("/subscription");
+    // Trigger the subscription section on the main page
+    window.dispatchEvent(new CustomEvent('changeSectionToSubscription'));
   };
 
   return (

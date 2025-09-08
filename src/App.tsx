@@ -19,8 +19,6 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import FreeATSScannerPage from "./pages/FreeATSScanner";
 import NotFound from "./pages/NotFound";
-import Admin from "./pages/Admin";
-import AdminRoute from "@/components/AdminRoute";
 
 const queryClient = new QueryClient();
 
