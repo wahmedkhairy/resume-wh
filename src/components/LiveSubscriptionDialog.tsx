@@ -17,7 +17,7 @@ const LiveSubscriptionDialog: React.FC<LiveSubscriptionDialogProps> = ({ childre
   };
 
   return (
-    <div onClick={handleClick} className="cursor-pointer w-full">
+    <div onClick={handleClick} className="cursor-pointer">
       {children}
     </div>
   );

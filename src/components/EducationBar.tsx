@@ -67,64 +67,68 @@ const EducationBar: React.FC<EducationBarProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {education.map((edu) => (
-          <div key={edu.id} className="border rounded p-4 space-y-3">
-            <div className="flex justify-end items-start mb-2">
-              <Button
-                onClick={() => handleDeleteEducation(edu.id)}
-                variant="outline"
-                size="sm"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
+          <div key={edu.id} className="border rounded-lg p-6 space-y-4 relative">
+            <Button
+              onClick={() => handleDeleteEducation(edu.id)}
+              variant="outline"
+              size="sm"
+              className="absolute top-4 right-4"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor={`degree-${edu.id}`}>Degree</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-16">
+              <div className="space-y-2">
+                <Label htmlFor={`degree-${edu.id}`} className="text-sm font-medium">Degree</Label>
                 <Input
                   id={`degree-${edu.id}`}
                   value={edu.degree}
                   onChange={(e) => handleFieldChange(edu.id, 'degree', e.target.value)}
                   placeholder="Bachelor of Science in Computer Science"
+                  className="w-full"
                 />
               </div>
-              <div>
-                <Label htmlFor={`institution-${edu.id}`}>Institution</Label>
+              <div className="space-y-2">
+                <Label htmlFor={`institution-${edu.id}`} className="text-sm font-medium">Institution</Label>
                 <Input
                   id={`institution-${edu.id}`}
                   value={edu.institution}
                   onChange={(e) => handleFieldChange(edu.id, 'institution', e.target.value)}
                   placeholder="University Name"
+                  className="w-full"
                 />
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor={`year-${edu.id}`}>Graduation Year</Label>
+              <div className="space-y-2">
+                <Label htmlFor={`year-${edu.id}`} className="text-sm font-medium">Graduation Year</Label>
                 <Input
                   id={`year-${edu.id}`}
                   value={edu.graduationYear}
                   onChange={(e) => handleFieldChange(edu.id, 'graduationYear', e.target.value)}
                   placeholder="2024"
+                  className="w-full"
                 />
               </div>
-              <div>
-                <Label htmlFor={`gpa-${edu.id}`}>GPA (Optional)</Label>
+              <div className="space-y-2">
+                <Label htmlFor={`gpa-${edu.id}`} className="text-sm font-medium">GPA (Optional)</Label>
                 <Input
                   id={`gpa-${edu.id}`}
                   value={edu.gpa || ""}
                   onChange={(e) => handleFieldChange(edu.id, 'gpa', e.target.value)}
                   placeholder="3.8"
+                  className="w-full"
                 />
               </div>
-              <div>
-                <Label htmlFor={`location-${edu.id}`}>Location</Label>
+              <div className="space-y-2">
+                <Label htmlFor={`location-${edu.id}`} className="text-sm font-medium">Location</Label>
                 <Input
                   id={`location-${edu.id}`}
                   value={edu.location}
                   onChange={(e) => handleFieldChange(edu.id, 'location', e.target.value)}
                   placeholder="City, State"
+                  className="w-full"
                 />
               </div>
             </div>
