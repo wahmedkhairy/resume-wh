@@ -49,19 +49,18 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
     const initializeSubscription = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          onSectionChange('auth');
-          return;
-        }
-        setCurrentUserId(user.id);
+        if (user) {
+          setCurrentUserId(user.id);
 
-        const { data: subscription } = await supabase
-          .from('subscriptions')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        setCurrentSubscription(subscription);
+          const { data: subscription } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          setCurrentSubscription(subscription);
+        }
+        // Don't redirect if no user - allow them to see plans
       } catch (error) {
         console.error('Error initializing subscription:', error);
         toast({
@@ -75,13 +74,24 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
     };
 
     initializeSubscription();
-  }, [onSectionChange, toast]);
+  }, [toast]);
 
   const handleSubscriptionSelect = useCallback((tier: string) => {
+    // Check if user is authenticated before proceeding to payment
+    if (!currentUserId) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to purchase a subscription.",
+        variant: "destructive",
+      });
+      onSectionChange('auth');
+      return;
+    }
+    
     console.log('Subscription tier selected:', tier);
     setSelectedTier(tier);
     setCurrentStep('payment');
-  }, []);
+  }, [currentUserId, toast, onSectionChange]);
 
   const handlePaymentSuccess = useCallback(async (details: any) => {
     if (paymentProcessing) return;
@@ -195,6 +205,13 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
           <p className="text-sm text-muted-foreground">
             All prices in USD - Available worldwide
           </p>
+          {!currentUserId && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-700">
+                💡 You can browse plans here, but you'll need to sign in to purchase.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
