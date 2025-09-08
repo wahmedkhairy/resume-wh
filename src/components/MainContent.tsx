@@ -183,7 +183,7 @@ const MainContent: React.FC<MainContentProps> = ({
       );
 
     case "free-ats-scanner":
-      return <FreeATSScannerSection />;
+      return <FreeATSScannerSection onSectionChange={onSectionChange} />;
 
     case "subscription":
       return (

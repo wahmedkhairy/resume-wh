@@ -86,17 +86,20 @@ const Index = () => {
     const handleSubscriptionEvent = () => setCurrentSection('subscription');
     const handlePrivacyEvent = () => setCurrentSection('privacy-policy');
     const handleTermsEvent = () => setCurrentSection('terms-of-service');
+    const handleEditorEvent = () => setCurrentSection('editor');
 
     window.addEventListener('changeSectionToFreeATS', handleFreeATSEvent);
     window.addEventListener('changeSectionToSubscription', handleSubscriptionEvent);
     window.addEventListener('changeSectionToPrivacyPolicy', handlePrivacyEvent);
     window.addEventListener('changeSectionToTermsOfService', handleTermsEvent);
+    window.addEventListener('changeSectionToEditor', handleEditorEvent);
 
     return () => {
       window.removeEventListener('changeSectionToFreeATS', handleFreeATSEvent);
       window.removeEventListener('changeSectionToSubscription', handleSubscriptionEvent);
       window.removeEventListener('changeSectionToPrivacyPolicy', handlePrivacyEvent);
       window.removeEventListener('changeSectionToTermsOfService', handleTermsEvent);
+      window.removeEventListener('changeSectionToEditor', handleEditorEvent);
     };
   }, []);
 
