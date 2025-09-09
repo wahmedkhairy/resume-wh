@@ -84,7 +84,8 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
         description: "Please sign in to purchase a subscription.",
         variant: "destructive",
       });
-      onSectionChange('auth');
+      // Redirect to actual auth page instead of section
+      window.location.href = '/auth';
       return;
     }
     
