@@ -10,6 +10,7 @@ import SEOHead from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useResumeData } from "@/hooks/useResumeData";
 import { useSubscription } from "@/hooks/useSubscription";
+import TempSitemapUploader from "@/components/TempSitemapUploader";
 
 const LoadingSkeleton = () => (
   <div className="space-y-6">
@@ -34,6 +35,7 @@ const Index = () => {
   const [sessionId] = useState(`session_${Date.now()}`);
   const [tailoredResumeData, setTailoredResumeData] = useState<any>(null);
   const [isPageLoading, setIsPageLoading] = useState(true);
+  const [showSitemapUploader, setShowSitemapUploader] = useState(true);
   const { toast } = useToast();
 
   const {
@@ -276,6 +278,10 @@ const Index = () => {
           />
         </div>
       </main>
+      
+      {showSitemapUploader && (
+        <TempSitemapUploader onClose={() => setShowSitemapUploader(false)} />
+      )}
       
       <Footer />
     </div>
