@@ -62,25 +62,37 @@ const SitemapUploader: React.FC = () => {
         throw new Error('Invalid sitemap format');
       }
 
-      // In a real application, you would upload this to your server
-      // For now, we'll simulate the upload process
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Validate that URLs look correct
+      if (!fileContent.includes('<loc>') || !fileContent.includes('</loc>')) {
+        throw new Error('Sitemap must contain valid URL entries');
+      }
+
+      // Create a blob and download link to save the file locally
+      const blob = new Blob([fileContent], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'sitemap.xml';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       
       // Show success message
       setUploadStatus('success');
       toast({
-        title: "Sitemap Uploaded Successfully",
-        description: "Your sitemap.xml has been updated and will be deployed with your next build.",
+        title: "Sitemap Processed Successfully",
+        description: "Your sitemap.xml has been downloaded. Please replace the file in your public folder and redeploy.",
       });
       
-      console.log('Sitemap content:', fileContent);
+      console.log('Sitemap content processed:', fileContent);
       
     } catch (error) {
       console.error('Upload error:', error);
       setUploadStatus('error');
       toast({
         title: "Upload Failed",
-        description: "There was an error uploading your sitemap. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error processing your sitemap. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -178,13 +190,14 @@ const SitemapUploader: React.FC = () => {
           </p>
           <ul className="text-sm text-blue-600 dark:text-blue-400 space-y-1">
             <li>• Home page (/)</li>
+            <li>• Free ATS Scanner (/free-ats-scanner)</li>
+            <li>• Subscription (/subscription)</li>
             <li>• Authentication (/auth)</li>
-            <li>• Payment success (/payment-success)</li>
-            <li>• Payment cancelled (/payment-cancelled)</li>
-            <li>• Admin panel (/admin)</li>
+            <li>• Privacy Policy (/privacy-policy)</li>
+            <li>• Terms of Service (/terms-of-service)</li>
           </ul>
           <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-            Remember to update "yourdomain.com" with your actual domain name in the sitemap.
+            Last updated: July 24, 2025. Upload a new sitemap to update these URLs.
           </p>
         </div>
       </CardContent>
