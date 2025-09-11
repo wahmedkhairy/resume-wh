@@ -50,7 +50,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
           "2 Professional resume exports",
           "Basic ATS optimization",
           "PDF export",
-          "1 Targeted resume per month",
+          "1 Targeted job resume per month",
           "Email support"
         ],
         icon: <Zap className="h-6 w-6" />,
@@ -68,7 +68,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
           "6 Professional resume exports",
           "Advanced ATS analysis",
           "PDF & Word export",
-          "3 Targeted resumes per month",
+          "3 Targeted job resumes per month",
           "Priority support",
           "Interview preparation tips"
         ],
@@ -85,7 +85,7 @@ const SubscriptionTiers: React.FC<SubscriptionTiersProps> = ({
         features: [
           "All Premium features",
           "Unlimited resume exports",
-          "Unlimited targeted resumes",
+          "Unlimited targeted job resumes",
           "Advanced career insights",
           "1-on-1 career consultation",
           "Priority queue processing",
