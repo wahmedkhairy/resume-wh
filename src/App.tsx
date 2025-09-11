@@ -11,14 +11,6 @@ import CanonicalRedirectHandler from "@/components/CanonicalRedirectHandler";
 import IndexingOptimizer from "@/components/IndexingOptimizer";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import ForgotPassword from "./pages/ForgotPassword";
-import Subscription from "./pages/Subscription";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCancelled from "./pages/PaymentCancelled";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import FreeATSScannerPage from "./pages/FreeATSScanner";
-import NotFound from "./pages/NotFound";
 
 
 const queryClient = new QueryClient();
