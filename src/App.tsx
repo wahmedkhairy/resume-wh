@@ -19,7 +19,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import FreeATSScannerPage from "./pages/FreeATSScanner";
 import NotFound from "./pages/NotFound";
-import Admin from "./pages/Admin";
+
 
 const queryClient = new QueryClient();
 
@@ -67,7 +67,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/admin" element={<Admin />} />
+                
                 <Route path="*" element={<Index />} />
               </Routes>
             </IndexingOptimizer>
