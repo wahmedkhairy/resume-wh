@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface PaymobOrderData {
   amount: number;
   currency: string;
@@ -18,22 +20,22 @@ export const createPaymobOrder = async (orderData: PaymobOrderData): Promise<Pay
     // Convert amount to cents (Paymob expects amount in cents)
     const amountInCents = Math.round(orderData.amount * 100);
     
-    const response = await fetch('/api/create-paymob-order', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke('create-paymob-order', {
+      body: {
         ...orderData,
         amount: amountInCents
-      }),
+      }
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (error) {
+      console.error('Supabase function error:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to create order'
+      };
     }
 
-    return await response.json();
+    return data;
   } catch (error) {
     console.error('Error creating Paymob order:', error);
     return {
@@ -45,20 +47,16 @@ export const createPaymobOrder = async (orderData: PaymobOrderData): Promise<Pay
 
 export const verifyPaymobPayment = async (transactionId: string): Promise<boolean> => {
   try {
-    const response = await fetch('/api/verify-paymob-payment', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ transactionId }),
+    const { data, error } = await supabase.functions.invoke('verify-paymob-payment', {
+      body: { transactionId }
     });
 
-    if (!response.ok) {
+    if (error) {
+      console.error('Verification error:', error);
       return false;
     }
 
-    const result = await response.json();
-    return result.success === true;
+    return data?.success === true;
   } catch (error) {
     console.error('Error verifying Paymob payment:', error);
     return false;

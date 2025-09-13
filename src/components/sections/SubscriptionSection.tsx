@@ -3,8 +3,10 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SubscriptionTiers from "@/components/SubscriptionTiers";
 import PaymentSection from "@/components/PaymentSection";
+import { PaymobPayment } from "@/components/PaymobPayment";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { detectUserLocation } from "@/utils/currencyUtils";
 
 interface SubscriptionSectionProps {
   onSectionChange: (section: string) => void;
@@ -17,33 +19,51 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
   const [currentStep, setCurrentStep] = useState<'plans' | 'payment'>('plans');
   const [isLoading, setIsLoading] = useState(true);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [locationData, setLocationData] = useState<any>(null);
   const { toast } = useToast();
 
-  // USD pricing only
-  const usdPricing = {
-    symbol: '$',
-    code: 'USD',
-    basicPrice: 2.00,
-    premiumPrice: 3.00,
-    unlimitedPrice: 4.99
-  };
+  // Initialize location and currency data
+  useEffect(() => {
+    const initializeLocation = async () => {
+      try {
+        const location = await detectUserLocation();
+        setLocationData(location);
+      } catch (error) {
+        console.error('Error detecting location:', error);
+        // Fallback to USD pricing
+        setLocationData({
+          country: "United States",
+          countryCode: "US",
+          currency: {
+            symbol: '$',
+            code: 'USD',
+            basicPrice: 2.00,
+            premiumPrice: 3.00,
+            unlimitedPrice: 4.99
+          }
+        });
+      }
+    };
+
+    initializeLocation();
+  }, []);
 
   const orderData = React.useMemo(() => {
-    if (!selectedTier) return null;
+    if (!selectedTier || !locationData) return null;
 
     const prices = {
-      basic: usdPricing.basicPrice,
-      premium: usdPricing.premiumPrice,
-      unlimited: usdPricing.unlimitedPrice
+      basic: locationData.currency.basicPrice,
+      premium: locationData.currency.premiumPrice,
+      unlimited: locationData.currency.unlimitedPrice
     };
 
     return {
       amount: prices[selectedTier as keyof typeof prices].toFixed(2),
-      currency: usdPricing.code,
+      currency: locationData.currency.code,
       description: `${selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} Plan`,
       tier: selectedTier
     };
-  }, [selectedTier, usdPricing]);
+  }, [selectedTier, locationData]);
 
   useEffect(() => {
     const initializeSubscription = async () => {
@@ -203,9 +223,11 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
           <p className="text-xl text-muted-foreground mb-2">
             Unlock the full potential of your resume
           </p>
-          <p className="text-sm text-muted-foreground">
-            All prices in USD - Available worldwide
-          </p>
+          {locationData && (
+            <p className="text-sm text-muted-foreground">
+              All prices in {locationData.currency.code} - {locationData.countryCode === 'EG' ? 'Egyptian users get special pricing!' : 'Available worldwide'}
+            </p>
+          )}
           {!currentUserId && (
             <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-700">
@@ -225,10 +247,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
             window.location.reload();
           }}
           onSubscriptionSelect={handleSubscriptionSelect}
-          locationData={{
-            country: 'United States',
-            currency: usdPricing
-          }}
+          locationData={locationData}
         />
       </div>
 
@@ -238,13 +257,31 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
           <Card>
             <CardContent>
               <div className="space-y-6">
-                {orderData && (
-                  <PaymentSection
-                    orderData={orderData}
-                    onSuccess={handlePaymentSuccess}
-                    onError={handlePaymentError}
-                    onCancel={handlePaymentCancel}
-                  />
+                {orderData && locationData && (
+                  <>
+                    {locationData.countryCode === 'EG' ? (
+                      <PaymobPayment
+                        orderData={{
+                          amount: parseFloat(orderData.amount),
+                          currency: orderData.currency,
+                          orderId: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                          customerEmail: currentUserId ? 'user@example.com' : '', // You'll need to get actual email
+                          customerName: 'User Name', // You'll need to get actual name
+                          tier: orderData.tier
+                        }}
+                        onSuccess={(transactionId) => handlePaymentSuccess({ transactionId })}
+                        onError={handlePaymentError}
+                        onCancel={handlePaymentCancel}
+                      />
+                    ) : (
+                      <PaymentSection
+                        orderData={orderData}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                        onCancel={handlePaymentCancel}
+                      />
+                    )}
+                  </>
                 )}
                 
                 <div className="text-center">
