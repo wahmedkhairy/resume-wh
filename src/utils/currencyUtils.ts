@@ -13,7 +13,6 @@ interface LocationData {
   currency: CurrencyConfig;
 }
 
-// Simplified to only support USD
 const getUSDCurrency = (): CurrencyConfig => {
   return {
     symbol: '$',
@@ -24,8 +23,36 @@ const getUSDCurrency = (): CurrencyConfig => {
   };
 };
 
+const getEGPCurrency = (): CurrencyConfig => {
+  return {
+    symbol: 'E£',
+    code: 'EGP',
+    basicPrice: 49.00,
+    premiumPrice: 74.00,
+    unlimitedPrice: 149.00
+  };
+};
+
 export const detectUserLocation = async (): Promise<LocationData> => {
-  // Always return USD pricing
+  try {
+    // Try to detect user location
+    const response = await fetch('https://ipapi.co/json/');
+    if (response.ok) {
+      const data = await response.json();
+      
+      if (data.country_code === 'EG') {
+        return {
+          country: "Egypt",
+          countryCode: "EG",
+          currency: getEGPCurrency()
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Error detecting location:', error);
+  }
+  
+  // Default to USD pricing
   return {
     country: "United States",
     countryCode: "US",
