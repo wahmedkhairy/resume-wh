@@ -39,18 +39,12 @@ export const createPaymobOrder = async (orderData: PaymobOrderData): Promise<Pay
       amountInCents
     });
 
-    const requestBody = {
-      ...orderData,
-      amount: amountInCents
-    };
-
-    console.log('Sending request to create-paymob-order function:', requestBody);
-
     const { data, error } = await supabase.functions.invoke('create-paymob-order', {
-      body: requestBody
+      body: {
+        ...orderData,
+        amount: amountInCents
+      }
     });
-
-    console.log('Supabase function response:', { data, error });
 
     if (error) {
       console.error('Supabase function error:', error);
@@ -60,34 +54,12 @@ export const createPaymobOrder = async (orderData: PaymobOrderData): Promise<Pay
       };
     }
 
-    if (!data) {
-      console.error('No data returned from function');
+    if (!data || !data.success) {
       return {
         success: false,
-        error: 'No response from payment service'
+        error: data?.error || 'Failed to create payment order'
       };
     }
-
-    if (!data.success) {
-      console.error('Function returned error:', data.error);
-      return {
-        success: false,
-        error: data.error || 'Failed to create payment order'
-      };
-    }
-
-    if (!data.paymentUrl) {
-      console.error('No payment URL returned');
-      return {
-        success: false,
-        error: 'No payment URL received'
-      };
-    }
-
-    console.log('Payment order created successfully:', {
-      orderId: data.orderId,
-      paymentUrl: data.paymentUrl?.substring(0, 50) + '...' // Log partial URL for security
-    });
 
     return {
       success: true,
