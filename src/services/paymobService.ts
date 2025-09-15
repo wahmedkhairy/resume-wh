@@ -129,11 +129,11 @@ export const checkPaymentStatus = async (orderId: string): Promise<{
       };
     }
 
-    return {
-      success: true,
-      status: paymentData.status,
-      transactionId: paymentData.gateway_transaction_id
-    };
+      return {
+        success: true,
+        status: paymentData.status as 'pending' | 'completed' | 'failed',
+        transactionId: paymentData.gateway_transaction_id
+      };
   } catch (error) {
     console.error('Error checking payment status:', error);
     return {
