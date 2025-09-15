@@ -221,7 +221,10 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
           </p>
         </div>
 
-        {isProcessing && (
+  // Cleanup on component unmount
+  useEffect(() => {
+    return cleanup;
+  }, []);
           <div className="bg-blue-50 p-3 rounded-md">
             <p className="text-sm text-blue-700 text-center">
               Payment window is open. Complete your payment in the popup window.
