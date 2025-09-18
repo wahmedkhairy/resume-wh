@@ -1,3 +1,4 @@
+// File: src/services/paymobService.ts
 import { supabase } from "@/integrations/supabase/client";
 
 export interface PaymobOrderData {
@@ -156,18 +157,50 @@ export const checkPaymentStatus = async (orderId: string): Promise<PaymentStatus
 // Helper function to get user profile data
 export const getUserProfile = async (userId: string) => {
   try {
-    const { data: profile, error } = await supabase
+    // First try to get from profiles table
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('email, full_name')
       .eq('id', userId)
       .single();
 
-    if (error) {
-      console.error('Error fetching user profile:', error);
+    if (profile && !profileError) {
+      return profile;
+    }
+
+    console.log('Profile not found in profiles table, trying auth.users');
+
+    // If not in profiles table, get from auth.users
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('Error getting user from auth:', userError);
       return null;
     }
 
-    return profile;
+    // Create profile object from auth user
+    const userProfile = {
+      email: user.email || '',
+      full_name: user.user_metadata?.full_name || 
+                 user.user_metadata?.name || 
+                 user.email?.split('@')[0] || 'User'
+    };
+
+    // Try to create the profile record for future use
+    try {
+      await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          email: userProfile.email,
+          full_name: userProfile.full_name
+        });
+    } catch (insertError) {
+      // Ignore insert errors, just continue with the profile data
+      console.log('Could not create profile record:', insertError);
+    }
+
+    return userProfile;
   } catch (error) {
     console.error('Error getting user profile:', error);
     return null;
