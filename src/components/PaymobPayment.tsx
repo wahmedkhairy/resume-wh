@@ -40,21 +40,47 @@ export const PaymobPayment: React.FC<PaymobPaymentProps> = ({
   // Load user profile on component mount
   useEffect(() => {
     const loadUserProfile = async () => {
-      const profile = await getUserProfile(userId);
-      if (profile) {
-        setUserProfile(profile);
-      } else {
+      if (!userId) return;
+
+      try {
+        const profile = await getUserProfile(userId);
+        if (profile) {
+          setUserProfile(profile);
+          console.log('User profile loaded:', profile);
+        } else {
+          // Fallback: try to get current user data directly
+          console.log('Profile not found, trying direct auth user');
+          const { data: { user }, error } = await supabase.auth.getUser();
+          
+          if (user && !error) {
+            const fallbackProfile = {
+              email: user.email || '',
+              full_name: user.user_metadata?.full_name || 
+                        user.user_metadata?.name || 
+                        user.email?.split('@')[0] || 'User'
+            };
+            setUserProfile(fallbackProfile);
+            console.log('Fallback profile created:', fallbackProfile);
+          } else {
+            console.error('Could not get user data:', error);
+            toast({
+              title: "Profile Error",
+              description: "Unable to load user profile. Please refresh and try again.",
+              variant: "destructive",
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error in loadUserProfile:', error);
         toast({
           title: "Error",
-          description: "Unable to load user profile. Please try refreshing the page.",
+          description: "Failed to load user information. Please refresh the page.",
           variant: "destructive",
         });
       }
     };
 
-    if (userId) {
-      loadUserProfile();
-    }
+    loadUserProfile();
   }, [userId, toast]);
 
   // Cleanup function
