@@ -1,4 +1,3 @@
-// File: src/services/paymobService.ts
 import { supabase } from "@/integrations/supabase/client";
 
 export interface PaymobOrderData {
