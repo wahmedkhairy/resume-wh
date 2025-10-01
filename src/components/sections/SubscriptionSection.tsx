@@ -264,11 +264,9 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
                         orderData={{
                           amount: parseFloat(orderData.amount),
                           currency: orderData.currency,
-                          orderId: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                          customerEmail: currentUserId ? 'user@example.com' : '', // You'll need to get actual email
-                          customerName: 'User Name', // You'll need to get actual name
                           tier: orderData.tier
                         }}
+                        userId={currentUserId || ''}
                         onSuccess={(transactionId) => handlePaymentSuccess({ transactionId })}
                         onError={handlePaymentError}
                         onCancel={handlePaymentCancel}
