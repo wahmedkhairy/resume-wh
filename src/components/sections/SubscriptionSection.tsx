@@ -264,6 +264,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
                         orderData={{
                           amount: parseFloat(orderData.amount),
                           currency: orderData.currency,
+                          orderId: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                           tier: orderData.tier
                         }}
                         userId={currentUserId || ''}
