@@ -40,13 +40,12 @@ export const detectUserLocation = async (): Promise<LocationData> => {
     if (response.ok) {
       const data = await response.json();
       
-      if (data.country_code === 'EG') {
-        return {
-          country: "Egypt",
-          countryCode: "EG",
-          currency: getEGPCurrency()
-        };
-      }
+      // Always return USD pricing for PayPal (Paymob disabled)
+      return {
+        country: data.country_name || "United States",
+        countryCode: data.country_code || "US",
+        currency: getUSDCurrency()
+      };
     }
   } catch (error) {
     console.error('Error detecting location:', error);
