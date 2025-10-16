@@ -29,7 +29,11 @@ const LoadingSkeleton = () => (
 );
 
 const Index = () => {
-  const [currentSection, setCurrentSection] = useState("editor");
+  // Check URL hash for section routing
+  const urlHash = window.location.hash.replace('#', '');
+  const initialSection = urlHash || "editor";
+  
+  const [currentSection, setCurrentSection] = useState(initialSection);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [sessionId] = useState(`session_${Date.now()}`);
   const [tailoredResumeData, setTailoredResumeData] = useState<any>(null);
@@ -81,6 +85,16 @@ const Index = () => {
     
     initializeUser();
 
+    // Listen for hash changes to update section
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        setCurrentSection(hash);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+
     // Listen for custom events to change sections
     const handleFreeATSEvent = () => setCurrentSection('free-ats-scanner');
     const handleSubscriptionEvent = () => setCurrentSection('subscription');
@@ -95,6 +109,7 @@ const Index = () => {
     window.addEventListener('changeSectionToEditor', handleEditorEvent);
 
     return () => {
+      window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('changeSectionToFreeATS', handleFreeATSEvent);
       window.removeEventListener('changeSectionToSubscription', handleSubscriptionEvent);
       window.removeEventListener('changeSectionToPrivacyPolicy', handlePrivacyEvent);
@@ -175,6 +190,8 @@ const Index = () => {
 
   const handleSectionChange = (section: string) => {
     setCurrentSection(section);
+    // Update URL hash to reflect the section
+    window.location.hash = section;
     if (section !== "editor") {
       setTailoredResumeData(null);
     }

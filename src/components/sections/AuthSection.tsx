@@ -429,7 +429,10 @@ const AuthSection: React.FC<AuthSectionProps> = ({ onSectionChange }) => {
                 <Button
                   type="button"
                   variant="link"
-                  onClick={() => onSectionChange('forgot-password')}
+                  onClick={() => {
+                    window.location.hash = 'forgot-password';
+                    onSectionChange('forgot-password');
+                  }}
                   className="text-blue-600 hover:text-blue-700"
                 >
                   Forgot your password?
