@@ -21,6 +21,10 @@ const DEFAULT_REDIRECT_RULES: RedirectRule[] = [
   { from: '/home', to: '/', permanent: true, type: 'exact' },
   { from: '/Home', to: '/', permanent: true, type: 'exact' },
   
+  // Forgot password direct path -> hash route within SPA
+  { from: '/forgot-password', to: '/#forgot-password', permanent: true, type: 'exact' },
+  { from: '/forgot-password/', to: '/#forgot-password', permanent: true, type: 'exact' },
+  
   // Handle trailing slash inconsistencies (301 redirects)
   { from: '/auth/', to: '/auth', permanent: true, type: 'exact' },
   { from: '/free-ats-scanner/', to: '/free-ats-scanner', permanent: true, type: 'exact' },
