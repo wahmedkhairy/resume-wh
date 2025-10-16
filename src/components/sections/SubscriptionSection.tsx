@@ -225,7 +225,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
           </p>
           {locationData && (
             <p className="text-sm text-muted-foreground">
-              All prices in {locationData.currency.code} - {locationData.countryCode === 'EG' ? 'Egyptian users get special pricing!' : 'Available worldwide'}
+              All prices in {locationData.currency.code} - Available worldwide
             </p>
           )}
           {!currentUserId && (
@@ -258,29 +258,12 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
             <CardContent>
               <div className="space-y-6">
                 {orderData && locationData && (
-                  <>
-                    {locationData.countryCode === 'EG' ? (
-                      <PaymobPayment
-                        orderData={{
-                          amount: parseFloat(orderData.amount),
-                          currency: orderData.currency,
-                          orderId: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                          tier: orderData.tier
-                        }}
-                        userId={currentUserId || ''}
-                        onSuccess={(transactionId) => handlePaymentSuccess({ transactionId })}
-                        onError={handlePaymentError}
-                        onCancel={handlePaymentCancel}
-                      />
-                    ) : (
-                      <PaymentSection
-                        orderData={orderData}
-                        onSuccess={handlePaymentSuccess}
-                        onError={handlePaymentError}
-                        onCancel={handlePaymentCancel}
-                      />
-                    )}
-                  </>
+                  <PaymentSection
+                    orderData={orderData}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                    onCancel={handlePaymentCancel}
+                  />
                 )}
                 
                 <div className="text-center">
