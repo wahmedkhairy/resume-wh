@@ -256,7 +256,7 @@ const Auth = () => {
   };
 
   const handleForgotPassword = () => {
-    navigate('/#forgot-password');
+    navigate('/forgot-password');
   };
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {

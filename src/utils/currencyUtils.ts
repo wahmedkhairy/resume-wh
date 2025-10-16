@@ -13,6 +13,7 @@ interface LocationData {
   currency: CurrencyConfig;
 }
 
+// Simplified to only support USD
 const getUSDCurrency = (): CurrencyConfig => {
   return {
     symbol: '$',
@@ -23,35 +24,8 @@ const getUSDCurrency = (): CurrencyConfig => {
   };
 };
 
-const getEGPCurrency = (): CurrencyConfig => {
-  return {
-    symbol: 'E£',
-    code: 'EGP',
-    basicPrice: 49.00,
-    premiumPrice: 74.00,
-    unlimitedPrice: 149.00
-  };
-};
-
 export const detectUserLocation = async (): Promise<LocationData> => {
-  try {
-    // Try to detect user location
-    const response = await fetch('https://ipapi.co/json/');
-    if (response.ok) {
-      const data = await response.json();
-      
-      // Always return USD pricing for PayPal (Paymob disabled)
-      return {
-        country: data.country_name || "United States",
-        countryCode: data.country_code || "US",
-        currency: getUSDCurrency()
-      };
-    }
-  } catch (error) {
-    console.error('Error detecting location:', error);
-  }
-  
-  // Default to USD pricing
+  // Always return USD pricing
   return {
     country: "United States",
     countryCode: "US",

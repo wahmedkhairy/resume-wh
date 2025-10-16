@@ -3,10 +3,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SubscriptionTiers from "@/components/SubscriptionTiers";
 import PaymentSection from "@/components/PaymentSection";
-import { PaymobPayment } from "@/components/PaymobPayment";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { detectUserLocation } from "@/utils/currencyUtils";
 
 interface SubscriptionSectionProps {
   onSectionChange: (section: string) => void;
@@ -19,51 +17,33 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
   const [currentStep, setCurrentStep] = useState<'plans' | 'payment'>('plans');
   const [isLoading, setIsLoading] = useState(true);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
-  const [locationData, setLocationData] = useState<any>(null);
   const { toast } = useToast();
 
-  // Initialize location and currency data
-  useEffect(() => {
-    const initializeLocation = async () => {
-      try {
-        const location = await detectUserLocation();
-        setLocationData(location);
-      } catch (error) {
-        console.error('Error detecting location:', error);
-        // Fallback to USD pricing
-        setLocationData({
-          country: "United States",
-          countryCode: "US",
-          currency: {
-            symbol: '$',
-            code: 'USD',
-            basicPrice: 2.00,
-            premiumPrice: 3.00,
-            unlimitedPrice: 4.99
-          }
-        });
-      }
-    };
-
-    initializeLocation();
-  }, []);
+  // USD pricing only
+  const usdPricing = {
+    symbol: '$',
+    code: 'USD',
+    basicPrice: 2.00,
+    premiumPrice: 3.00,
+    unlimitedPrice: 4.99
+  };
 
   const orderData = React.useMemo(() => {
-    if (!selectedTier || !locationData) return null;
+    if (!selectedTier) return null;
 
     const prices = {
-      basic: locationData.currency.basicPrice,
-      premium: locationData.currency.premiumPrice,
-      unlimited: locationData.currency.unlimitedPrice
+      basic: usdPricing.basicPrice,
+      premium: usdPricing.premiumPrice,
+      unlimited: usdPricing.unlimitedPrice
     };
 
     return {
       amount: prices[selectedTier as keyof typeof prices].toFixed(2),
-      currency: locationData.currency.code,
+      currency: usdPricing.code,
       description: `${selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} Plan`,
       tier: selectedTier
     };
-  }, [selectedTier, locationData]);
+  }, [selectedTier, usdPricing]);
 
   useEffect(() => {
     const initializeSubscription = async () => {
@@ -104,8 +84,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
         description: "Please sign in to purchase a subscription.",
         variant: "destructive",
       });
-      // Redirect to actual auth page instead of section
-      window.location.href = '/auth';
+      onSectionChange('auth');
       return;
     }
     
@@ -223,11 +202,9 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
           <p className="text-xl text-muted-foreground mb-2">
             Unlock the full potential of your resume
           </p>
-          {locationData && (
-            <p className="text-sm text-muted-foreground">
-              All prices in {locationData.currency.code} - Available worldwide
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground">
+            All prices in USD - Available worldwide
+          </p>
           {!currentUserId && (
             <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-700">
@@ -247,7 +224,10 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
             window.location.reload();
           }}
           onSubscriptionSelect={handleSubscriptionSelect}
-          locationData={locationData}
+          locationData={{
+            country: 'United States',
+            currency: usdPricing
+          }}
         />
       </div>
 
@@ -257,7 +237,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
           <Card>
             <CardContent>
               <div className="space-y-6">
-                {orderData && locationData && (
+                {orderData && (
                   <PaymentSection
                     orderData={orderData}
                     onSuccess={handlePaymentSuccess}

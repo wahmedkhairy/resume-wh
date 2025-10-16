@@ -97,6 +97,7 @@ const Header = () => {
               size="sm" 
               className="flex items-center bg-blue-600 hover:bg-blue-700"
             >
+              <CreditCard className="mr-2 h-4 w-4" />
               Upgrade
             </Button>
           </LiveSubscriptionDialog>

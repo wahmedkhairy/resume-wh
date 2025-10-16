@@ -122,6 +122,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
           ) : (
             <LiveSubscriptionDialog>
               <Button>
+                <Crown className="mr-2 h-4 w-4" />
                 Export Resume
               </Button>
             </LiveSubscriptionDialog>

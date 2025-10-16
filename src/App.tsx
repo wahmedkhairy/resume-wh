@@ -11,7 +11,15 @@ import CanonicalRedirectHandler from "@/components/CanonicalRedirectHandler";
 import IndexingOptimizer from "@/components/IndexingOptimizer";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-
+import ForgotPassword from "./pages/ForgotPassword";
+import Subscription from "./pages/Subscription";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancelled from "./pages/PaymentCancelled";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import FreeATSScannerPage from "./pages/FreeATSScanner";
+import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -59,7 +67,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
-                
+                <Route path="/admin" element={<Admin />} />
                 <Route path="*" element={<Index />} />
               </Routes>
             </IndexingOptimizer>

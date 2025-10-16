@@ -164,9 +164,9 @@ const CallToAction: React.FC<CallToActionProps> = ({
   };
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <Card className={`relative overflow-hidden ${className}`}>
       <div className={`absolute inset-0 bg-gradient-to-r ${config.bgGradient} opacity-50`} />
-      <div className="relative p-8">
+      <CardContent className="relative p-8">
         <div className="text-center space-y-6">
           {/* Icon and Urgency Badge */}
           <div className="flex flex-col items-center gap-3">
@@ -206,6 +206,7 @@ const CallToAction: React.FC<CallToActionProps> = ({
             {variant === 'upgrade' ? (
               <LiveSubscriptionDialog>
                 <Button size="lg" className="font-semibold">
+                  <Crown className="mr-2 h-4 w-4" />
                   {config.primaryAction}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -252,8 +253,8 @@ const CallToAction: React.FC<CallToActionProps> = ({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
