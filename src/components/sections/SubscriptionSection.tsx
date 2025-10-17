@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 
 interface SubscriptionSectionProps {
   onSectionChange: (section: string) => void;
+  refreshSubscription: () => Promise<void>;
 }
 
-const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChange }) => {
+const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChange, refreshSubscription }) => {
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
@@ -136,9 +137,14 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
         if (error) throw error;
       }
 
+      // Refresh subscription to immediately load new data
+      console.log('Refreshing subscription data...');
+      await refreshSubscription();
+      console.log('Subscription refreshed successfully');
+
       toast({
         title: "Payment Successful!",
-        description: `Your ${selectedTier} plan is now active.`,
+        description: `Your ${selectedTier} plan is now active. All features are now unlocked!`,
       });
 
       // Go back to editor after successful payment
@@ -154,7 +160,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onSectionChan
     } finally {
       setPaymentProcessing(false);
     }
-  }, [selectedTier, currentSubscription, currentUserId, paymentProcessing, toast, onSectionChange]);
+  }, [selectedTier, currentSubscription, currentUserId, paymentProcessing, toast, onSectionChange, refreshSubscription]);
 
   const handlePaymentError = useCallback((error: any) => {
     console.error('Payment error:', error);

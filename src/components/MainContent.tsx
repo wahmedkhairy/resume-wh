@@ -108,6 +108,7 @@ interface MainContentProps {
   onExportWord: () => void;
   canExport: () => boolean;
   getCurrentResumeData: any;
+  refreshSubscription: () => Promise<void>;
 }
 
 const MainContent: React.FC<MainContentProps> = ({
@@ -141,6 +142,7 @@ const MainContent: React.FC<MainContentProps> = ({
   onExportWord,
   canExport,
   getCurrentResumeData,
+  refreshSubscription,
 }) => {
   switch (currentSection) {
     case "settings":
@@ -189,6 +191,7 @@ const MainContent: React.FC<MainContentProps> = ({
       return (
         <SubscriptionSection
           onSectionChange={onSectionChange}
+          refreshSubscription={refreshSubscription}
         />
       );
 

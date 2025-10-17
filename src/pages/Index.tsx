@@ -62,6 +62,7 @@ const Index = () => {
     handleExport,
     handleWordExport,
     canExport,
+    refreshSubscription,
   } = useSubscription(currentUserId);
 
   // Initialize user authentication
@@ -273,6 +274,7 @@ const Index = () => {
             onExportWord={handleExportResumeAsWord}
             canExport={canExport}
             getCurrentResumeData={getCurrentResumeData}
+            refreshSubscription={refreshSubscription}
           />
         </div>
       </main>

@@ -9,87 +9,87 @@ export const useSubscription = (currentUserId: string) => {
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const checkSubscription = async () => {
-      if (!currentUserId) return;
+  const checkSubscription = async () => {
+    if (!currentUserId) return;
 
-      try {
-        console.log('Checking subscription for user:', currentUserId);
-        
-        // Get current user email for special user handling
-        const { data: { user } } = await supabase.auth.getUser();
-        console.log('Current user email:', user?.email);
-        
-        // Check if this is one of the special free users
-        const specialFreeUsers = [
-          "ahmedkhairyabdelfatah@gmail.com",
-          "ahmedz.khairy@gmail.com"
-        ];
-        const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
-        console.log('Is special unlimited user:', isSpecialUser);
-        
-        // Check if this is the basic plan user
-        const basicPlanUsers = ["ahmedz.khairy88@gmail.com"];
-        const isBasicUser = user?.email && basicPlanUsers.includes(user.email);
-        console.log('Is basic plan user:', isBasicUser);
-        
-        if (isSpecialUser) {
-          // Handle unlimited users
-          let subscription = await getOrCreateSubscription(currentUserId, 'unlimited', 999, 999);
-          setIsPremiumUser(true);
-          setCurrentSubscription(subscription);
-          return;
-        }
-        
-        if (isBasicUser) {
-          // Handle basic plan user
-          let subscription = await getOrCreateSubscription(currentUserId, 'basic', 2, 2);
-          setIsPremiumUser(true);
-          setCurrentSubscription(subscription);
-          return;
-        }
-
-        // For all other users, fetch actual subscription from database
-        const { data: subscription, error } = await supabase
-          .from('subscriptions')
-          .select('*')
-          .eq('user_id', currentUserId)
-          .maybeSingle();
-        
-        if (error) {
-          console.error('Error fetching subscription:', error);
-          return;
-        }
-        
-        console.log('Fetched subscription from database:', subscription);
-        
-        if (subscription) {
-          // Determine premium status based on actual subscription data
-          const hasPaidTier = subscription.tier !== 'demo' && subscription.tier !== null;
-          const hasRemainingScans = subscription.scan_count > 0;
-          const isActiveStatus = subscription.status === 'active';
-          
-          console.log('Subscription analysis:', {
-            tier: subscription.tier,
-            hasPaidTier,
-            scanCount: subscription.scan_count,
-            hasRemainingScans,
-            status: subscription.status,
-            isActiveStatus
-          });
-          
-          setIsPremiumUser(hasPaidTier && hasRemainingScans && isActiveStatus);
-          setCurrentSubscription(subscription);
-        } else {
-          console.log('No subscription found, user is not premium');
-          setIsPremiumUser(false);
-          setCurrentSubscription(null);
-        }
-      } catch (error) {
-        console.error('Error checking subscription:', error);
+    try {
+      console.log('Checking subscription for user:', currentUserId);
+      
+      // Get current user email for special user handling
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user email:', user?.email);
+      
+      // Check if this is one of the special free users
+      const specialFreeUsers = [
+        "ahmedkhairyabdelfatah@gmail.com",
+        "ahmedz.khairy@gmail.com"
+      ];
+      const isSpecialUser = user?.email && specialFreeUsers.includes(user.email);
+      console.log('Is special unlimited user:', isSpecialUser);
+      
+      // Check if this is the basic plan user
+      const basicPlanUsers = ["ahmedz.khairy88@gmail.com"];
+      const isBasicUser = user?.email && basicPlanUsers.includes(user.email);
+      console.log('Is basic plan user:', isBasicUser);
+      
+      if (isSpecialUser) {
+        // Handle unlimited users
+        let subscription = await getOrCreateSubscription(currentUserId, 'unlimited', 999, 999);
+        setIsPremiumUser(true);
+        setCurrentSubscription(subscription);
+        return;
       }
-    };
+      
+      if (isBasicUser) {
+        // Handle basic plan user
+        let subscription = await getOrCreateSubscription(currentUserId, 'basic', 2, 2);
+        setIsPremiumUser(true);
+        setCurrentSubscription(subscription);
+        return;
+      }
 
+      // For all other users, fetch actual subscription from database
+      const { data: subscription, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching subscription:', error);
+        return;
+      }
+      
+      console.log('Fetched subscription from database:', subscription);
+      
+      if (subscription) {
+        // Determine premium status based on actual subscription data
+        const hasPaidTier = subscription.tier !== 'demo' && subscription.tier !== null;
+        const hasRemainingScans = subscription.scan_count > 0;
+        const isActiveStatus = subscription.status === 'active';
+        
+        console.log('Subscription analysis:', {
+          tier: subscription.tier,
+          hasPaidTier,
+          scanCount: subscription.scan_count,
+          hasRemainingScans,
+          status: subscription.status,
+          isActiveStatus
+        });
+        
+        setIsPremiumUser(hasPaidTier && hasRemainingScans && isActiveStatus);
+        setCurrentSubscription(subscription);
+      } else {
+        console.log('No subscription found, user is not premium');
+        setIsPremiumUser(false);
+        setCurrentSubscription(null);
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
+
+  useEffect(() => {
     checkSubscription();
   }, [currentUserId]);
 
@@ -345,5 +345,6 @@ export const useSubscription = (currentUserId: string) => {
     getTargetedResumeLimit,
     getMaxExports,
     getRemainingExports,
+    refreshSubscription: checkSubscription,
   };
 };
