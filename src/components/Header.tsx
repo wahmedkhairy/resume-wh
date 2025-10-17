@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { CreditCard, LogIn, UserPlus, Zap } from "lucide-react";
+import { LogIn, UserPlus, Zap } from "lucide-react";
 import LiveSubscriptionDialog from "@/components/LiveSubscriptionDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -97,7 +97,6 @@ const Header = () => {
               size="sm" 
               className="flex items-center bg-blue-600 hover:bg-blue-700"
             >
-              <CreditCard className="mr-2 h-4 w-4" />
               Upgrade
             </Button>
           </LiveSubscriptionDialog>
