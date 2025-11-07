@@ -1,11 +1,21 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+// Input validation schema
+const CreateOrderSchema = z.object({
+  amount: z.number().positive().max(1000),
+  currency: z.enum(['USD']).default('USD'),
+  description: z.string().max(200).optional(),
+  tier: z.enum(['demo', 'basic', 'premium', 'unlimited'])
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -14,12 +24,33 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, currency = 'USD', description, tier } = await req.json();
-    
-    // Validate required fields
-    if (!amount || !tier) {
-      throw new Error('Amount and tier are required');
+    // Authenticate user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Validate input
+    const requestData = await req.json();
+    const validated = CreateOrderSchema.parse(requestData);
+    const { amount, currency, description, tier } = validated;
 
     // Use secure PayPal credentials from environment variables
     const paypalClientId = Deno.env.get('PAYPAL_CLIENT_ID');
@@ -129,6 +160,18 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in create-paypal-order function:', error);
+    
+    // Handle validation errors specifically
+    if (error instanceof z.ZodError) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Invalid input data',
+        details: error.errors
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     // Return detailed error for debugging
     return new Response(JSON.stringify({ 

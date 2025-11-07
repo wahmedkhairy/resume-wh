@@ -91,6 +91,7 @@ const Header = () => {
             </>
           )}
           
+          {/* TEMPORARY: Upgrade button hidden (do not delete)
           <LiveSubscriptionDialog>
             <Button 
               variant="default" 
@@ -100,6 +101,7 @@ const Header = () => {
               Upgrade
             </Button>
           </LiveSubscriptionDialog>
+          */}
         </div>
       </div>
     </header>
