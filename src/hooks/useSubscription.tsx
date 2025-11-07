@@ -148,10 +148,6 @@ export const useSubscription = (currentUserId: string) => {
   };
 
   const canExport = () => {
-    // TEMPORARY: All users can export for free (subscription logic hidden)
-    return true;
-    
-    /* ORIGINAL SUBSCRIPTION LOGIC (HIDDEN - DO NOT DELETE)
     if (!currentSubscription) return false;
     
     // Special users with unlimited tier have unlimited exports
@@ -161,7 +157,6 @@ export const useSubscription = (currentUserId: string) => {
     return currentSubscription.status === 'active' && 
            currentSubscription.tier !== 'demo' && 
            currentSubscription.scan_count > 0;
-    */
   };
 
   const getTargetedResumeLimit = () => {
@@ -212,7 +207,6 @@ export const useSubscription = (currentUserId: string) => {
       return;
     }
     
-    /* TEMPORARY: Subscription check disabled (hidden - do not delete)
     if (!canExport()) {
       toast({
         title: "Upgrade Required",
@@ -221,7 +215,6 @@ export const useSubscription = (currentUserId: string) => {
       });
       return;
     }
-    */
 
     setIsExporting(true);
     
@@ -229,7 +222,6 @@ export const useSubscription = (currentUserId: string) => {
       console.log('Starting enhanced PDF export');
       await exportToHighQualityPDF(exportData);
       
-      /* TEMPORARY: Scan count update disabled (hidden - do not delete)
       // Update scan count for non-unlimited users
       if (currentSubscription.tier !== 'unlimited') {
         const newScanCount = currentSubscription.scan_count - 1;
@@ -263,13 +255,6 @@ export const useSubscription = (currentUserId: string) => {
           description: "High-quality PDF downloaded successfully.",
         });
       }
-      */
-      
-      // TEMPORARY: Free export message
-      toast({
-        title: "Resume Exported!",
-        description: "High-quality PDF downloaded successfully.",
-      });
     } catch (error) {
       console.error('Enhanced PDF export error:', error);
       toast({
@@ -290,7 +275,6 @@ export const useSubscription = (currentUserId: string) => {
       return;
     }
     
-    /* TEMPORARY: Subscription check disabled (hidden - do not delete)
     if (!canExport()) {
       toast({
         title: "Upgrade Required",
@@ -299,7 +283,6 @@ export const useSubscription = (currentUserId: string) => {
       });
       return;
     }
-    */
 
     setIsExporting(true);
     
@@ -307,7 +290,6 @@ export const useSubscription = (currentUserId: string) => {
       console.log('Starting enhanced Word export');
       await exportToEnhancedWord(exportData);
       
-      /* TEMPORARY: Scan count update disabled (hidden - do not delete)
       // Update scan count for non-unlimited users
       if (currentSubscription.tier !== 'unlimited') {
         const newScanCount = currentSubscription.scan_count - 1;
@@ -341,13 +323,6 @@ export const useSubscription = (currentUserId: string) => {
           description: "Enhanced Word document downloaded successfully.",
         });
       }
-      */
-      
-      // TEMPORARY: Free export message
-      toast({
-        title: "Resume Exported!",
-        description: "Enhanced Word document downloaded successfully.",
-      });
     } catch (error) {
       console.error('Enhanced Word export error:', error);
       toast({
