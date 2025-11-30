@@ -70,13 +70,14 @@ Please return a JSON object with the same structure as the original resume data,
         messages: [
           {
             role: 'system',
-            content: 'You are an expert resume writer who specializes in tailoring resumes to specific job descriptions. Always return valid JSON that matches the input structure.'
+            content: 'You are an expert resume writer who specializes in tailoring resumes to specific job descriptions. Return ONLY valid JSON that matches the input structure, without any markdown formatting or code blocks.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
+        response_format: { type: "json_object" }
       }),
     });
 
@@ -99,9 +100,19 @@ Please return a JSON object with the same structure as the original resume data,
 
     let tailoredContent;
     try {
-      tailoredContent = JSON.parse(aiResponse.choices[0].message.content);
+      let content = aiResponse.choices[0].message.content;
+      
+      // Strip markdown code blocks if present
+      if (content.startsWith('```json')) {
+        content = content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (content.startsWith('```')) {
+        content = content.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      tailoredContent = JSON.parse(content);
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', parseError);
+      console.error('Raw content:', aiResponse.choices[0].message.content);
       throw new Error('Failed to parse AI response. Please try again.');
     }
 
