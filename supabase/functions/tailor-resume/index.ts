@@ -56,10 +56,10 @@ serve(async (req) => {
     
     console.log('Starting resume tailoring for user:', userId);
     
-    // Get OpenAI API key from secrets
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OpenAI API key not configured');
+    // Get Lovable AI API key from secrets
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('Lovable AI API key not configured');
     }
 
     // Create the prompt for tailoring
@@ -78,16 +78,16 @@ ${JSON.stringify(resumeData, null, 2)}
 
 Please return a JSON object with the same structure as the original resume data, but with tailored content. Only modify the text content - do not change the structure, IDs, or add/remove sections.`;
 
-    console.log('Calling OpenAI API for resume tailoring');
+    console.log('Calling Lovable AI for resume tailoring');
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -98,25 +98,31 @@ Please return a JSON object with the same structure as the original resume data,
             content: prompt
           }
         ],
-        temperature: 0.7,
-        max_tokens: 3000,
       }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenAI API error:', error);
-      throw new Error(`OpenAI API error: ${response.status} ${error}`);
+      console.error('Lovable AI API error:', error);
+      
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      }
+      if (response.status === 402) {
+        throw new Error('AI credits depleted. Please add credits to your workspace.');
+      }
+      
+      throw new Error(`AI API error: ${response.status} ${error}`);
     }
 
-    const openaiResponse = await response.json();
-    console.log('Received response from OpenAI');
+    const aiResponse = await response.json();
+    console.log('Received response from Lovable AI');
 
     let tailoredContent;
     try {
-      tailoredContent = JSON.parse(openaiResponse.choices[0].message.content);
+      tailoredContent = JSON.parse(aiResponse.choices[0].message.content);
     } catch (parseError) {
-      console.error('Failed to parse OpenAI response as JSON:', parseError);
+      console.error('Failed to parse AI response as JSON:', parseError);
       throw new Error('Failed to parse AI response. Please try again.');
     }
 
