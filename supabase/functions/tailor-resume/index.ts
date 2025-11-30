@@ -49,13 +49,20 @@ serve(async (req) => {
 3. Rewriting bullet points to highlight alignment with the role
 4. Maintaining the overall structure and truthfulness of the original content
 
+CRITICAL: You MUST return a JSON object with the EXACT same structure as the input resume data. Every field that exists in the input must exist in the output, including:
+- All arrays (experience, education, skills, courses, projects) must remain as arrays
+- Each experience item MUST include the "responsibilities" array field
+- All nested objects and their properties must be preserved
+- Do not add new fields or remove existing fields
+- Only modify the text content to better match the job description
+
 Job Description:
 ${jobDescription}
 
 Original Resume Data:
 ${JSON.stringify(resumeData, null, 2)}
 
-Please return a JSON object with the same structure as the original resume data, but with tailored content. Only modify the text content - do not change the structure, IDs, or add/remove sections.`;
+Return ONLY a valid JSON object with the tailored resume data, maintaining the exact same structure as the input.`;
 
     console.log('Calling Lovable AI for resume tailoring');
 
