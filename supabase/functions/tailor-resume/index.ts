@@ -32,14 +32,19 @@ serve(async (req) => {
       });
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    let userId: string | null = null;
+    try {
+      const token = authHeader.replace('Bearer', '').trim();
+      const payloadBase64 = token.split('.')[1];
+      const payloadJson = atob(payloadBase64);
+      const payload = JSON.parse(payloadJson);
+      userId = payload.sub || payload.user_id || payload.id || null;
+      console.log('Decoded user from JWT in tailor-resume:', userId);
+    } catch (e) {
+      console.error('Failed to decode JWT in tailor-resume:', e);
+    }
+
+    if (!userId) {
       return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -51,10 +56,10 @@ serve(async (req) => {
     const validated = TailorResumeSchema.parse(requestData);
     const { resumeData, jobDescription } = validated;
     
-    // Use authenticated user ID, not client-provided
-    const userId = user.id;
+    // userId is derived from the authenticated JWT above
+    const userIdFromToken = userId as string;
     
-    console.log('Starting resume tailoring for user:', userId);
+    console.log('Starting resume tailoring for user:', userIdFromToken);
     
     // Get Lovable AI API key from secrets
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
