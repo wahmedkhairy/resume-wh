@@ -91,6 +91,8 @@ const ClassicResumeTemplate: React.FC<ClassicResumeTemplateProps> = ({
   };
 
   const renderResponsibilities = (responsibilities: string[], writingStyle?: "bullet" | "paragraph") => {
+    if (!responsibilities || !Array.isArray(responsibilities)) return null;
+    
     const validResponsibilities = responsibilities.filter(resp => resp.trim());
     
     if (!validResponsibilities.length) return null;
