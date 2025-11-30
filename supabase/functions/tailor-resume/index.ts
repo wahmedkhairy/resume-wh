@@ -23,43 +23,17 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate user
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
+    // NOTE: This function is intentionally public and does not perform
+    // its own authentication checks. Access control and any rate limiting
+    // are handled at the platform/workspace level.
 
-    let userId: string | null = null;
-    try {
-      const token = authHeader.replace('Bearer', '').trim();
-      const payloadBase64 = token.split('.')[1];
-      const payloadJson = atob(payloadBase64);
-      const payload = JSON.parse(payloadJson);
-      userId = payload.sub || payload.user_id || payload.id || null;
-      console.log('Decoded user from JWT in tailor-resume:', userId);
-    } catch (e) {
-      console.error('Failed to decode JWT in tailor-resume:', e);
-    }
-
-    if (!userId) {
-      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
 
     // Validate input
     const requestData = await req.json();
     const validated = TailorResumeSchema.parse(requestData);
     const { resumeData, jobDescription } = validated;
     
-    // userId is derived from the authenticated JWT above
-    const userIdFromToken = userId as string;
-    
-    console.log('Starting resume tailoring for user:', userIdFromToken);
+    console.log('Starting resume tailoring request');
     
     // Get Lovable AI API key from secrets
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
