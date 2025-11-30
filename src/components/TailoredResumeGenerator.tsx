@@ -26,51 +26,6 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  const validateResumeData = () => {
-    if (!resumeData) {
-      return { valid: false, message: "Please create your resume first before generating a targeted version." };
-    }
-
-    // Check personal info
-    if (!resumeData.personalInfo) {
-      return { valid: false, message: "Personal information is missing. Please add your name and contact details." };
-    }
-
-    const { name, email } = resumeData.personalInfo;
-    if (!name || !name.trim()) {
-      return { valid: false, message: "Your name is required. Please add it to your personal information." };
-    }
-
-    // Check for at least some content
-    const hasExperience = resumeData.experience && Array.isArray(resumeData.experience) && resumeData.experience.length > 0;
-    const hasEducation = resumeData.education && Array.isArray(resumeData.education) && resumeData.education.length > 0;
-    const hasSkills = resumeData.skills && Array.isArray(resumeData.skills) && resumeData.skills.length > 0;
-    const hasSummary = resumeData.summary && resumeData.summary.trim();
-
-    if (!hasExperience && !hasEducation && !hasSkills && !hasSummary) {
-      return { 
-        valid: false, 
-        message: "Your resume needs at least one section filled out (experience, education, skills, or summary) before it can be tailored." 
-      };
-    }
-
-    // Validate experience items have responsibilities
-    if (hasExperience) {
-      const invalidExperience = resumeData.experience.find((exp: any) => 
-        !exp.responsibilities || !Array.isArray(exp.responsibilities) || exp.responsibilities.length === 0
-      );
-      
-      if (invalidExperience) {
-        return { 
-          valid: false, 
-          message: "All work experience entries must have at least one responsibility or achievement listed." 
-        };
-      }
-    }
-
-    return { valid: true, message: "" };
-  };
-
   const handleGenerateResume = async () => {
     if (!jobDescription.trim()) {
       toast({
@@ -81,11 +36,10 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
       return;
     }
 
-    const validation = validateResumeData();
-    if (!validation.valid) {
+    if (!resumeData) {
       toast({
-        title: "Resume incomplete",
-        description: validation.message,
+        title: "No resume data",
+        description: "Please create your resume first before generating a targeted version.",
         variant: "destructive",
       });
       return;
