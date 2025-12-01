@@ -16,6 +16,64 @@ const TailorResumeSchema = z.object({
   userId: z.string().uuid().optional() // Not used - we get from auth
 });
 
+function normalizeTailoredResume(tailored: any, original: any) {
+  const normalized: any = {
+    ...original,
+    ...tailored,
+  };
+
+  normalized.personalInfo = {
+    ...(original?.personalInfo || {}),
+    ...(tailored?.personalInfo || {}),
+  };
+
+  normalized.summary =
+    typeof tailored?.summary === "string"
+      ? tailored.summary
+      : original?.summary || "";
+
+  const ensureArray = (key: string) => {
+    const originalArr = Array.isArray(original?.[key]) ? original[key] : [];
+    const tailoredArr = Array.isArray(tailored?.[key]) ? tailored[key] : undefined;
+    normalized[key] = tailoredArr ?? originalArr;
+  };
+
+  ensureArray("workExperience");
+  ensureArray("education");
+  ensureArray("skills");
+  ensureArray("coursesAndCertifications");
+  ensureArray("projects");
+
+  if (Array.isArray(normalized.workExperience)) {
+    normalized.workExperience = normalized.workExperience.map(
+      (job: any, index: number) => {
+        const originalJob = Array.isArray(original?.workExperience)
+          ? original.workExperience[index]
+          : undefined;
+
+        const mergedJob = {
+          ...(originalJob || {}),
+          ...(job || {}),
+        };
+
+        if (!Array.isArray(mergedJob.responsibilities)) {
+          if (Array.isArray(originalJob?.responsibilities)) {
+            mergedJob.responsibilities = originalJob.responsibilities;
+          } else {
+            mergedJob.responsibilities = [];
+          }
+        }
+
+        return mergedJob;
+      },
+    );
+  } else {
+    normalized.workExperience = [];
+  }
+
+  return normalized;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -98,6 +156,9 @@ Return ONLY a valid JSON object with the tailored resume data, maintaining the e
       if (response.status === 402) {
         throw new Error('AI credits depleted. Please add credits to your workspace.');
       }
+      if (response.status === 503) {
+        throw new Error('AI service is temporarily unavailable. Please try again.');
+      }
       
       throw new Error(`AI API error: ${response.status} ${error}`);
     }
@@ -107,19 +168,31 @@ Return ONLY a valid JSON object with the tailored resume data, maintaining the e
 
     let tailoredContent;
     try {
-      let content = aiResponse.choices[0].message.content;
-      
-      // Strip markdown code blocks if present
-      if (content.startsWith('```json')) {
-        content = content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      } else if (content.startsWith('```')) {
-        content = content.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      const message = aiResponse?.choices?.[0]?.message;
+      let rawContent = message?.content;
+
+      // If the model already returned structured JSON, use it directly
+      if (typeof rawContent === "object" && rawContent !== null) {
+        tailoredContent = normalizeTailoredResume(rawContent, resumeData);
+      } else if (typeof rawContent === "string") {
+        let content = rawContent;
+        
+        // Strip markdown code blocks if present
+        if (content.startsWith('```json')) {
+          content = content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        } else if (content.startsWith('```')) {
+          content = content.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        }
+        
+        const parsed = JSON.parse(content);
+        tailoredContent = normalizeTailoredResume(parsed, resumeData);
+      } else {
+        console.error('Unexpected AI response format:', aiResponse);
+        throw new Error('Unexpected AI response format from AI service.');
       }
-      
-      tailoredContent = JSON.parse(content);
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', parseError);
-      console.error('Raw content:', aiResponse.choices[0].message.content);
+      console.error('Raw AI response:', aiResponse);
       throw new Error('Failed to parse AI response. Please try again.');
     }
 

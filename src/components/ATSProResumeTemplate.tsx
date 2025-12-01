@@ -320,10 +320,10 @@ const ATSProResumeTemplate: React.FC<ATSProResumeTemplateProps> = ({
               </div>
             </div>
             
-            {job.responsibilities.length > 0 && (
+            {Array.isArray(job.responsibilities) && job.responsibilities.some(resp => resp && resp.trim()) && (
               <ul style={{ margin: '6pt 0 0 0', paddingLeft: '18pt', listStyleType: 'disc' }}>
                 {job.responsibilities
-                  .filter(resp => resp.trim())
+                  .filter(resp => typeof resp === 'string' && resp.trim())
                   .map((responsibility, respIndex) => (
                   <li 
                     key={respIndex} 
