@@ -70,6 +70,11 @@ const TailoredResumeGenerator: React.FC<TailoredResumeGeneratorProps> = ({
       });
 
       onTailoredResumeGenerated(data.tailoredContent);
+
+      // Automatically switch back to the editor so the user immediately sees the targeted preview
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("changeSectionToEditor"));
+      }
     } catch (error: any) {
       console.error('Error generating targeted resume:', error);
       toast({
